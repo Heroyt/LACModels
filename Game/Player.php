@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Models\Game;
+namespace App\GameModels\Game;
 
 use App\Core\AbstractModel;
 use App\Core\DB;
 use App\Exceptions\ModelNotFoundException;
 use App\Exceptions\ValidationException;
+use App\GameModels\Traits\WithGame;
 use App\Logging\DirectoryCreationException;
-use App\Models\Traits\WithGame;
 
 abstract class Player extends AbstractModel
 {

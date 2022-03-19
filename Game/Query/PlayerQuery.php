@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Game\Query;
+namespace App\GameModels\Game\Query;
 
 
 use App\Core\Collections\AbstractCollectionQuery;

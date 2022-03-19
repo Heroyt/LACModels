@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Game\GameModes;
+namespace App\GameModels\Game\GameModes;
 
 class TeamDeathmach extends AbstractMode
 {

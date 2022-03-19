@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models\Traits;
+namespace App\GameModels\Traits;
 
-use App\Models\Game\Game;
+use App\GameModels\Game\Game;
 
 trait WithGame
 {

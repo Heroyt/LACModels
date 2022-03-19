@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models\Game\Evo5;
+namespace App\GameModels\Game\Evo5;
 
-class PlayerHit extends \App\Models\Game\PlayerHit
+class PlayerHit extends \App\GameModels\Game\PlayerHit
 {
 
 	public const TABLE = 'evo5_hits';

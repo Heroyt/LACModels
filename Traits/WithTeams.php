@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Models\Traits;
+namespace App\GameModels\Traits;
 
 use App\Core\DB;
 use App\Exceptions\ValidationException;
-use App\Models\Game\Game;
-use App\Models\Game\Team;
-use App\Models\Game\TeamCollection;
+use App\GameModels\Game\Game;
+use App\GameModels\Game\Team;
+use App\GameModels\Game\TeamCollection;
 
 trait WithTeams
 {

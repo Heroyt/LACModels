@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Models\Game\Evo5\GameModes;
+namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\Core\Controller;
-use App\Models\Game\Evo5\Game as Evo5Game;
-use App\Models\Game\Evo5\Team as Evo5Team;
-use App\Models\Game\Game;
-use App\Models\Game\GameModes\AbstractMode;
-use App\Models\Game\GameModes\CustomResultsMode;
-use App\Models\Game\Team;
+use App\GameModels\Game\Evo5\Game as Evo5Game;
+use App\GameModels\Game\Evo5\Team as Evo5Team;
+use App\GameModels\Game\Game;
+use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Game\GameModes\CustomResultsMode;
+use App\GameModels\Game\Team;
 
 class CSGO extends AbstractMode implements CustomResultsMode
 {

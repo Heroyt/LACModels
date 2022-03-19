@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Models\Game;
+namespace App\GameModels\Game;
 
 use App\Core\AbstractModel;
 use App\Core\DB;
 use App\Core\Interfaces\InsertExtendInterface;
-use App\Models\Game\GameModes\AbstractMode;
-use App\Models\Traits\WithPlayers;
-use App\Models\Traits\WithTeams;
+use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Traits\WithPlayers;
+use App\GameModels\Traits\WithTeams;
 use App\Tools\Strings;
 use DateTimeInterface;
 use Dibi\Row;

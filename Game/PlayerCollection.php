@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models\Game;
+namespace App\GameModels\Game;
 
 use App\Core\Collections\AbstractCollection;
 use App\Core\Interfaces\CollectionQueryInterface;
-use App\Models\Game\Query\PlayerQuery;
+use App\GameModels\Game\Query\PlayerQuery;
 
 /**
  * @property Player[] $data

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models\Factory;
+namespace App\GameModels\Factory;
 
 use App\Core\DB;
 use App\Exceptions\ModelNotFoundException;
-use App\Models\Game\Team;
+use App\GameModels\Game\Team;
 use App\Tools\Strings;
 use Dibi\Fluent;
 use InvalidArgumentException;
@@ -25,7 +25,7 @@ class TeamFactory
 			throw new InvalidArgumentException('System name is required.');
 		}
 		/** @var Team $className */
-		$className = '\\App\\Models\\Game\\'.Strings::toPascalCase($system).'\\Team';
+		$className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Team';
 		if (!class_exists($className)) {
 			throw new InvalidArgumentException('Game model of does not exist: '.$className);
 		}

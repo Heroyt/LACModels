@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models\Game\Evo5\GameModes;
+namespace App\GameModels\Game\Evo5\GameModes;
 
-class TeamDeathmach extends \App\Models\Game\GameModes\TeamDeathmach
+class TeamDeathmach extends \App\GameModels\Game\GameModes\TeamDeathmach
 {
 
 }

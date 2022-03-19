@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models\Game\Evo5\GameModes;
+namespace App\GameModels\Game\Evo5\GameModes;
 
-use App\Models\Game\GameModes\AbstractMode;
+use App\GameModels\Game\GameModes\AbstractMode;
 
 class Apokalypsa extends AbstractMode
 {

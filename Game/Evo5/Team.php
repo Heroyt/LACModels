@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models\Game\Evo5;
+namespace App\GameModels\Game\Evo5;
 
-class Team extends \App\Models\Game\Team
+class Team extends \App\GameModels\Game\Team
 {
 
 	public const TABLE      = 'evo5_teams';

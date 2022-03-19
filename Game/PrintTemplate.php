@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Models\Game;
+namespace App\GameModels\Game;
 
 use App\Core\AbstractModel;
-use App\Models\Game\Enums\PrintOrientation;
+use App\GameModels\Game\Enums\PrintOrientation;
 
 class PrintTemplate extends AbstractModel
 {

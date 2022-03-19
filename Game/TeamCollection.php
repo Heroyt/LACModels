@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models\Game;
+namespace App\GameModels\Game;
 
 use App\Core\Collections\AbstractCollection;
 use App\Core\Interfaces\CollectionQueryInterface;
-use App\Models\Game\Query\TeamQuery;
+use App\GameModels\Game\Query\TeamQuery;
 
 class TeamCollection extends AbstractCollection
 {

@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Models\Game\GameModes;
+namespace App\GameModels\Game\GameModes;
 
 use App\Core\AbstractModel;
 use App\Core\Interfaces\InsertExtendInterface;
 use App\Exceptions\GameModeNotFoundException;
-use App\Models\Factory\GameModeFactory;
-use App\Models\Game\Enums\GameModeType;
-use App\Models\Game\Game;
-use App\Models\Game\ModeSettings;
-use App\Models\Game\Player;
-use App\Models\Game\Team;
-use App\Models\Game\TeamCollection;
+use App\GameModels\Factory\GameModeFactory;
+use App\GameModels\Game\Enums\GameModeType;
+use App\GameModels\Game\Game;
+use App\GameModels\Game\ModeSettings;
+use App\GameModels\Game\Player;
+use App\GameModels\Game\Team;
+use App\GameModels\Game\TeamCollection;
 use Dibi\Row;
 
 abstract class AbstractMode extends AbstractModel implements InsertExtendInterface

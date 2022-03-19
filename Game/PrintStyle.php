@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Game;
+namespace App\GameModels\Game;
 
 use App\Core\AbstractModel;
 use App\Core\DB;

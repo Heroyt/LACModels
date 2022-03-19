@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Game\Evo5\GameModes;
+namespace App\GameModels\Game\Evo5\GameModes;
 
 class Tma extends TeamDeathmach
 {

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Models\Factory;
+namespace App\GameModels\Factory;
 
 use App\Core\DB;
 use App\Exceptions\GameModeNotFoundException;
-use App\Models\Game\Enums\GameModeType;
-use App\Models\Game\GameModes\AbstractMode;
+use App\GameModels\Game\Enums\GameModeType;
+use App\GameModels\Game\GameModes\AbstractMode;
 use Dibi\Row;
 use Nette\Utils\Strings;
 
@@ -37,7 +37,7 @@ class GameModeFactory
 	 */
 	protected static function findModeObject(string $system, array|Row|null $mode, GameModeType $modeType) : mixed {
 		$args = [];
-		$classBase = 'App\\Models\\Game\\';
+		$classBase = 'App\\GameModels\\Game\\';
 		$classSystem = '';
 		if (!empty($system)) {
 			$classSystem = Strings::firstUpper($system).'\\';

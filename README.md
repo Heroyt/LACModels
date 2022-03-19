@@ -1,4 +1,4 @@
-# Laser arena control - Models
+# Laser arena control - GameModels
 
 Vojík Tomáš <xvojik00@stud.vutbr.cz>
 

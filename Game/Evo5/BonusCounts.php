@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Game\Evo5;
+namespace App\GameModels\Game\Evo5;
 
 use App\Core\Interfaces\InsertExtendInterface;
 use Dibi\Row;

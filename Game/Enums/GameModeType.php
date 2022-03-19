@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Game\Enums;
+namespace App\GameModels\Game\Enums;
 
 enum GameModeType: string
 {

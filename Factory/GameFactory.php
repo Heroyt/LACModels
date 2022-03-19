@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Models\Factory;
+namespace App\GameModels\Factory;
 
 use App\Core\DB;
 use App\Exceptions\ModelNotFoundException;
-use App\Models\Game\Game;
+use App\GameModels\Game\Game;
 use App\Tools\Strings;
 use DateTime;
 use Dibi\Fluent;
@@ -75,7 +75,7 @@ class GameFactory
 			throw new InvalidArgumentException('System name is required.');
 		}
 		/** @var Game $className */
-		$className = '\\App\\Models\\Game\\'.Strings::toPascalCase($system).'\\Game';
+		$className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Game';
 		if (!class_exists($className)) {
 			throw new InvalidArgumentException('Game model of does not exist: '.$className);
 		}
@@ -195,7 +195,7 @@ class GameFactory
 		$colors = [];
 		foreach (self::getSupportedSystems() as $system) {
 			/** @var Game $className */
-			$className = 'App\Models\Game\\'.ucfirst($system).'\Game';
+			$className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
 			if (method_exists($className, 'getTeamColors')) {
 				$colors[$system] = $className::getTeamColors();
 			}

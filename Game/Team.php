@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Models\Game;
+namespace App\GameModels\Game;
 
 use App\Core\AbstractModel;
 use App\Core\DB;
 use App\Core\Interfaces\InsertExtendInterface;
 use App\Exceptions\ModelNotFoundException;
+use App\GameModels\Traits\WithGame;
+use App\GameModels\Traits\WithPlayers;
 use App\Logging\DirectoryCreationException;
-use App\Models\Traits\WithGame;
-use App\Models\Traits\WithPlayers;
 use Dibi\Row;
 
 abstract class Team extends AbstractModel implements InsertExtendInterface

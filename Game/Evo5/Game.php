@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Models\Game\Evo5;
+namespace App\GameModels\Game\Evo5;
 
-use App\Models\Game\GameModes\AbstractMode;
-use App\Models\Game\Player;
-use App\Models\Game\Scoring;
-use App\Models\Game\Timing;
+use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Game\Player;
+use App\GameModels\Game\Scoring;
+use App\GameModels\Game\Timing;
 
-class Game extends \App\Models\Game\Game
+class Game extends \App\GameModels\Game\Game
 {
 
 	public const SYSTEM     = 'evo5';

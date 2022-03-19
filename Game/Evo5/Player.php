@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Models\Game\Evo5;
+namespace App\GameModels\Game\Evo5;
 
-use App\Models\Game\Game;
+use App\GameModels\Game\Game;
 
-class Player extends \App\Models\Game\Player
+class Player extends \App\GameModels\Game\Player
 {
 
-	public const TABLE         = 'evo5_players';
-	public const DEFINITION    = [
+	public const TABLE      = 'evo5_players';
+	public const DEFINITION = [
 		'game'        => [
 			'validators' => ['required'],
 			'class'      => Game::class,

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models\Game\GameModes;
+namespace App\GameModels\Game\GameModes;
 
-use App\Models\Game\Enums\GameModeType;
+use App\GameModels\Game\Enums\GameModeType;
 
 class CustomSoloMode extends AbstractMode
 {
