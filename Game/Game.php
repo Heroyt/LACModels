@@ -38,13 +38,14 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	];
 
 	public int                $id_game;
-	public ?DateTimeInterface $fileTime = null;
-	public ?DateTimeInterface $start    = null;
-	public ?DateTimeInterface $end      = null;
-	public ?Timing            $timing   = null;
+	public ?DateTimeInterface $fileTime   = null;
+	public ?DateTimeInterface $start      = null;
+	public ?DateTimeInterface $importTime = null;
+	public ?DateTimeInterface $end        = null;
+	public ?Timing            $timing     = null;
 	public string             $code;
-	public ?AbstractMode      $mode     = null;
-	public ?Scoring           $scoring  = null;
+	public ?AbstractMode      $mode       = null;
+	public ?Scoring           $scoring    = null;
 
 	public bool $started  = false;
 	public bool $finished = false;
