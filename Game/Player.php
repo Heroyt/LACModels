@@ -39,12 +39,12 @@ abstract class Player extends AbstractModel
 
 	public int    $id_player;
 	public string $name;
-	public int    $score;
+	public int    $score    = 0;
 	public int    $vest;
-	public int    $shots;
-	public int    $accuracy;
-	public int    $hits;
-	public int    $deaths;
+	public int    $shots    = 0;
+	public int    $accuracy = 0;
+	public int    $hits     = 0;
+	public int    $deaths   = 0;
 	public int    $position;
 
 	/** @var PlayerHit[] */
