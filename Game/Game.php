@@ -8,6 +8,7 @@ use App\Core\Interfaces\InsertExtendInterface;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
+use App\Models\Arena;
 use App\Tools\Strings;
 use DateTimeInterface;
 use Dibi\Row;
@@ -35,6 +36,9 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 		'scoring'  => [
 			'validators' => ['instanceOf:'.Scoring::class],
 		],
+		'arena'  => [
+			'class' => Arena::class
+		],
 	];
 
 	public int                $id_game;
@@ -46,6 +50,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	public string             $code;
 	public ?AbstractMode      $mode       = null;
 	public ?Scoring           $scoring    = null;
+	public ?Arena             $arena      = null;
 
 	public bool $started  = false;
 	public bool $finished = false;
