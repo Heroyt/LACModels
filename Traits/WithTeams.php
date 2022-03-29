@@ -15,7 +15,7 @@ trait WithTeams
 	protected string $teamClass;
 
 	/** @var TeamCollection|Team[] */
-	protected TeamCollection $teams;
+	public TeamCollection $teams;
 	/** @var TeamCollection|Team[] */
 	protected TeamCollection $teamsSorted;
 

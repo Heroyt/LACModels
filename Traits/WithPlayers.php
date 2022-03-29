@@ -17,7 +17,7 @@ trait WithPlayers
 	/** @var string */
 	protected string $playerClass;
 	/** @var PlayerCollection */
-	protected PlayerCollection $players;
+	public PlayerCollection $players;
 	/** @var PlayerCollection */
 	protected PlayerCollection $playersSorted;
 
