@@ -137,4 +137,11 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 		return $this->getPlayers()->query()->filter('vest', $vestNum)->first();
 	}
 
+	public function jsonSerialize() : array {
+		$data = parent::jsonSerialize();
+		$data['players'] = $this->getPlayers();
+		$data['teams'] = $this->getTeams();
+		return $data;
+	}
+
 }
