@@ -139,8 +139,8 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 
 	public function jsonSerialize() : array {
 		$data = parent::jsonSerialize();
-		$data['players'] = $this->getPlayers();
-		$data['teams'] = $this->getTeams();
+		$data['players'] = $this->getPlayers()->getAll();
+		$data['teams'] = $this->getTeams()->getAll();
 		return $data;
 	}
 
