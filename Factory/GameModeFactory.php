@@ -109,5 +109,22 @@ class GameModeFactory
 		return self::findModeObject($system, $mode, $modeType);
 	}
 
+	/**
+	 * @param string       $modeName Raw game mode name
+	 * @param GameModeType $modeType Mode type: 0 = Solo, 1 = Team
+	 * @param string       $system   System name
+	 *
+	 * @return AbstractMode
+	 * @throws GameModeNotFoundException
+	 */
+	public static function findByName(string $modeName, GameModeType $modeType = GameModeType::TEAM, string $system = '') : AbstractMode {
+		$mode = DB::select('vModesNames', 'id_mode, name, system')->where('[name] = %s', $modeName)->fetch();
+		if (isset($mode->system)) {
+			/** @noinspection CallableParameterUseCaseInTypeContextInspection */
+			$system = $mode->system;
+		}
+		return self::findModeObject($system, $mode, $modeType);
+	}
+
 
 }

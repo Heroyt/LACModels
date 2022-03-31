@@ -22,9 +22,9 @@ abstract class AbstractMode extends AbstractModel implements InsertExtendInterfa
 
 	public const DEFINITION = [
 		'name'        => ['validators' => ['required']],
-		'description' => [],
+		'description' => ['noTest' => true],
 		'type'        => ['class' => GameModeType::class],
-		'settings'    => ['class' => ModeSettings::class, 'initialize' => true],
+		'settings'    => ['noTest' => true, 'class' => ModeSettings::class, 'initialize' => true],
 	];
 
 	public string       $name        = '';

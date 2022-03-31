@@ -4,8 +4,9 @@ namespace App\GameModels\Game;
 
 use App\Core\DB;
 use Dibi\Exception;
+use JsonSerializable;
 
-class PlayerHit
+class PlayerHit implements JsonSerializable
 {
 
 	public const TABLE = '';
@@ -39,4 +40,19 @@ class PlayerHit
 		return true;
 	}
 
+	/**
+	 * Specify data which should be serialized to JSON
+	 *
+	 * @link  http://php.net/manual/en/jsonserializable.jsonserialize.php
+	 * @return array data which can be serialized by <b>json_encode</b>,
+	 * which is a value of any type other than a resource.
+	 * @since 5.4.0
+	 */
+	public function jsonSerialize() : array {
+		return [
+			'shot'   => $this->playerShot->id_player,
+			'target' => $this->playerTarget->id_player,
+			'count'  => $this->count,
+		];
+	}
 }

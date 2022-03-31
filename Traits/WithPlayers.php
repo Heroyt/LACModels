@@ -15,9 +15,9 @@ trait WithPlayers
 	/** @var int */
 	public int $playerCount;
 	/** @var string */
-	protected string $playerClass;
+	public string $playerClass;
 	/** @var PlayerCollection */
-	protected PlayerCollection $players;
+	public PlayerCollection $players;
 	/** @var PlayerCollection */
 	protected PlayerCollection $playersSorted;
 

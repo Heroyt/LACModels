@@ -18,7 +18,11 @@ abstract class Team extends AbstractModel implements InsertExtendInterface
 
 	public const PRIMARY_KEY = 'id_team';
 	public const DEFINITION  = [
-		'game'     => ['class' => Game::class, 'validators' => ['required']],
+		'game'     => [
+			'noTest'     => true,
+			'class'      => Game::class,
+			'validators' => ['required']
+		],
 		'color'    => ['validators' => ['required']],
 		'score'    => [],
 		'position' => [],
@@ -132,6 +136,17 @@ abstract class Team extends AbstractModel implements InsertExtendInterface
 	 */
 	public function getTeamColor() : int {
 		return $this->color;
+	}
+
+	public function jsonSerialize() : array {
+		$data = parent::jsonSerialize();
+		if (isset($data['players'])) {
+			unset($data['players']);
+		}
+		if (isset($data['game'])) {
+			unset($data['game']);
+		}
+		return $data;
 	}
 
 }
