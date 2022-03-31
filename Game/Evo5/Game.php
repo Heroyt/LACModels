@@ -6,6 +6,7 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Scoring;
 use App\GameModels\Game\Timing;
+use App\Models\Arena;
 
 class Game extends \App\GameModels\Game\Game
 {
@@ -36,6 +37,9 @@ class Game extends \App\GameModels\Game\Game
 		'lives'      => [],
 		'ammo'       => [],
 		'respawn'    => [],
+		'arena'  => [
+			'class' => Arena::class
+		],
 	];
 
 	public int    $fileNumber;
