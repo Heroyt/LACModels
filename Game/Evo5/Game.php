@@ -15,7 +15,7 @@ class Game extends \App\GameModels\Game\Game
 	public const DEFINITION = [
 		'fileNumber' => [],
 		'modeName'   => [],
-		'fileTime'   => [],
+		'fileTime'   => ['noTest' => true],
 		'start'      => [],
 		'end'        => [],
 		'timing'     => [
@@ -47,9 +47,9 @@ class Game extends \App\GameModels\Game\Game
 	/** @var int Respawn time in seconds */
 	public int $respawn = 5;
 
-	protected string $playerClass = Player::class;
-	protected string $teamClass   = Team::class;
-	protected bool   $minesOn;
+	public string  $playerClass = \App\GameModels\Game\Evo5\Player::class;
+	public string  $teamClass   = Team::class;
+	protected bool $minesOn;
 
 	public static function getTeamColors() : array {
 		return [

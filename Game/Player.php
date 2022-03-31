@@ -17,6 +17,7 @@ abstract class Player extends AbstractModel
 
 	public const DEFINITION = [
 		'game'     => [
+			'noTest'     => true,
 			'validators' => ['required'],
 			'class'      => Game::class,
 		],
@@ -31,7 +32,8 @@ abstract class Player extends AbstractModel
 		'deaths'   => [],
 		'position' => [],
 		'team'     => [
-			'class' => Team::class,
+			'noTest' => true,
+			'class'  => Team::class,
 		],
 	];
 
@@ -375,6 +377,16 @@ abstract class Player extends AbstractModel
 			$this->color = isset($this->game) && $this->getGame()->mode->isSolo() ? 2 : $this->getTeam()->color;
 		}
 		return $this->color;
+	}
+
+	public function jsonSerialize() : array {
+		$data = parent::jsonSerialize();
+		$data['team'] = $this->getTeam()?->id;
+		if (isset($data['game'])) {
+			unset($data['game']);
+		}
+		$data['hitPlayers'] = $this->getHitsPlayers();
+		return $data;
 	}
 
 }

@@ -10,6 +10,7 @@ class Player extends \App\GameModels\Game\Player
 	public const TABLE      = 'evo5_players';
 	public const DEFINITION = [
 		'game'        => [
+			'noTest'     => true,
 			'validators' => ['required'],
 			'class'      => Game::class,
 		],
@@ -24,7 +25,8 @@ class Player extends \App\GameModels\Game\Player
 		'deaths'      => ['default' => 0],
 		'position'    => ['default' => 0],
 		'team'        => [
-			'class' => Team::class,
+			'noTest' => true,
+			'class'  => Team::class,
 		],
 		'shotPoints'  => [],
 		'scoreBonus'  => [],

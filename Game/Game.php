@@ -5,11 +5,17 @@ namespace App\GameModels\Game;
 use App\Core\AbstractModel;
 use App\Core\DB;
 use App\Core\Interfaces\InsertExtendInterface;
+use App\Exceptions\GameModeNotFoundException;
+use App\GameModels\Factory\GameModeFactory;
+use App\GameModels\Game\Enums\GameModeType;
+use App\GameModels\Game\Evo5\BonusCounts;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Tools\Strings;
+use DateTime;
 use DateTimeInterface;
+use DateTimeZone;
 use Dibi\Row;
 
 abstract class Game extends AbstractModel implements InsertExtendInterface
@@ -20,20 +26,23 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	public const SYSTEM      = '';
 	public const PRIMARY_KEY = 'id_game';
 	public const DEFINITION  = [
-		'fileTime' => [],
+		'fileTime' => ['noTest' => true],
 		'start'    => [],
 		'end'      => [],
 		'timing'   => [
 			'validators' => ['instanceOf:'.Timing::class],
+			'class'      => Timing::class,
 		],
 		'code'     => [
 			'validators' => [],
 		],
 		'mode'     => [
 			'validators' => ['instanceOf:'.AbstractMode::class],
+			'class'      => AbstractMode::class,
 		],
 		'scoring'  => [
 			'validators' => ['instanceOf:'.Scoring::class],
+			'class'      => Scoring::class,
 		],
 	];
 
@@ -59,6 +68,150 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 
 	public static function getTeamColors() : array {
 		return [];
+	}
+
+	/**
+	 * Create a new game from JSON data
+	 *
+	 * @param array $data
+	 *
+	 * @return Game
+	 * @throws GameModeNotFoundException
+	 */
+	public static function fromJson(array $data) : Game {
+		$game = new static();
+		/** @var Player[] $players */
+		$players = [];
+		/** @var Team[] $teams */
+		$teams = [];
+		foreach ($data as $key => $value) {
+			if (!property_exists($game, $key)) {
+				continue;
+			}
+			switch ($key) {
+				case 'lives':
+				case 'ammo':
+				case 'modeName':
+				case 'fileNumber':
+				case 'code':
+				case 'respawn':
+					$game->{$key} = $value;
+					break;
+				case 'end':
+				case 'start':
+					$timezone = new DateTimeZone($value['timezone']);
+					$datetime = new DateTime($value['date']);
+					$datetime->setTimezone($timezone);
+					$game->{$key} = $datetime;
+					break;
+				case 'timing':
+					$game->timing = new Timing(...$value);
+					break;
+				case 'scoring':
+					$game->scoring = new Scoring(...$value);
+					break;
+				case 'mode':
+					$game->mode = GameModeFactory::findByName($value['name'], GameModeType::from($value['type']) ?? GameModeType::TEAM, static::SYSTEM);
+					break;
+				case 'players':
+				{
+					foreach ($value as $playerNum => $playerData) {
+						/** @var Player $player */
+						$player = new ($game->playerClass);
+						$player->setGame($game);
+						$id = 0;
+						foreach ($playerData as $keyPlayer => $valuePlayer) {
+							if (!property_exists($player, $keyPlayer)) {
+								continue;
+							}
+							switch ($keyPlayer) {
+								case 'id':
+								case 'id_player':
+									$id = $valuePlayer;
+									break;
+								case 'name':
+								case 'score':
+								case 'shots':
+								case 'accuracy':
+								case 'vest':
+								case 'hits':
+								case 'deaths':
+								case 'position':
+								case 'shotPoints':
+								case 'scoreBonus':
+								case 'scorePowers':
+								case 'scoreMines':
+								case 'ammoRest':
+								case 'minesHits':
+								case 'hitsOther':
+								case 'hitsOwn':
+								case 'deathsOther':
+								case 'deathsOwn':
+									$player->{$keyPlayer} = $valuePlayer;
+									break;
+								case 'bonus':
+									$player->bonus = new BonusCounts(...$valuePlayer);
+									break;
+							}
+							$game->getPlayers()->add($player);
+							$players[$id] = $player;
+						}
+					}
+					break;
+				}
+				case 'teams':
+				{
+					foreach ($value as $teamData) {
+						/** @var Team $team */
+						$team = new $game->teamClass;
+						$team->setGame($game);
+						$id = 0;
+						foreach ($teamData as $keyTeam => $valueTeam) {
+							if (!property_exists($team, $keyTeam)) {
+								continue;
+							}
+							switch ($keyTeam) {
+								case 'id':
+								case 'id_team':
+									$id = $valueTeam;
+									break;
+								case 'name':
+								case 'score':
+								case 'color':
+								case 'position':
+									$team->{$keyTeam} = $valueTeam;
+									break;
+							}
+							$game->addTeam($team);
+							$teams[$id] = $team;
+						}
+					}
+					break;
+				}
+			}
+		}
+
+		// Assign hits and teams
+		foreach ($data['players'] ?? [] as $playerData) {
+			$id = $playerData['id'] ?? $playerData['id_player'] ?? 0;
+			if (!isset($players[$id])) {
+				continue;
+			}
+			$player = $players[$id];
+			// Hits
+			foreach ($playerData['hitPlayers'] ?? [] as $hit) {
+				if (isset($players[$hit['target']])) {
+					$player->addHits($players[$hit['target']], $hit['count']);
+				}
+			}
+			// Team
+			$teamId = $playerData['team'] ?? 0;
+			if (isset($teams[$teamId])) {
+				$player->setTeam($teams[$teamId]);
+				$teams[$teamId]->addPlayer($player);
+			}
+		}
+		return $game;
 	}
 
 	public function save() : bool {

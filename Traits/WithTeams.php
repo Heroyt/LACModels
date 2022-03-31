@@ -12,7 +12,7 @@ trait WithTeams
 {
 
 	/** @var Team */
-	protected string $teamClass;
+	public string $teamClass;
 
 	/** @var TeamCollection|Team[] */
 	public TeamCollection $teams;
