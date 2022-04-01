@@ -36,6 +36,7 @@ class Game extends \App\GameModels\Game\Game
 		'lives'      => [],
 		'ammo'       => [],
 		'respawn'    => [],
+		'sync'       => [],
 	];
 
 	public int    $fileNumber;

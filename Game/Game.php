@@ -3,15 +3,18 @@
 namespace App\GameModels\Game;
 
 use App\Core\AbstractModel;
+use App\Core\App;
 use App\Core\DB;
 use App\Core\Interfaces\InsertExtendInterface;
 use App\Exceptions\GameModeNotFoundException;
+use App\Exceptions\ValidationException;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\BonusCounts;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
+use App\Services\LigaApi;
 use App\Tools\Strings;
 use DateTime;
 use DateTimeInterface;
@@ -44,6 +47,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 			'validators' => ['instanceOf:'.Scoring::class],
 			'class'      => Scoring::class,
 		],
+		'sync'     => [],
 	];
 
 	public int                $id_game;
@@ -55,6 +59,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	public string             $code;
 	public ?AbstractMode      $mode       = null;
 	public ?Scoring           $scoring    = null;
+	public bool               $sync       = false;
 
 	public bool $started  = false;
 	public bool $finished = false;
@@ -295,6 +300,24 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 		$data['players'] = $this->getPlayers()->getAll();
 		$data['teams'] = $this->getTeams()->getAll();
 		return $data;
+	}
+
+	/**
+	 * Synchronize a game to public
+	 *
+	 * @return bool
+	 */
+	public function sync() : bool {
+		/** @var LigaApi $liga */
+		$liga = App::getService('liga');
+		if ($liga->syncGames($this::SYSTEM, [$this])) {
+			$this->sync = true;
+			try {
+				return $this->save();
+			} catch (ValidationException $e) {
+			}
+		}
+		return false;
 	}
 
 }

@@ -40,7 +40,7 @@ class GameFactory
 		$query = DB::getConnection()->select('*');
 		$queries = [];
 		foreach (self::getSupportedSystems() as $key => $system) {
-			$q = DB::select(["[{$system}_games]", "[g$key]"], "[g$key].[id_game], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end]", $system);
+			$q = DB::select(["[{$system}_games]", "[g$key]"], "[g$key].[id_game], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end], [g$key].[sync]", $system);
 			if ($excludeNotFinished) {
 				$q->where("[g$key].[end] IS NOT NULL");
 			}
