@@ -7,6 +7,7 @@ use App\Exceptions\ValidationException;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\TeamCollection;
+use App\Services\Timer;
 
 trait WithTeams
 {
@@ -78,14 +79,18 @@ trait WithTeams
 	 * @throws ValidationException
 	 */
 	public function saveTeams() : bool {
+		Timer::start('game.save.teams');
 		if (!isset($this->teams)) {
+			Timer::stop('game.save.teams');
 			return true;
 		}
 		foreach ($this->teams as $team) {
 			if (!$team->save()) {
+				Timer::stop('game.save.teams');
 				return false;
 			}
 		}
+		Timer::stop('game.save.teams');
 		return true;
 	}
 }

@@ -13,6 +13,7 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Models\Arena;
+use App\Services\Timer;
 use App\Tools\Strings;
 use DateTime;
 use DateTimeInterface;
@@ -220,6 +221,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	}
 
 	public function save() : bool {
+		Timer::start('game.check');
 		$pk = $this::PRIMARY_KEY;
 		/** @var object{id_game:int,code:string|null}|null $test */
 		$test = DB::select($this::TABLE, $pk.', code')->where('start = %dt', $this->start)->fetch();
@@ -230,6 +232,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 		if (empty($this->code)) {
 			$this->code = uniqid('g', false);
 		}
+		Timer::stop('game.check');
 		return parent::save();
 	}
 

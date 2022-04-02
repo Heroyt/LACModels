@@ -8,6 +8,7 @@ use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\PlayerCollection;
 use App\GameModels\Game\Team;
+use App\Services\Timer;
 
 trait WithPlayers
 {
@@ -110,19 +111,26 @@ trait WithPlayers
 	 * @throws ValidationException
 	 */
 	public function savePlayers() : bool {
+		Timer::start('game.save.players');
 		/** @var Player $player */
 		// Save players first
 		foreach ($this->players as $player) {
 			if (!$player->save()) {
+				Timer::stop('game.save.players');
 				return false;
 			}
 		}
 		// Save player hits
+		Timer::start('game.save.players.hits');
 		foreach ($this->players as $player) {
 			if (!$player->saveHits()) {
+				Timer::stop('game.save.players');
+				Timer::stop('game.save.players.hits');
 				return false;
 			}
 		}
+		Timer::stop('game.save.players.hits');
+		Timer::stop('game.save.players');
 		return true;
 	}
 }
