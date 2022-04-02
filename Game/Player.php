@@ -8,6 +8,7 @@ use App\Exceptions\ModelNotFoundException;
 use App\Exceptions\ValidationException;
 use App\GameModels\Traits\WithGame;
 use App\Logging\DirectoryCreationException;
+use Dibi\Exception;
 
 abstract class Player extends AbstractModel
 {
@@ -75,12 +76,17 @@ abstract class Player extends AbstractModel
 	 * @return bool
 	 */
 	public function saveHits() : bool {
+		$table = '';
+		$values = [];
 		foreach ($this->hitPlayers as $hits) {
-			if (!$hits->save()) {
-				return false;
-			}
+			$table = $hits::TABLE;
+			$values[] = $hits->getQueryData();
 		}
-		return true;
+		try {
+			return DB::replace($table, $values) > 0;
+		} catch (Exception $e) {
+			return false;
+		}
 	}
 
 	public function getTodayPosition(string $property) : int {

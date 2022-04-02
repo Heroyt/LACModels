@@ -22,11 +22,7 @@ class PlayerHit implements JsonSerializable
 	 */
 	public function save() : bool {
 		$test = DB::select($this::TABLE, '*')->where('[id_player] = %i AND [id_target] = %i', $this->playerShot->id, $this->playerTarget->id)->fetch();
-		$data = [
-			'id_player' => $this->playerShot->id,
-			'id_target' => $this->playerTarget->id,
-			'count'     => $this->count,
-		];
+		$data = $this->getQueryData();
 		try {
 			if (isset($test)) {
 				DB::update($this::TABLE, $data, ['[id_player] = %i AND [id_target] = %i', $this->playerShot->id, $this->playerTarget->id]);
@@ -38,6 +34,14 @@ class PlayerHit implements JsonSerializable
 			return false;
 		}
 		return true;
+	}
+
+	public function getQueryData() : array {
+		return [
+			'id_player' => $this->playerShot->id,
+			'id_target' => $this->playerTarget->id,
+			'count'     => $this->count,
+		];
 	}
 
 	/**
