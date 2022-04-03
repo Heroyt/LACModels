@@ -76,6 +76,9 @@ abstract class Player extends AbstractModel
 	 * @return bool
 	 */
 	public function saveHits() : bool {
+		if (empty($this->hitPlayers)) {
+			return true;
+		}
 		$table = '';
 		$values = [];
 		foreach ($this->hitPlayers as $hits) {
