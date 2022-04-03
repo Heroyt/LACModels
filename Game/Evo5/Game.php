@@ -2,6 +2,7 @@
 
 namespace App\GameModels\Game\Evo5;
 
+use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Scoring;
@@ -29,6 +30,7 @@ class Game extends \App\GameModels\Game\Game
 			'validators' => ['instanceOf:'.AbstractMode::class],
 			'class'      => AbstractMode::class,
 		],
+		'gameType'   => ['class' => GameModeType::class],
 		'scoring'    => [
 			'validators' => ['instanceOf:'.Scoring::class],
 			'class'      => Scoring::class,

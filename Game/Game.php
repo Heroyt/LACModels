@@ -43,6 +43,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 			'validators' => ['instanceOf:'.AbstractMode::class],
 			'class'      => AbstractMode::class,
 		],
+		'gameType' => ['class' => GameModeType::class],
 		'scoring'  => [
 			'validators' => ['instanceOf:'.Scoring::class],
 			'class'      => Scoring::class,
@@ -58,6 +59,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	public ?Timing            $timing     = null;
 	public string             $code;
 	public ?AbstractMode      $mode       = null;
+	public GameModeType       $gameType   = GameModeType::TEAM;
 	public ?Scoring           $scoring    = null;
 	public bool               $sync       = false;
 
@@ -94,6 +96,9 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 				continue;
 			}
 			switch ($key) {
+				case 'gameType':
+					$game->gameType = GameModeType::from($value);
+					break;
 				case 'lives':
 				case 'ammo':
 				case 'modeName':
@@ -219,20 +224,6 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 		return $game;
 	}
 
-	public function save() : bool {
-		$pk = $this::PRIMARY_KEY;
-		/** @var object{id_game:int,code:string|null}|null $test */
-		$test = DB::select($this::TABLE, $pk.', code')->where('start = %dt', $this->start)->fetch();
-		if (isset($test)) {
-			$this->id = $test->$pk;
-			$this->code = $test->code;
-		}
-		if (empty($this->code)) {
-			$this->code = uniqid('g', false);
-		}
-		return parent::save();
-	}
-
 	public function addQueryData(array &$data) : void {
 		$data[$this::PRIMARY_KEY] = $this->id;
 	}
@@ -318,6 +309,20 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 			}
 		}
 		return false;
+	}
+
+	public function save() : bool {
+		$pk = $this::PRIMARY_KEY;
+		/** @var object{id_game:int,code:string|null}|null $test */
+		$test = DB::select($this::TABLE, $pk.', code')->where('start = %dt', $this->start)->fetch();
+		if (isset($test)) {
+			$this->id = $test->$pk;
+			$this->code = $test->code;
+		}
+		if (empty($this->code)) {
+			$this->code = uniqid('g', false);
+		}
+		return parent::save();
 	}
 
 }
