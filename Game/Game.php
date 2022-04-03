@@ -42,11 +42,12 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 			'validators' => ['instanceOf:'.AbstractMode::class],
 			'class'      => AbstractMode::class,
 		],
+		'gameType' => ['class' => GameModeType::class],
 		'scoring'  => [
 			'validators' => ['instanceOf:'.Scoring::class],
 			'class'      => Scoring::class,
 		],
-		'arena'  => [
+		'arena'    => [
 			'class' => Arena::class
 		],
 	];
@@ -59,6 +60,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	public ?Timing            $timing     = null;
 	public string             $code;
 	public ?AbstractMode      $mode       = null;
+	public GameModeType       $gameType   = GameModeType::TEAM;
 	public ?Scoring           $scoring    = null;
 	public ?Arena             $arena      = null;
 
@@ -95,6 +97,9 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 				continue;
 			}
 			switch ($key) {
+				case 'gameType':
+					$game->gameType = GameModeType::from($value);
+					break;
 				case 'lives':
 				case 'ammo':
 				case 'modeName':

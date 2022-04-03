@@ -76,11 +76,17 @@ abstract class Player extends AbstractModel
 	 * @return bool
 	 */
 	public function saveHits() : bool {
+		if (empty($this->hitPlayers)) {
+			return true;
+		}
 		$table = '';
 		$values = [];
+		$table = str_replace('players', 'hits', $this::TABLE);
 		foreach ($this->hitPlayers as $hits) {
-			$table = $hits::TABLE;
-			$values[] = $hits->getQueryData();
+			$data = $hits->getQueryData();
+			if (!empty($data)) {
+				$values[] = $data;
+			}
 		}
 		try {
 			return DB::replace($table, $values) > 0;

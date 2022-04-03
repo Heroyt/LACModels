@@ -59,8 +59,8 @@ class PlayerHit implements JsonSerializable
 	 */
 	public function jsonSerialize() : array {
 		return [
-			'shot'   => $this->playerShot->id_player,
-			'target' => $this->playerTarget->id_player,
+			'shot'   => $this->playerShot->id,
+			'target' => $this->playerTarget->id,
 			'count'  => $this->count,
 		];
 	}

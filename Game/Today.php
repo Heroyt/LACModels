@@ -34,8 +34,8 @@ class Today
 	 */
 	public function getPlayerOrder(Player $player, string $property) : int {
 		return DB::select($player::TABLE, 'count(*)')
-						 ->where('[id_game] IN %sql AND %n <= %i', $this->gameQuery, Strings::toSnakeCase($property), $player->$property)
-						 ->fetchSingle() - 1;
+						 ->where('[id_game] IN %sql AND %n >= %i', $this->gameQuery, Strings::toSnakeCase($property), $player->$property)
+						 ->fetchSingle();
 	}
 
 }
