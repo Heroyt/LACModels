@@ -5,6 +5,7 @@ namespace App\GameModels;
 use App\Core\AbstractModel;
 use App\Core\DB;
 use App\Core\ModelQuery;
+use App\GameModels\Game\Enums\VestStatus;
 
 class Vest extends AbstractModel
 {
@@ -16,12 +17,16 @@ class Vest extends AbstractModel
 		'system'  => ['validators' => ['required', 'system'],],
 		'gridCol' => [],
 		'gridRow' => [],
+		'status'  => ['class' => VestStatus::class],
+		'info'    => [],
 	];
 
-	public int    $vestNum;
-	public string $system;
-	public ?int   $gridCol = null;
-	public ?int   $gridRow = null;
+	public int        $vestNum;
+	public string     $system;
+	public ?int       $gridCol = null;
+	public ?int       $gridRow = null;
+	public VestStatus $status  = VestStatus::OK;
+	public ?string    $info    = null;
 
 	/**
 	 * @param string $system
