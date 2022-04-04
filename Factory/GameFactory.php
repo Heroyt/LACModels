@@ -90,16 +90,17 @@ class GameFactory
 	/**
 	 * Get the last played game
 	 *
-	 * @param string $system System filter
+	 * @param string $system             System filter
+	 * @param bool   $excludeNotFinished By default, filter unfinished games
 	 *
 	 * @return Game|null
 	 */
-	public static function getLastGame(string $system = 'all') : ?Game {
+	public static function getLastGame(string $system = 'all', bool $excludeNotFinished = true) : ?Game {
 		if ($system === 'all') {
 			$query = self::queryGames(true);
 		}
 		else {
-			$query = self::queryGamesSystem($system, true);
+			$query = self::queryGamesSystem($system, $excludeNotFinished);
 		}
 		$row = $query->orderBy('end')->desc()->fetch();
 		if (isset($row)) {
