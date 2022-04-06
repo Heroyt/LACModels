@@ -59,7 +59,7 @@ class Game extends \App\GameModels\Game\Game
 			0 => '#f00',
 			1 => '#0c0',
 			2 => '#00f',
-			3 => '#ffc0cb',
+			3 => '#f081da',
 			4 => '#f5bc00',
 			5 => '#28d1f0',
 		];
