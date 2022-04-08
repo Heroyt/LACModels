@@ -9,121 +9,156 @@ class PlayerTrophy
 {
 
 	/**
-	 * @var array{name:string,icon:string}[] Best names
+	 * @var array{name:string,description:string,icon:string}[] Best names
 	 */
-	public array $fields;
-	public bool  $solo;
+	public static array $fields;
+	public bool         $solo;
 
 	public function __construct(
 		private Player $player
 	) {
 		$this->solo = $player->getGame()->mode->isSolo();
-		$this->fields = [
-			'hits'              => [
-				'name' => lang('Největší terminátor', context: 'results.bests'),
-				'icon' => 'predator',
-			],
-			'deaths'            => [
-				'name' => lang('Objekt největšího zájmu', context: 'results.bests'),
-				'icon' => 'skull',
-			],
-			'score'             => [
-				'name' => lang('Absolutní vítěz', context: 'results.bests'),
-				'icon' => 'crown',
-			],
-			'accuracy'          => [
-				'name' => lang('Hráč s nejlepší muškou', context: 'results.bests'),
-				'icon' => 'target',
-			],
-			'shots'             => [
-				'name' => lang('Nejúspornější střelec', context: 'results.bests'),
-				'icon' => 'bullet',
-			],
-			'miss'              => [
-				'name' => lang('Největší mimoň', context: 'results.bests'),
-				'icon' => 'bullets',
-			],
-			'zero-deaths'       => [
-				'name' => lang('Nedotknutelný', context: 'results.bests'),
-				'icon' => 'shield',
-			],
-			'100-percent'       => [
-				'name' => lang('Sniper', context: 'results.bests'),
-				'icon' => 'target',
-			],
-			'50-percent'        => [
-				'name' => lang('Poloviční sniper', context: 'results.bests'),
-				'icon' => 'target',
-			],
-			'5-percent'         => [
-				'name' => lang('Občas se i trefí', context: 'results.bests'),
-				'icon' => 'target',
-			],
-			'hitsOwn'           => [
-				'name' => lang('Zabiják vlastního týmu', context: 'results.bests'),
-				'icon' => 'kill',
-			],
-			'deathsOwn'         => [
-				'name' => lang('Největší vlastňák', context: 'results.bests'),
-				'icon' => 'skull',
-			],
-			'mines'             => [
-				'name' => lang('Drtič min', context: 'results.bests'),
-				'icon' => 'base_2',
-			],
-			'average'           => [
-				'name' => lang('Hráč', context: 'results.bests'),
-				'icon' => 'Vesta',
-			],
-			'kd-1'              => [
-				'name' => lang('Vyrovnaný', context: 'results.bests'),
-				'icon' => 'balance',
-			],
-			'kd-2'              => [
-				'name' => lang('Zabiják', context: 'results.bests'),
-				'icon' => 'kill',
-			],
-			'kd-0-5'            => [
-				'name' => lang('Terč', context: 'results.bests'),
-				'icon' => 'dead',
-			],
-			'zero'              => [
-				'name' => lang('Nula', context: 'results.bests'),
-				'icon' => 'zero',
-			],
-			'team-50'           => [
-				'name' => lang('Tahoun týmu', context: 'results.bests'),
-				'icon' => 'star',
-			],
-			'favouriteTarget'   => [
-				'name' => lang('Zasedlý', context: 'results.bests'),
-				'icon' => 'death',
-			],
-			'favouriteTargetOf' => [
-				'name' => lang('Pronásledovaný', context: 'results.bests'),
-				'icon' => 'death',
-			],
-			'devil'             => [
-				'name' => lang('Ďábel', context: 'results.bests'),
-				'icon' => 'devil',
-			],
-			'not-found'         => [
-				'name' => lang('Skóre nenalezeno', context: 'results.bests'),
-				'icon' => 'magnifying-glass',
-			],
-			'not-found-shots'   => [
-				'name' => lang('Výstřely nenalezeny', context: 'results.bests'),
-				'icon' => 'magnifying-glass',
-			],
-			'fair'              => [
-				'name' => lang('Férový hráč', context: 'results.bests'),
-				'icon' => 'balance',
-			],
-		];
+		self::getFields(); // Initialize fields array
 	}
 
 	/**
-	 * @return array{name:string,icon:string}
+	 * @return array{name:string,description:string,icon:string}[]
+	 */
+	public static function getFields() : array {
+		if (empty(self::$fields)) {
+			self::$fields = [
+				'score'             => [
+					'name'        => lang('Absolutní vítěz', context: 'results.bests'),
+					'description' => lang('Staň se hráčem s největším skóre hry.', context: 'results.bests.description'),
+					'icon'        => 'crown',
+				],
+				'hits'              => [
+					'name'        => lang('Největší terminátor', context: 'results.bests'),
+					'description' => lang('Staň se hráčem s největším počtem zásahů hry.', context: 'results.bests.description'),
+					'icon'        => 'predator',
+				],
+				'deaths'            => [
+					'name'        => lang('Objekt největšího zájmu', context: 'results.bests'),
+					'description' => lang('Staň se hráčem s největším počtem smrtí hry.', context: 'results.bests.description'),
+					'icon'        => 'skull',
+				],
+				'accuracy'          => [
+					'name'        => lang('Hráč s nejlepší muškou', context: 'results.bests'),
+					'description' => lang('Staň se nejpřesnějším hráčem hry.', context: 'results.bests.description'),
+					'icon'        => 'target',
+				],
+				'shots'             => [
+					'name'        => lang('Nejúspornější střelec', context: 'results.bests'),
+					'description' => lang('Staň se hráčem s nejméně výstřely z celé hry.', context: 'results.bests.description'),
+					'icon'        => 'bullet',
+				],
+				'miss'              => [
+					'name'        => lang('Největší mimoň', context: 'results.bests'),
+					'description' => lang('Staň se hráčem, který se nejvícekrát netrefil.', context: 'results.bests.description'),
+					'icon'        => 'bullets',
+				],
+				'hitsOwn'           => [
+					'name'        => lang('Zabiják vlastního týmu', context: 'results.bests'),
+					'description' => lang('Staň se hrářem, který nejvíckát zasáhnul spoluhráče.', context: 'results.bests.description'),
+					'icon'        => 'kill',
+				],
+				'deathsOwn'         => [
+					'name'        => lang('Největší vlastňák', context: 'results.bests'),
+					'description' => lang('Staň se hráčem, kterého nejvíckrát trefili spoluhráči.', context: 'results.bests.description'),
+					'icon'        => 'skull',
+				],
+				'mines'             => [
+					'name'        => lang('Drtič min', context: 'results.bests'),
+					'description' => lang('Získej nejvíce bonusů za hru.', context: 'results.bests.description'),
+					'icon'        => 'base_2',
+				],
+				'zero-deaths'       => [
+					'name'        => lang('Nedotknutelný', context: 'results.bests'),
+					'description' => lang('Zemři méně než 10krát za hru.', context: 'results.bests.description'),
+					'icon'        => 'shield',
+				],
+				'100-percent'       => [
+					'name'        => lang('Sniper', context: 'results.bests'),
+					'description' => lang('Získej přesnost alespoň 95% za hru.', context: 'results.bests.description'),
+					'icon'        => 'target',
+				],
+				'50-percent'        => [
+					'name'        => lang('Poloviční sniper', context: 'results.bests'),
+					'description' => lang('Získej přesnost alespoň 50% za hru.', context: 'results.bests.description'),
+					'icon'        => 'target',
+				],
+				'5-percent'         => [
+					'name'        => lang('Občas se i trefí', context: 'results.bests'),
+					'description' => lang('Získej přesnost maximálně 5% za hru.', context: 'results.bests.description'),
+					'icon'        => 'target',
+				],
+				'kd-1'              => [
+					'name'        => lang('Vyrovnaný', context: 'results.bests'),
+					'description' => lang('Měj téměř stejně zásahů a smrtí.', context: 'results.bests.description'),
+					'icon'        => 'balance',
+				],
+				'kd-2'              => [
+					'name'        => lang('Zabiják', context: 'results.bests'),
+					'description' => lang('Měj alespoň 2x tolik zásahů co smrtí.', context: 'results.bests.description'),
+					'icon'        => 'kill',
+				],
+				'kd-0-5'            => [
+					'name'        => lang('Terč', context: 'results.bests'),
+					'description' => lang('Měl alespoň přibližně 2x tolik smrtí co zásahů.', context: 'results.bests.description'),
+					'icon'        => 'dead',
+				],
+				'zero'              => [
+					'name'        => lang('Nula', context: 'results.bests'),
+					'description' => lang('Měj 0 skóre.', context: 'results.bests.description'),
+					'icon'        => 'zero',
+				],
+				'team-50'           => [
+					'name'        => lang('Tahoun týmu', context: 'results.bests'),
+					'description' => lang('Získej alespoň přibližně polovinu skóre celého tvého týmu.', context: 'results.bests.description'),
+					'icon'        => 'star',
+				],
+				'favouriteTarget'   => [
+					'name'        => lang('Zasedlý', context: 'results.bests'),
+					'description' => lang('Alespoň přibližně polovina všech tvých zásahů je jen jeden hráč.', context: 'results.bests.description'),
+					'icon'        => 'death',
+				],
+				'favouriteTargetOf' => [
+					'name'        => lang('Pronásledovaný', context: 'results.bests'),
+					'description' => lang('Alespoň přibližně polovina všech tvých smrtí je jen jeden hráč.', context: 'results.bests.description'),
+					'icon'        => 'death',
+				],
+				'devil'             => [
+					'name'        => lang('Ďábel', context: 'results.bests'),
+					'description' => lang('Získej 666 skóre nebo výstřelů.', context: 'results.bests.description'),
+					'icon'        => 'devil',
+				],
+				'not-found'         => [
+					'name'        => lang('Skóre nenalezeno', context: 'results.bests'),
+					'description' => lang('Získej 404, 4040, nebo 40400 skóre.', context: 'results.bests.description'),
+					'icon'        => 'magnifying-glass',
+				],
+				'not-found-shots'   => [
+					'name'        => lang('Výstřely nenalezeny', context: 'results.bests'),
+					'description' => lang('Vystřel 404krát.', context: 'results.bests.description'),
+					'icon'        => 'magnifying-glass',
+				],
+				'fair'              => [
+					'name'        => lang('Férový hráč', context: 'results.bests'),
+					'description' => lang('Zasáhni všechny své nepřátele stejněkrát (přibližně).', context: 'results.bests.description'),
+					'icon'        => 'balance',
+				],
+				'average'           => [
+					'name'        => lang('Hráč', context: 'results.bests'),
+					'description' => lang('Průměrný hráč. Bohužel na tebe nesedí žádná z trofejí.', context: 'results.bests.description'),
+					'icon'        => 'Vesta',
+				],
+			];
+		}
+		return self::$fields;
+	}
+
+	/**
+	 * @return array{name:string,description:string,icon:string}
 	 * @throws ModelNotFoundException
 	 * @throws DirectoryCreationException
 	 */
@@ -131,13 +166,13 @@ class PlayerTrophy
 		// Special
 		foreach (['100-percent', 'zero-deaths', 'devil', 'not-found', 'not-found-shots'] as $name) {
 			if ($this->check($name)) {
-				return $this->fields[$name];
+				return $this::getFields()[$name];
 			}
 		}
 		// Classic
 		foreach ($this->player::CLASSIC_BESTS as $name) {
 			if ($this->check($name)) {
-				return $this->fields[$name];
+				return $this::getFields()[$name];
 			}
 		}
 		// Other
@@ -154,10 +189,10 @@ class PlayerTrophy
 							 'fair',
 						 ] as $name) {
 			if ($this->check($name)) {
-				return $this->fields[$name];
+				return $this::getFields()[$name];
 			}
 		}
-		return $this->fields['average'];
+		return $this::getFields()['average'];
 	}
 
 	/**
@@ -186,13 +221,13 @@ class PlayerTrophy
 			case 'not-found-shots':
 				return $this->player->shots === 404;
 			case 'team-50':
-				return !$this->solo && ($this->player->score / $this->player->getTeam()->score) > 0.45;
+				return !$this->solo && $this->player->getTeam()->score !== 0 && ($this->player->score / $this->player->getTeam()->score) > 0.45;
 			case 'kd-1':
-				return abs(($this->player->hits / $this->player->deaths) - 1) < 0.1;
+				return $this->player->deaths !== 0 && abs(($this->player->hits / $this->player->deaths) - 1) < 0.1;
 			case 'kd-2':
-				return ($this->player->hits / $this->player->deaths) > 1.9;
+				return $this->player->deaths !== 0 && ($this->player->hits / $this->player->deaths) > 1.9;
 			case 'kd-0-5':
-				return abs(($this->player->hits / $this->player->deaths) - 0.5) < 0.15;
+				return $this->player->deaths !== 0 && ($this->player->hits / $this->player->deaths) <= 0.65;
 			case '50-percent':
 				return $this->player->accuracy >= 50;
 			case 'zero':
@@ -201,10 +236,10 @@ class PlayerTrophy
 				return $this->player->accuracy < 6;
 			case 'favouriteTarget':
 				$favouriteTarget = $this->player->getFavouriteTarget();
-				return isset($favouriteTarget) && $this->player->getHitsPlayer($favouriteTarget) / $this->player->hits > 0.45;
+				return isset($favouriteTarget) && $this->player->hits !== 0 && $this->player->getHitsPlayer($favouriteTarget) / $this->player->hits > 0.45;
 			case 'favouriteTargetOf':
 				$favouriteTarget = $this->player->getFavouriteTargetOf();
-				return isset($favouriteTarget) && $favouriteTarget->getHitsPlayer($this->player) / $this->player->deaths > 0.45;
+				return isset($favouriteTarget) && $this->player->deaths !== 0 && $favouriteTarget->getHitsPlayer($this->player) / $this->player->deaths > 0.45;
 			case 'fair':
 				$maxDelta = 0;
 				$hits = [];
@@ -218,6 +253,9 @@ class PlayerTrophy
 					$sum += $hit->count;
 					$count++;
 				}
+				if ($count === 0) {
+					return false;
+				}
 				$average = $sum / $count;
 				foreach ($hits as $hit) {
 					$delta = abs($hit - $average);
@@ -229,13 +267,13 @@ class PlayerTrophy
 	}
 
 	/**
-	 * @return array{name:string,icon:string}[]
+	 * @return array{name:string,description:string,icon:string}[]
 	 * @throws ModelNotFoundException
 	 * @throws DirectoryCreationException
 	 */
 	public function getAll() : array {
 		$fields = [];
-		foreach ($this->fields as $name => $field) {
+		foreach ($this::getFields() as $name => $field) {
 			if ($name === 'average') {
 				continue;
 			}
