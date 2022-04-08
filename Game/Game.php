@@ -3,9 +3,11 @@
 namespace App\GameModels\Game;
 
 use App\Core\AbstractModel;
+use App\Core\App;
 use App\Core\DB;
 use App\Core\Interfaces\InsertExtendInterface;
 use App\Exceptions\GameModeNotFoundException;
+use App\Exceptions\ValidationException;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\BonusCounts;
@@ -246,11 +248,11 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	}
 
 	public function isStarted() : bool {
-		return !is_null($this->start);
+		return $this->start !== null;
 	}
 
 	public function isFinished() : bool {
-		return !is_null($this->end);
+		return $this->end !== null;
 	}
 
 	/**
