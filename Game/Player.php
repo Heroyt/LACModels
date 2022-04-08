@@ -172,6 +172,10 @@ abstract class Player extends AbstractModel
 				'name' => lang('Zabiják', context: 'results.bests'),
 				'icon' => 'kill',
 			],
+			'kd-0-5'            => [
+				'name' => lang('Terč', context: 'results.bests'),
+				'icon' => 'dead',
+			],
 			'zero'              => [
 				'name' => lang('Nula', context: 'results.bests'),
 				'icon' => 'zero',
@@ -199,6 +203,10 @@ abstract class Player extends AbstractModel
 			'not-found-shots'   => [
 				'name' => lang('Výstřely nenalezeny', context: 'results.bests'),
 				'icon' => 'magnifying-glass',
+			],
+			'fair'              => [
+				'name' => lang('Férový hráč', context: 'results.bests'),
+				'icon' => 'balance',
 			],
 		];
 
@@ -250,6 +258,9 @@ abstract class Player extends AbstractModel
 			else if ($this->accuracy < 6) {
 				$best = '5-percent';
 			}
+			else if (abs(($this->hits / $this->deaths) - 0.5) < 0.15) {
+				$best = 'kd-0-5';
+			}
 		}
 		if (empty($best)) {
 			$favouriteTarget = $this->getFavouriteTarget();
@@ -259,6 +270,29 @@ abstract class Player extends AbstractModel
 			}
 			else if (isset($favouriteTargetOf) && $favouriteTargetOf->getHitsPlayer($this) / $this->deaths > 0.45) {
 				$best = 'favouriteTargetOf';
+			}
+		}
+		if (empty($best)) {
+			$maxDelta = 0;
+			$hits = [];
+			$sum = 0;
+			$count = 0;
+			$solo = $this->getGame()->mode->isSolo();
+			foreach ($this->getHitsPlayers() as $hit) {
+				if (!$solo && $hit->playerTarget->getTeamColor() === $this->getTeamColor()) {
+					continue; // Skip teammates
+				}
+				$hits[] = $hit->count;
+				$sum += $hit->count;
+				$count++;
+			}
+			$average = $sum / $count;
+			foreach ($hits as $hit) {
+				$delta = abs($hit - $average);
+				$maxDelta = max($delta, $maxDelta);
+			}
+			if ($maxDelta < 4) {
+				$best = 'fair';
 			}
 		}
 
