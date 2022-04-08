@@ -221,13 +221,13 @@ class PlayerTrophy
 			case 'not-found-shots':
 				return $this->player->shots === 404;
 			case 'team-50':
-				return !$this->solo && ($this->player->score / $this->player->getTeam()->score) > 0.45;
+				return !$this->solo && $this->player->getTeam()->score !== 0 && ($this->player->score / $this->player->getTeam()->score) > 0.45;
 			case 'kd-1':
-				return abs(($this->player->hits / $this->player->deaths) - 1) < 0.1;
+				return $this->player->deaths !== 0 && abs(($this->player->hits / $this->player->deaths) - 1) < 0.1;
 			case 'kd-2':
-				return ($this->player->hits / $this->player->deaths) > 1.9;
+				return $this->player->deaths !== 0 && ($this->player->hits / $this->player->deaths) > 1.9;
 			case 'kd-0-5':
-				return ($this->player->hits / $this->player->deaths) <= 0.65;
+				return $this->player->deaths !== 0 && ($this->player->hits / $this->player->deaths) <= 0.65;
 			case '50-percent':
 				return $this->player->accuracy >= 50;
 			case 'zero':
@@ -236,10 +236,10 @@ class PlayerTrophy
 				return $this->player->accuracy < 6;
 			case 'favouriteTarget':
 				$favouriteTarget = $this->player->getFavouriteTarget();
-				return isset($favouriteTarget) && $this->player->getHitsPlayer($favouriteTarget) / $this->player->hits > 0.45;
+				return isset($favouriteTarget) && $this->player->hits !== 0 && $this->player->getHitsPlayer($favouriteTarget) / $this->player->hits > 0.45;
 			case 'favouriteTargetOf':
 				$favouriteTarget = $this->player->getFavouriteTargetOf();
-				return isset($favouriteTarget) && $favouriteTarget->getHitsPlayer($this->player) / $this->player->deaths > 0.45;
+				return isset($favouriteTarget) && $this->player->deaths !== 0 && $favouriteTarget->getHitsPlayer($this->player) / $this->player->deaths > 0.45;
 			case 'fair':
 				$maxDelta = 0;
 				$hits = [];
@@ -252,6 +252,9 @@ class PlayerTrophy
 					$hits[] = $hit->count;
 					$sum += $hit->count;
 					$count++;
+				}
+				if ($count === 0) {
+					return false;
 				}
 				$average = $sum / $count;
 				foreach ($hits as $hit) {
