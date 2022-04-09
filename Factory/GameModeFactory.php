@@ -45,11 +45,17 @@ class GameModeFactory
 		$classNamespace = 'GameModes\\';
 		$className = '';
 		if (isset($mode)) {
+			if (is_numeric($mode->name[0])) {
+				$mode->name = 'M'.$mode->name;
+			}
 			$dbName = str_replace([' ', '.', '_', '-'], '', Strings::toAscii(Strings::capitalize($mode->name)));
 			$class = $classBase.$classSystem.$classNamespace.$dbName;
 			$args[] = $mode->id_mode;
 			if (class_exists($class)) {
 				$className = $dbName;
+			}
+			else if (class_exists($classBase.$classSystem.$classNamespace.strtoupper($dbName))) {
+				$className = strtoupper($dbName);
 			}
 			else if ($modeType === GameModeType::TEAM) {
 				$classSystem = '';
