@@ -29,22 +29,22 @@ class PlayerTrophy
 			self::$fields = [
 				'score'             => [
 					'name'        => lang('Absolutní vítěz', context: 'results.bests'),
-					'description' => lang('Staň se hráčem s největším skóre hry.', context: 'results.bests.description'),
+					'description' => lang('Staň se hráčem s největším skóre.', context: 'results.bests.description'),
 					'icon'        => 'crown',
 				],
 				'hits'              => [
 					'name'        => lang('Největší terminátor', context: 'results.bests'),
-					'description' => lang('Staň se hráčem s největším počtem zásahů hry.', context: 'results.bests.description'),
+					'description' => lang('Staň se hráčem s největším počtem zásahů.', context: 'results.bests.description'),
 					'icon'        => 'predator',
 				],
 				'deaths'            => [
 					'name'        => lang('Objekt největšího zájmu', context: 'results.bests'),
-					'description' => lang('Staň se hráčem s největším počtem smrtí hry.', context: 'results.bests.description'),
+					'description' => lang('Staň se hráčem s největším počtem smrtí.', context: 'results.bests.description'),
 					'icon'        => 'skull',
 				],
 				'accuracy'          => [
 					'name'        => lang('Hráč s nejlepší muškou', context: 'results.bests'),
-					'description' => lang('Staň se nejpřesnějším hráčem hry.', context: 'results.bests.description'),
+					'description' => lang('Staň se nejpřesnějším hráčem.', context: 'results.bests.description'),
 					'icon'        => 'target',
 				],
 				'shots'             => [
