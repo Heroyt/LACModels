@@ -66,7 +66,7 @@ abstract class Player extends AbstractModel
 	 * @throws ValidationException
 	 */
 	public function save() : bool {
-		$test = DB::select($this::TABLE, $this::PRIMARY_KEY)->where('id_game = %i && name = %s', $this->game->id, $this->name)->fetchSingle();
+		$test = DB::select($this::TABLE, $this::PRIMARY_KEY)->where('id_game = %i && name = %s && vest = %i', $this->game->id, $this->name, $this->vest)->fetchSingle();
 		if (isset($test)) {
 			$this->id = $test;
 		}
