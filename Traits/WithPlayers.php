@@ -111,6 +111,9 @@ trait WithPlayers
 	 * @throws ValidationException
 	 */
 	public function savePlayers() : bool {
+		if (!isset($this->players)) {
+			return true;
+		}
 		Timer::start('game.save.players');
 		/** @var Player $player */
 		// Save players first
