@@ -30,12 +30,20 @@ class Today
 	 * @param Player $player
 	 * @param string $property
 	 *
-	 * @return int
+	 * @return string Returns either one number (a position) or a range of position (ex. 1-3)
 	 */
-	public function getPlayerOrder(Player $player, string $property) : int {
-		return DB::select($player::TABLE, 'count(*)')
-						 ->where('[id_game] IN %sql AND %n >= %i', $this->gameQuery, Strings::toSnakeCase($property), $player->$property)
-						 ->fetchSingle();
+	public function getPlayerOrder(Player $player, string $property) : string {
+		$better = DB::select($player::TABLE, 'count(*)')
+								->where('[id_game] IN %sql AND %n > %i', $this->gameQuery, Strings::toSnakeCase($property), $player->$property)
+								->fetchSingle();
+		$same = DB::select($player::TABLE, 'count(*)')
+							->where('[id_game] IN %sql AND %n = %i', $this->gameQuery, Strings::toSnakeCase($property), $player->$property)
+							->fetchSingle();
+		$better++;
+		if ($same === 1) {
+			return $better;
+		}
+		return $better.'-'.($better + $same - 1);
 	}
 
 }
