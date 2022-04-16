@@ -110,6 +110,9 @@ trait WithPlayers
 	 * @throws ValidationException
 	 */
 	public function savePlayers() : bool {
+		if (!isset($this->players)) {
+			return true;
+		}
 		/** @var Player $player */
 		// Save players first
 		foreach ($this->players as $player) {
