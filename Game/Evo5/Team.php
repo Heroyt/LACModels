@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
+ */
 namespace App\GameModels\Game\Evo5;
 
 class Team extends \App\GameModels\Game\Team
