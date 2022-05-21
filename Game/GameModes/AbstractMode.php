@@ -40,7 +40,7 @@ abstract class AbstractMode extends AbstractModel implements InsertExtendInterfa
 	 * @throws GameModeNotFoundException
 	 */
 	public static function get(int $id, ?Row $row = null) : static {
-		return self::$instances[self::TABLE][$id] ?? GameModeFactory::getById($id);
+		return static::$instances[static::TABLE][$id] ?? GameModeFactory::getById($id);
 	}
 
 	/**
