@@ -6,6 +6,8 @@ namespace App\GameModels\Game;
 
 use App\Core\AbstractModel;
 use App\Core\App;
+use App\Core\Collections\CollectionCompareFilter;
+use App\Core\Collections\Comparison;
 use App\Core\DB;
 use App\Core\Interfaces\InsertExtendInterface;
 use App\Exceptions\GameModeNotFoundException;
@@ -249,6 +251,9 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 			case 'shots':
 				$query->asc();
 				break;
+			case 'hitsOwn':
+			case 'deathsOwn':
+				$query->addFilter(new CollectionCompareFilter($property, Comparison::GREATER, 0));
 			default:
 				$query->desc();
 				break;
