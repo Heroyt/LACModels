@@ -3,11 +3,9 @@
 namespace App\GameModels\Game;
 
 use App\Core\AbstractModel;
-use App\Core\App;
 use App\Core\DB;
 use App\Core\Interfaces\InsertExtendInterface;
 use App\Exceptions\GameModeNotFoundException;
-use App\Exceptions\ValidationException;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\BonusCounts;
@@ -69,7 +67,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	public bool $started  = false;
 	public bool $finished = false;
 
-	public static function parseRow(Row $row) : ?InsertExtendInterface {
+	public static function parseRow(Row $row) : ?static {
 		if (isset($row->id_game, static::$instances[static::TABLE][$row->id_game])) {
 			return static::$instances[static::TABLE][$row->id_game];
 		}

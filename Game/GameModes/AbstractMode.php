@@ -33,13 +33,25 @@ abstract class AbstractMode extends AbstractModel implements InsertExtendInterfa
 	public ModeSettings $settings;
 
 	/**
-	 * @param Row $row
+	 * @param int      $id
+	 * @param Row|null $row
 	 *
-	 * @return InsertExtendInterface
+	 * @return static
 	 * @throws GameModeNotFoundException
 	 */
-	public static function parseRow(Row $row) : InsertExtendInterface {
-		return GameModeFactory::getById($row->id_mode ?? 0);
+	public static function get(int $id, ?Row $row = null) : static {
+		return self::$instances[self::TABLE][$id] ?? GameModeFactory::getById($id);
+	}
+
+	/**
+	 * @param Row $row
+	 *
+	 * @return AbstractMode
+	 * @throws GameModeNotFoundException
+	 */
+	public static function parseRow(Row $row) : static {
+		/** @noinspection ProperNullCoalescingOperatorUsageInspection */
+		return self::get($row->id_mode ?? 0);
 	}
 
 

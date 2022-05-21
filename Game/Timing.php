@@ -20,7 +20,7 @@ class Timing implements InsertExtendInterface
 	) {
 	}
 
-	public static function parseRow(Row $row) : InsertExtendInterface {
+	public static function parseRow(Row $row) : static {
 		return new Timing(
 			$row->timing_before ?? 0,
 			$row->timing_game_length ?? 0,

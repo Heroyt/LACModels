@@ -48,7 +48,7 @@ class ModeSettings implements InsertExtendInterface
 	/**
 	 * @inheritDoc
 	 */
-	public static function parseRow(Row $row) : ?InsertExtendInterface {
+	public static function parseRow(Row $row) : ?static {
 		$class = new self;
 		foreach (get_object_vars($class) as $name => $val) {
 			$column = Strings::toSnakeCase($name);
