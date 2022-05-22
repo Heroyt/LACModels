@@ -10,18 +10,24 @@ use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\PlayerCollection;
 use App\GameModels\Game\Team;
+use Dibi\Row;
 
 trait WithPlayers
 {
 
 	/** @var int */
-	public int $playerCount;
+	public int $playerCount = 0;
 	/** @var string */
 	public string $playerClass;
 	/** @var PlayerCollection */
 	public PlayerCollection $players;
 	/** @var PlayerCollection */
 	protected PlayerCollection $playersSorted;
+
+	public function __construct(?int $id = null, ?Row $dbRow = null) {
+		parent::__construct($id, $dbRow);
+		$this->playerCount = count($this->getPlayers());
+	}
 
 	/**
 	 * @return int
