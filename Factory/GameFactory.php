@@ -204,4 +204,42 @@ class GameFactory
 		return $colors;
 	}
 
+	/**
+	 * Get available filters for game query based on selected system
+	 *
+	 * @param string|null $system
+	 *
+	 * @return array|string[]
+	 */
+	public static function getAvailableFilters(?string $system = null) : array {
+		$fields = [
+			'id_game',
+			'id_arena',
+			'system',
+			'code',
+			'start',
+			'end',
+		];
+		if (empty($system)) {
+			return $fields;
+		}
+		if (!in_array($system, self::getSupportedSystems(), true)) {
+			throw new InvalidArgumentException('Unsupported or unknown system: '.$system);
+		}
+		/** @var Game $className */
+		$className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
+
+		if (!class_exists($className)) {
+			throw new InvalidArgumentException('Cannot find Game class for system: '.$system);
+		}
+
+		foreach ($className::DEFINITION as $field => $definition) {
+			if (!isset($definition['class'])) {
+				$fields[] = $field;
+			}
+		}
+
+		return array_unique($fields);
+	}
+
 }
