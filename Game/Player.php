@@ -42,23 +42,23 @@ abstract class Player extends AbstractModel
 
 	public const CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
 
-	public int    $id_player;
-	public string $name;
-	public int    $score    = 0;
-	public int    $vest;
-	public int    $shots    = 0;
-	public int    $accuracy = 0;
-	public int    $hits     = 0;
-	public int    $deaths   = 0;
-	public int    $position;
+	public int    $id_player = 0;
+	public string $name      = '';
+	public int    $score     = 0;
+	public int    $vest      = 0;
+	public int    $shots     = 0;
+	public int    $accuracy  = 0;
+	public int    $hits      = 0;
+	public int    $deaths    = 0;
+	public int    $position  = 0;
 
 	/** @var PlayerHit[] */
 	public array $hitPlayers = [];
 
-	public int $teamNum;
+	public int $teamNum = 0;
 
-	protected ?Team        $team;
-	protected int          $color;
+	protected ?Team        $team              = null;
+	protected int          $color             = 0;
 	protected ?Player      $favouriteTarget   = null;
 	protected ?Player      $favouriteTargetOf = null;
 	protected PlayerTrophy $trophy;
@@ -244,7 +244,7 @@ abstract class Player extends AbstractModel
 	 * @return int
 	 */
 	public function getTeamColor() : int {
-		if (!isset($this->color)) {
+		if (empty($this->color)) {
 			$this->color = isset($this->game) && $this->getGame()->mode->isSolo() ? 2 : $this->getTeam()->color;
 		}
 		return $this->color;
