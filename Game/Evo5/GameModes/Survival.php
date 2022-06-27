@@ -2,8 +2,8 @@
 
 namespace App\GameModels\Game\Evo5\GameModes;
 
-use App\Core\Controller;
 use App\GameModels\Game\GameModes\CustomResultsMode;
+use Lsr\Core\Controller;
 
 class Survival extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode
 {

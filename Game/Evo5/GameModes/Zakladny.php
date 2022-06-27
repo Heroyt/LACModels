@@ -4,12 +4,12 @@
  */
 namespace App\GameModels\Game\Evo5\GameModes;
 
-use App\Core\Controller;
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Team;
+use Lsr\Core\Controller;
 
 class Zakladny extends AbstractMode implements CustomResultsMode
 {

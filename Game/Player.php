@@ -9,8 +9,8 @@ use App\Core\DB;
 use App\Exceptions\ModelNotFoundException;
 use App\Exceptions\ValidationException;
 use App\GameModels\Traits\WithGame;
-use App\Logging\DirectoryCreationException;
 use Dibi\Exception;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 
 abstract class Player extends AbstractModel
 {

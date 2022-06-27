@@ -5,7 +5,6 @@
 namespace App\GameModels\Game;
 
 use App\Core\AbstractModel;
-use App\Core\App;
 use App\Core\Collections\CollectionCompareFilter;
 use App\Core\Collections\Comparison;
 use App\Core\DB;
@@ -24,6 +23,7 @@ use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
 use Dibi\Row;
+use Lsr\Core\App;
 
 abstract class Game extends AbstractModel implements InsertExtendInterface
 {

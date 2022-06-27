@@ -5,7 +5,7 @@
 namespace App\GameModels\Game;
 
 use App\Exceptions\ModelNotFoundException;
-use App\Logging\DirectoryCreationException;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 
 class PlayerTrophy
 {

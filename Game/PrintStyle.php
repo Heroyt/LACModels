@@ -7,9 +7,9 @@ namespace App\GameModels\Game;
 use App\Core\AbstractModel;
 use App\Core\DB;
 use App\Exceptions\ModelNotFoundException;
-use App\Logging\DirectoryCreationException;
 use App\Tools\Color;
 use Dibi\DateTime;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 
 class PrintStyle extends AbstractModel
 {

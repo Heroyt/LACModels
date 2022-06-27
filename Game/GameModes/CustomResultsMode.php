@@ -2,7 +2,7 @@
 
 namespace App\GameModels\Game\GameModes;
 
-use App\Core\Controller;
+use Lsr\Core\Controller;
 
 interface CustomResultsMode
 {

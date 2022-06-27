@@ -10,8 +10,8 @@ use App\Core\Interfaces\InsertExtendInterface;
 use App\Exceptions\ModelNotFoundException;
 use App\GameModels\Traits\WithGame;
 use App\GameModels\Traits\WithPlayers;
-use App\Logging\DirectoryCreationException;
 use Dibi\Row;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 
 abstract class Team extends AbstractModel implements InsertExtendInterface
 {
