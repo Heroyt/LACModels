@@ -4,13 +4,18 @@
  */
 namespace App\GameModels\Game\Evo5\GameModes;
 
+use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Team;
 use Lsr\Core\Controller;
+use Lsr\Core\Models\Attributes\Factory;
+use Lsr\Core\Models\Attributes\PrimaryKey;
 
+#[PrimaryKey('id_mode')]
+#[Factory(GameModeFactory::class)]
 class Zakladny extends AbstractMode implements CustomResultsMode
 {
 

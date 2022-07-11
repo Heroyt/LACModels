@@ -2,9 +2,10 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels\Game;
 
-use App\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 
 class PlayerTrophy

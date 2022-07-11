@@ -4,8 +4,8 @@
  */
 namespace App\GameModels\Game;
 
-use App\Core\Interfaces\InsertExtendInterface;
 use Dibi\Row;
+use Lsr\Core\Models\Interfaces\InsertExtendInterface;
 
 class Scoring implements InsertExtendInterface
 {
@@ -24,7 +24,7 @@ class Scoring implements InsertExtendInterface
 	) {
 	}
 
-	public static function parseRow(Row $row) : InsertExtendInterface {
+	public static function parseRow(Row $row) : static {
 		return new Scoring(
 			$row->scoring_death_other ?? 0,
 			$row->scoring_hit_other ?? 0,

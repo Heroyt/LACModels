@@ -2,15 +2,13 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels\Game;
 
-use App\Core\AbstractModel;
 use App\Core\Collections\CollectionCompareFilter;
 use App\Core\Collections\Comparison;
-use App\Core\DB;
-use App\Core\Interfaces\InsertExtendInterface;
 use App\Exceptions\GameModeNotFoundException;
-use App\Exceptions\ValidationException;
+use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\BonusCounts;
@@ -22,60 +20,44 @@ use App\Tools\Strings;
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
-use Dibi\Row;
 use Lsr\Core\App;
+use Lsr\Core\Caching\Cache;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\Factory;
+use Lsr\Core\Models\Attributes\Instantiate;
+use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
+use Nette\Caching\Cache as CacheParent;
 
-abstract class Game extends AbstractModel implements InsertExtendInterface
+#[PrimaryKey('id_game')]
+#[Factory(GameFactory::class)]
+abstract class Game extends Model
 {
 	use WithPlayers;
 	use WithTeams;
 
-	public const SYSTEM      = '';
-	public const PRIMARY_KEY = 'id_game';
-	public const DEFINITION  = [
-		'fileTime' => ['noTest' => true],
-		'start'    => [],
-		'end'      => [],
-		'timing'   => [
-			'validators' => ['instanceOf:'.Timing::class],
-			'class'      => Timing::class,
-		],
-		'code'     => [
-			'validators' => [],
-		],
-		'mode'     => [
-			'validators' => ['instanceOf:'.AbstractMode::class],
-			'class'      => AbstractMode::class,
-		],
-		'gameType' => ['class' => GameModeType::class],
-		'scoring'  => [
-			'validators' => ['instanceOf:'.Scoring::class],
-			'class'      => Scoring::class,
-		],
-		'sync'     => [],
-	];
+	public const SYSTEM = '';
 
 	public int                $id_game;
 	public ?DateTimeInterface $fileTime   = null;
 	public ?DateTimeInterface $start      = null;
 	public ?DateTimeInterface $importTime = null;
 	public ?DateTimeInterface $end        = null;
+	#[Instantiate]
 	public ?Timing            $timing     = null;
 	public string             $code;
-	public ?AbstractMode      $mode       = null;
-	public GameModeType       $gameType   = GameModeType::TEAM;
-	public ?Scoring           $scoring    = null;
-	public bool               $sync       = false;
+
+	#[ManyToOne]
+	public ?AbstractMode $mode     = null;
+	public GameModeType  $gameType = GameModeType::TEAM;
+	#[Instantiate]
+	public ?Scoring      $scoring  = null;
+	public bool          $sync     = false;
 
 	public bool $started  = false;
 	public bool $finished = false;
-
-	public static function parseRow(Row $row) : ?InsertExtendInterface {
-		if (isset($row->id_game, static::$instances[static::TABLE][$row->id_game])) {
-			return static::$instances[static::TABLE][$row->id_game];
-		}
-		return null;
-	}
 
 	public static function getTeamColors() : array {
 		return [];
@@ -228,10 +210,6 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 		return $game;
 	}
 
-	public function addQueryData(array &$data) : void {
-		$data[$this::PRIMARY_KEY] = $this->id;
-	}
-
 	public function isStarted() : bool {
 		return $this->start !== null;
 	}
@@ -304,6 +282,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	 * Synchronize a game to public
 	 *
 	 * @return bool
+	 * @throws ValidationException
 	 */
 	public function sync() : bool {
 		/** @var LigaApi $liga */
@@ -319,7 +298,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	}
 
 	public function save() : bool {
-		$pk = $this::PRIMARY_KEY;
+		$pk = $this::getPrimaryKey();
 		/** @var object{id_game:int,code:string|null}|null $test */
 		$test = DB::select($this::TABLE, $pk.', code')->where('start = %dt', $this->start)->fetch();
 		if (isset($test)) {
@@ -330,6 +309,24 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 			$this->code = uniqid('g', false);
 		}
 		return parent::save();
+	}
+
+	public function update() : bool {
+		// Invalidate cache
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
+		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start->format('Y-m-d')]]);
+		return parent::update();
+	}
+
+	public function delete() : bool {
+		// Invalidate cache
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
+		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start->format('Y-m-d')]]);
+		return parent::delete();
 	}
 
 }

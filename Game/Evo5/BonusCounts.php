@@ -4,8 +4,8 @@
  */
 namespace App\GameModels\Game\Evo5;
 
-use App\Core\Interfaces\InsertExtendInterface;
 use Dibi\Row;
+use Lsr\Core\Models\Interfaces\InsertExtendInterface;
 
 class BonusCounts implements InsertExtendInterface
 {
@@ -21,7 +21,7 @@ class BonusCounts implements InsertExtendInterface
 	/**
 	 * @inheritDoc
 	 */
-	public static function parseRow(Row $row) : InsertExtendInterface {
+	public static function parseRow(Row $row) : static {
 		return new self(
 			$row->bonus_agent ?? 0,
 			$row->bonus_invisibility ?? 0,

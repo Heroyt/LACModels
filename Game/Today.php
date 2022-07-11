@@ -4,9 +4,9 @@
  */
 namespace App\GameModels\Game;
 
-use App\Core\DB;
 use App\Tools\Strings;
 use Dibi\Fluent;
+use Lsr\Core\DB;
 
 class Today
 {

@@ -4,9 +4,9 @@
  */
 namespace App\GameModels\Game;
 
-use App\Core\Interfaces\InsertExtendInterface;
 use App\Tools\Strings;
 use Dibi\Row;
+use Lsr\Core\Models\Interfaces\InsertExtendInterface;
 
 class ModeSettings implements InsertExtendInterface
 {
@@ -50,7 +50,7 @@ class ModeSettings implements InsertExtendInterface
 	/**
 	 * @inheritDoc
 	 */
-	public static function parseRow(Row $row) : ?InsertExtendInterface {
+	public static function parseRow(Row $row) : ?static {
 		$class = new self;
 		foreach (get_object_vars($class) as $name => $val) {
 			$column = Strings::toSnakeCase($name);

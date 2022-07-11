@@ -2,21 +2,22 @@
 
 namespace App\GameModels\Factory;
 
-use App\Core\DB;
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\GameModes\AbstractMode;
 use Dibi\Row;
+use Lsr\Core\DB;
+use Lsr\Core\Models\Interfaces\FactoryInterface;
 use Nette\Utils\Strings;
 
-class GameModeFactory
+class GameModeFactory implements FactoryInterface
 {
 
 	/**
 	 * @return AbstractMode[]
 	 * @throws GameModeNotFoundException
 	 */
-	public static function getAll() : array {
+	public static function getAll(array $options = []) : array {
 		$ids = DB::select('game_modes', 'id_mode, name, system, type')->fetchAssoc('id_mode');
 		$modes = [];
 		foreach ($ids as $id => $mode) {
@@ -86,12 +87,13 @@ class GameModeFactory
 	}
 
 	/**
-	 * @param int $id
+	 * @param int   $id
+	 * @param array $options
 	 *
-	 * @return AbstractMode
+	 * @return AbstractMode|null
 	 * @throws GameModeNotFoundException
 	 */
-	public static function getById(int $id) : AbstractMode {
+	public static function getById(int $id, array $options = []) : ?AbstractMode {
 		$mode = DB::select('game_modes', 'id_mode, name, system, type')->where('id_mode = %i', $id)->fetch();
 		$system = $mode->system ?? '';
 		$modeType = GameModeType::tryFrom($mode->type ?? 'TEAM') ?? GameModeType::TEAM;

@@ -2,23 +2,24 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels;
 
-use App\Core\AbstractModel;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
 
-class Tip extends AbstractModel
+#[PrimaryKey('id_tip')]
+class Tip extends Model
 {
 
-	public const TABLE       = 'tips';
-	public const PRIMARY_KEY = 'id_tip';
-	public const DEFINITION  = [
-		'text' => ['validators' => ['required'],],
-	];
+	public const TABLE = 'tips';
 
 	public string $text;
 
 	/**
 	 * @return string[]
+	 * @throws ValidationException
 	 */
 	public static function shuffledFormatted() : array {
 		$formatted = [];
@@ -32,6 +33,7 @@ class Tip extends AbstractModel
 	 * Get all tips, shuffled (=in random order).
 	 *
 	 * @return Tip[]
+	 * @throws ValidationException
 	 */
 	public static function shuffled() : array {
 		return self::query()->orderBy('RAND()')->get();

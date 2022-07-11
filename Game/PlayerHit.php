@@ -4,9 +4,9 @@
  */
 namespace App\GameModels\Game;
 
-use App\Core\DB;
 use Dibi\Exception;
 use JsonSerializable;
+use Lsr\Core\DB;
 
 class PlayerHit implements JsonSerializable
 {

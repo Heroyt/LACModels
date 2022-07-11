@@ -2,15 +2,18 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels\Traits;
 
-use App\Core\DB;
-use App\Exceptions\ValidationException;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\PlayerCollection;
 use App\GameModels\Game\Team;
 use Dibi\Row;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Model;
 
 trait WithPlayers
 {
@@ -30,19 +33,9 @@ trait WithPlayers
 	}
 
 	/**
-	 * @return int
-	 */
-	public function getMinScore() : int {
-		/** @var Player|null $player */
-		$player = $this->getPlayers()->query()->sortBy('score')->asc()->first();
-		if (isset($player)) {
-			return $player->score;
-		}
-		return 0;
-	}
-
-	/**
 	 * @return PlayerCollection
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getPlayers() : PlayerCollection {
 		if (!isset($this->players)) {
@@ -53,17 +46,20 @@ trait WithPlayers
 
 	/**
 	 * @return PlayerCollection
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
 	 */
 	public function loadPlayers() : PlayerCollection {
 		if (!isset($this->players)) {
 			$this->players = new PlayerCollection();
 		}
+		/** @var Model|string $className */
 		$className = preg_replace(['/(.+)Game$/', '/(.+)Team$/'], '${1}Player', get_class($this));
-		$primaryKey = $className::PRIMARY_KEY;
-		$rows = DB::select($className::TABLE, '*')->where('%n = %i', $this::PRIMARY_KEY, $this->id)->fetchAll();
+		$primaryKey = $className::getPrimaryKey();
+		$rows = DB::select($className::TABLE, '*')->where('%n = %i', $this::getPrimaryKey(), $this->id)->fetchAll();
 		foreach ($rows as $row) {
 			/** @var Player $player */
-			$player = new $className($row->$primaryKey, $row);
+			$player = $className::get($row->$primaryKey, $row);
 			if ($this instanceof Game) {
 				$player->setGame($this);
 			}
@@ -77,6 +73,22 @@ trait WithPlayers
 
 	/**
 	 * @return int
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
+	public function getMinScore() : int {
+		/** @var Player|null $player */
+		$player = $this->getPlayers()->query()->sortBy('score')->asc()->first();
+		if (isset($player)) {
+			return $player->score;
+		}
+		return 0;
+	}
+
+	/**
+	 * @return int
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getMaxScore() : int {
 		/** @var Player|null $player */
@@ -99,7 +111,9 @@ trait WithPlayers
 	}
 
 	/**
-	 * @return PlayerCollection|Player[]
+	 * @return PlayerCollection
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getPlayersSorted() : PlayerCollection {
 		if (!isset($this->playersSorted)) {

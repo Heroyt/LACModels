@@ -2,9 +2,6 @@
 
 namespace App\GameModels\Game\GameModes;
 
-use App\Core\AbstractModel;
-use App\Core\Interfaces\InsertExtendInterface;
-use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Game;
@@ -12,13 +9,16 @@ use App\GameModels\Game\ModeSettings;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\TeamCollection;
-use Dibi\Row;
+use Lsr\Core\Models\Attributes\Factory;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
 
-abstract class AbstractMode extends AbstractModel implements InsertExtendInterface
+#[PrimaryKey('id_mode')]
+#[Factory(GameModeFactory::class)]
+abstract class AbstractMode extends Model
 {
 
-	public const TABLE       = 'game_modes';
-	public const PRIMARY_KEY = 'id_mode';
+	public const TABLE = 'game_modes';
 
 	public const DEFINITION = [
 		'name'        => ['validators' => ['required']],
@@ -32,20 +32,6 @@ abstract class AbstractMode extends AbstractModel implements InsertExtendInterfa
 	public GameModeType $type        = GameModeType::TEAM;
 	public ModeSettings $settings;
 
-	/**
-	 * @param Row $row
-	 *
-	 * @return InsertExtendInterface
-	 * @throws GameModeNotFoundException
-	 */
-	public static function parseRow(Row $row) : InsertExtendInterface {
-		return GameModeFactory::getById($row->id_mode ?? 0);
-	}
-
-
-	public function addQueryData(array &$data) : void {
-		$data['id_mode'] = $this->id;
-	}
 
 	public function isSolo() : bool {
 		return $this->type === GameModeType::SOLO;
