@@ -15,6 +15,7 @@ use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Attributes\Validation\Required;
 use Lsr\Core\Models\Attributes\Validation\StringLength;
@@ -29,21 +30,22 @@ abstract class Player extends Model
 
 	public const CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
 
-	public int    $id_player = 0;
 	#[Required]
 	#[StringLength(1, 15)]
-	public string $name      = '';
-	public int    $score     = 0;
-	public int    $vest      = 0;
-	public int    $shots     = 0;
-	public int    $accuracy  = 0;
-	public int    $hits      = 0;
-	public int    $deaths    = 0;
-	public int    $position  = 0;
+	public string $name     = '';
+	public int    $score    = 0;
+	public int    $vest     = 0;
+	public int    $shots    = 0;
+	public int    $accuracy = 0;
+	public int    $hits     = 0;
+	public int    $deaths   = 0;
+	public int    $position = 0;
 
 	/** @var PlayerHit[] */
+	#[NoDB]
 	public array $hitPlayers = [];
 
+	#[NoDB]
 	public int $teamNum = 0;
 
 	#[ManyToOne(foreignKey: 'id_team')]

@@ -27,6 +27,7 @@ use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 use Nette\Caching\Cache as CacheParent;
@@ -40,7 +41,6 @@ abstract class Game extends Model
 
 	public const SYSTEM = '';
 
-	public int                $id_game;
 	public ?DateTimeInterface $fileTime   = null;
 	public ?DateTimeInterface $start      = null;
 	public ?DateTimeInterface $importTime = null;
@@ -56,7 +56,9 @@ abstract class Game extends Model
 	public ?Scoring      $scoring  = null;
 	public bool          $sync     = false;
 
+	#[NoDB]
 	public bool $started  = false;
+	#[NoDB]
 	public bool $finished = false;
 
 	public static function getTeamColors() : array {

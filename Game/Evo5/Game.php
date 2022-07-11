@@ -7,6 +7,7 @@ namespace App\GameModels\Game\Evo5;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Player;
 use Lsr\Core\Models\Attributes\Factory;
+use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
 #[PrimaryKey('id_game')]
@@ -26,7 +27,9 @@ class Game extends \App\GameModels\Game\Game
 	/** @var int Respawn time in seconds */
 	public int $respawn = 5;
 
+	#[NoDB]
 	public string  $playerClass = \App\GameModels\Game\Evo5\Player::class;
+	#[NoDB]
 	public string  $teamClass   = Team::class;
 	protected bool $minesOn;
 

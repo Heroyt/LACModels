@@ -8,6 +8,7 @@ namespace App\GameModels\Game\Evo5;
 use App\GameModels\Factory\TeamFactory;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
 #[PrimaryKey('id_team')]
@@ -17,6 +18,7 @@ class Team extends \App\GameModels\Game\Team
 
 	public const TABLE = 'evo5_teams';
 
+	#[NoDB]
 	public string $playerClass = Player::class;
 
 	#[ManyToOne(class: Game::class)]

@@ -28,7 +28,6 @@ abstract class Team extends Model
 
 	public const PRIMARY_KEY = 'id_team';
 
-	public int    $id_team;
 	#[Required]
 	public int    $color;
 	#[Required]

@@ -12,6 +12,8 @@ use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
+use Lsr\Helpers\Tools\Timer;
+use Throwable;
 
 class TeamFactory implements FactoryInterface
 {
@@ -80,13 +82,14 @@ class TeamFactory implements FactoryInterface
 	 * @param array{system: string} $options
 	 *
 	 * @return Team|null
-	 * @throws ValidationException
+	 * @throws Throwable
 	 */
 	public static function getById(int $id, array $options = []) : ?Team {
 		$system = $options['system'] ?? '';
 		if (empty($system)) {
 			throw new InvalidArgumentException('System name is required.');
 		}
+		Timer::startIncrementing('factory.team');
 		try {
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
@@ -103,12 +106,16 @@ class TeamFactory implements FactoryInterface
 					'teams',
 					'system/'.$system,
 					'teams/'.$system,
-					'games/'.$system.'/'.$team->getGame()->id_game,
+					'games/'.$system.'/'.$team->getGame()->id,
 				];
+				return $team;
 			});
+
 		} catch (ModelNotFoundException $e) {
+			Timer::stop('factory.team');
 			return null;
 		}
+		Timer::stop('factory.team');
 		return $team;
 	}
 

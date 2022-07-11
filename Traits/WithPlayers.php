@@ -13,14 +13,17 @@ use Dibi\Row;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Model;
 
 trait WithPlayers
 {
 
 	/** @var int */
+	#[NoDB]
 	public int $playerCount = 0;
 	/** @var string */
+	#[NoDB]
 	public string $playerClass;
 	/** @var PlayerCollection */
 	public PlayerCollection $players;

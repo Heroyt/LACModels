@@ -2,16 +2,18 @@
 
 namespace App\GameModels\Traits;
 
-use App\Exceptions\ValidationException;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\TeamCollection;
 use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\NoDB;
 
 trait WithTeams
 {
 
 	/** @var Team */
+	#[NoDB]
 	public string $teamClass;
 
 	/** @var TeamCollection|Team[] */

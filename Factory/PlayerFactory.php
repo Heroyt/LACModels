@@ -10,8 +10,9 @@ use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
+use Lsr\Helpers\Tools\Timer;
+use Throwable;
 
 class PlayerFactory implements FactoryInterface
 {
@@ -20,6 +21,7 @@ class PlayerFactory implements FactoryInterface
 	 * @param array{system: string|null} $options
 	 *
 	 * @return Player[]
+	 * @throws Throwable
 	 */
 	public static function getAll(array $options = []) : array {
 		if (!empty($options['system'])) {
@@ -79,13 +81,14 @@ class PlayerFactory implements FactoryInterface
 	 * @param array{system:string} $options
 	 *
 	 * @return Player|null
-	 * @throws ValidationException
+	 * @throws Throwable
 	 */
 	public static function getById(int $id, array $options = []) : ?Player {
 		$system = $options['system'] ?? '';
 		if (empty($system)) {
 			throw new InvalidArgumentException('System name is required.');
 		}
+		Timer::startIncrementing('factory.player');
 		try {
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
@@ -102,12 +105,14 @@ class PlayerFactory implements FactoryInterface
 					'players',
 					'system/'.$system,
 					'players/'.$system,
-					'games/'.$system.'/'.$player->getGame()->id_game,
+					'games/'.$system.'/'.$player->getGame()->id,
 				];
 			});
 		} catch (ModelNotFoundException $e) {
+			Timer::stop('factory.player');
 			return null;
 		}
+		Timer::stop('factory.player');
 		return $player;
 	}
 }

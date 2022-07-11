@@ -11,8 +11,8 @@ use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
+use Lsr\Helpers\Tools\Timer;
 use Throwable;
 
 class GameFactory implements FactoryInterface
@@ -27,9 +27,10 @@ class GameFactory implements FactoryInterface
 	 * @throws Throwable
 	 */
 	public static function getByCode(string $code) : ?Game {
+		Timer::startIncrementing('factory.game');
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
-		return $cache->load('games/'.$code, static function(array &$dependencies) use ($code) {
+		$game = $cache->load('games/'.$code, static function(array &$dependencies) use ($code) {
 			$dependencies[Cache::EXPIRE] = '7 days';
 			$dependencies[Cache::Tags] = [
 				'games',
@@ -46,6 +47,8 @@ class GameFactory implements FactoryInterface
 			}
 			return null;
 		});
+		Timer::stop('factory.game');
+		return $game;
 	}
 
 	/**
@@ -96,6 +99,7 @@ class GameFactory implements FactoryInterface
 		if (empty($system)) {
 			throw new InvalidArgumentException('System name is required.');
 		}
+		Timer::startIncrementing('factory.game');
 		try {
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
@@ -116,8 +120,10 @@ class GameFactory implements FactoryInterface
 				return $className::get($id);
 			});
 		} catch (ModelNotFoundException $e) {
+			Timer::stop('factory.game');
 			return null;
 		}
+		Timer::stop('factory.game');
 		return $game;
 	}
 
@@ -128,7 +134,7 @@ class GameFactory implements FactoryInterface
 	 * @param bool   $excludeNotFinished By default, filter unfinished games
 	 *
 	 * @return Game|null
-	 * @throws ValidationException
+	 * @throws Throwable
 	 */
 	public static function getLastGame(string $system = 'all', bool $excludeNotFinished = true) : ?Game {
 		if ($system === 'all') {
@@ -170,9 +176,10 @@ class GameFactory implements FactoryInterface
 	 * @throws Throwable
 	 */
 	public static function getByDate(DateTime $date, bool $excludeNotFinished = false) : array {
+		Timer::startIncrementing('factory.game');
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
-		return $cache->load('games/'.$date->format('Y-m-d').($excludeNotFinished ? '/finished' : ''), static function(array &$dependencies) use ($date, $excludeNotFinished) {
+		$games = $cache->load('games/'.$date->format('Y-m-d').($excludeNotFinished ? '/finished' : ''), static function(array &$dependencies) use ($date, $excludeNotFinished) {
 			$dependencies[Cache::EXPIRE] = '7 days';
 			$dependencies[Cache::Tags] = [
 				'games',
@@ -190,6 +197,8 @@ class GameFactory implements FactoryInterface
 			}
 			return $games;
 		});
+		Timer::stop('factory.game');
+		return $games;
 	}
 
 	/**
@@ -254,7 +263,7 @@ class GameFactory implements FactoryInterface
 	 * @param array{system:string|null, excludeNotFinished: bool|null} $options
 	 *
 	 * @return Game[]
-	 * @throws ValidationException
+	 * @throws Throwable
 	 */
 	public static function getAll(array $options = []) : array {
 		if (!empty($options['system'])) {

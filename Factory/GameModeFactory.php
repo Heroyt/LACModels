@@ -8,6 +8,7 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use Dibi\Row;
 use Lsr\Core\DB;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
+use Lsr\Helpers\Tools\Timer;
 use Nette\Utils\Strings;
 
 class GameModeFactory implements FactoryInterface
@@ -37,6 +38,7 @@ class GameModeFactory implements FactoryInterface
 	 * @throws GameModeNotFoundException
 	 */
 	protected static function findModeObject(string $system, array|Row|null $mode, GameModeType $modeType) : mixed {
+		Timer::startIncrementing('factory.gamemode');
 		$args = [];
 		$classBase = 'App\\GameModels\\Game\\';
 		$classSystem = '';
@@ -83,7 +85,9 @@ class GameModeFactory implements FactoryInterface
 		if (!class_exists($class)) {
 			throw new GameModeNotFoundException('Cannot find game mode class: '.(isset($dbName) ? $classBase.$classSystem.$classNamespace.$dbName.'|' : '').$classBase.$classSystem.$classNamespace.$className.'|'.$classBase.$classNamespace.$className);
 		}
-		return new $class(...$args);
+		$mode = new $class(...$args);
+		Timer::stop('factory.gamemode');
+		return $mode;
 	}
 
 	/**
