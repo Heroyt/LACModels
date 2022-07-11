@@ -3,7 +3,6 @@
 namespace App\GameModels\Factory;
 
 use App\GameModels\Game\Team;
-use App\Tools\Strings;
 use Dibi\Fluent;
 use InvalidArgumentException;
 use Lsr\Core\App;
@@ -12,6 +11,7 @@ use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
+use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
 use Throwable;
 

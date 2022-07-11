@@ -4,9 +4,9 @@
  */
 namespace App\GameModels\Game;
 
-use App\Tools\Strings;
 use Dibi\Row;
 use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use Lsr\Helpers\Tools\Strings;
 
 class ModeSettings implements InsertExtendInterface
 {

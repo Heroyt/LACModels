@@ -3,7 +3,6 @@
 namespace App\GameModels\Factory;
 
 use App\GameModels\Game\Game;
-use App\Tools\Strings;
 use DateTime;
 use Dibi\Fluent;
 use InvalidArgumentException;
@@ -12,6 +11,7 @@ use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
+use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
 use Throwable;
 

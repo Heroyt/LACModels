@@ -16,7 +16,6 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Services\LigaApi;
-use App\Tools\Strings;
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
@@ -30,6 +29,7 @@ use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
+use Lsr\Helpers\Tools\Strings;
 use Nette\Caching\Cache as CacheParent;
 
 #[PrimaryKey('id_game')]
