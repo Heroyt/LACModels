@@ -5,8 +5,14 @@
 
 namespace App\GameModels\Game\Evo5;
 
+use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Factory\GameModeFactory;
+use App\GameModels\Game\Enums\GameModeType;
+use App\GameModels\Game\Evo5\GameModes\Deathmach;
+use App\GameModels\Game\Evo5\GameModes\TeamDeathmach;
 use App\GameModels\Game\Player;
+use Dibi\Row;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
@@ -38,6 +44,19 @@ class Game extends \App\GameModels\Game\Game
 	#[NoDB]
 	public string  $teamClass   = Team::class;
 	protected bool $minesOn;
+
+	public function __construct(?int $id = null, ?Row $dbRow = null) {
+		parent::__construct($id, $dbRow);
+		if (!isset($this->mode) && !empty($this->modeName) && !empty($this->gameType)) {
+			try {
+				$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
+				if (!isset($this->mode)) {
+					$this->mode = $this->gameType === GameModeType::TEAM ? new TeamDeathmach() : new Deathmach();
+				}
+			} catch (GameModeNotFoundException) {
+			}
+		}
+	}
 
 	public static function getTeamColors() : array {
 		return [

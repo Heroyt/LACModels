@@ -7,6 +7,7 @@ use App\GameModels\Game\Team;
 use App\GameModels\Game\TeamCollection;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
 
 trait WithTeams
@@ -17,6 +18,7 @@ trait WithTeams
 	public string $teamClass;
 
 	/** @var TeamCollection|Team[] */
+	#[Instantiate]
 	public TeamCollection $teams;
 	/** @var TeamCollection|Team[] */
 	protected TeamCollection $teamsSorted;
@@ -50,6 +52,9 @@ trait WithTeams
 	 */
 	public function getTeams() : TeamCollection {
 		if (!isset($this->teams)) {
+			$this->teams = new TeamCollection();
+		}
+		if ($this->teams->count() === 0) {
 			$this->loadTeams();
 		}
 		return $this->teams;
