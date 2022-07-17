@@ -4,10 +4,15 @@
  */
 namespace App\GameModels\Game;
 
-use App\Core\DB;
 use Dibi\Exception;
 use JsonSerializable;
+use Lsr\Core\DB;
 
+/**
+ * Data model for player hits
+ *
+ * N:M relation between players indicating how many times did player1 hit player 2
+ */
 class PlayerHit implements JsonSerializable
 {
 
@@ -38,6 +43,9 @@ class PlayerHit implements JsonSerializable
 		return true;
 	}
 
+	/**
+	 * @return array{id_player:int,id_target:int,count:int}
+	 */
 	public function getQueryData() : array {
 		return [
 			'id_player' => $this->playerShot->id,
@@ -56,8 +64,8 @@ class PlayerHit implements JsonSerializable
 	 */
 	public function jsonSerialize() : array {
 		return [
-			'shot'   => $this->playerShot->id_player,
-			'target' => $this->playerTarget->id_player,
+			'shot'   => $this->playerShot->id,
+			'target' => $this->playerTarget->id,
 			'count'  => $this->count,
 		];
 	}

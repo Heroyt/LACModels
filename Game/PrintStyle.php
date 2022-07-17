@@ -2,29 +2,25 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels\Game;
 
-use App\Core\AbstractModel;
-use App\Core\DB;
-use App\Exceptions\ModelNotFoundException;
-use App\Logging\DirectoryCreationException;
 use App\Tools\Color;
 use Dibi\DateTime;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
 
-class PrintStyle extends AbstractModel
+/**
+ * Model for print style settings
+ */
+#[PrimaryKey('id_style')]
+class PrintStyle extends Model
 {
 
-	public const TABLE       = 'print_styles';
-	public const PRIMARY_KEY = 'id_style';
-	public const DEFINITION  = [
-		'name'         => [],
-		'colorDark'    => [],
-		'colorLight'   => [],
-		'colorPrimary' => [],
-		'bg'           => [],
-		'bg_landscape' => [],
-		'default'      => [],
-	];
+	public const TABLE = 'print_styles';
 
 	public const COLORS  = ['dark', 'light', 'primary'];
 	public const CLASSES = ['text', 'bg', ''];
@@ -34,13 +30,13 @@ class PrintStyle extends AbstractModel
 	public string      $colorLight   = '';
 	public string      $colorPrimary = '';
 	public string      $bg           = '';
-	public string      $bg_landscape = '';
+	public string      $bgLandscape  = '';
 	public bool        $default      = false;
 
 	/**
 	 * @return PrintStyle|null
 	 * @throws ModelNotFoundException
-	 * @throws DirectoryCreationException
+	 * @throws ValidationException
 	 */
 	public static function getActiveStyle() : ?PrintStyle {
 		$id = self::getActiveStyleId();
@@ -68,8 +64,8 @@ class PrintStyle extends AbstractModel
 
 	/**
 	 * @return array{style:PrintStyle,from:DateTime,to:DateTime}[]
-	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public static function getAllStyleDates() : array {
 		$styles = DB::select(self::TABLE.'_dates', '*')->fetchAll();

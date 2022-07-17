@@ -8,6 +8,9 @@ use App\Core\Collections\AbstractCollection;
 use App\Core\Interfaces\CollectionQueryInterface;
 use App\GameModels\Game\Query\TeamQuery;
 
+/**
+ * A collection for team models
+ */
 class TeamCollection extends AbstractCollection
 {
 

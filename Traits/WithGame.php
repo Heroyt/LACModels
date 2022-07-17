@@ -3,10 +3,12 @@
 namespace App\GameModels\Traits;
 
 use App\GameModels\Game\Game;
+use Lsr\Core\Models\Attributes\ManyToOne;
 
 trait WithGame
 {
 
+	#[ManyToOne]
 	protected ?Game $game;
 
 	/**

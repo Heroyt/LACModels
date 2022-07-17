@@ -2,16 +2,18 @@
 
 namespace App\GameModels\Traits;
 
-use App\Core\DB;
-use App\Exceptions\ValidationException;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\TeamCollection;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\NoDB;
 
 trait WithTeams
 {
 
 	/** @var Team */
+	#[NoDB]
 	public string $teamClass;
 
 	/** @var TeamCollection|Team[] */
@@ -58,8 +60,8 @@ trait WithTeams
 			$this->teams = new TeamCollection();
 		}
 		$className = preg_replace('/(.+)Game$/', '${1}Team', get_class($this));
-		$primaryKey = $className::PRIMARY_KEY;
-		$rows = DB::select($className::TABLE, '*')->where('%n = %i', $this::PRIMARY_KEY, $this->id)->fetchAll();
+		$primaryKey = $className::getPrimaryKey();
+		$rows = DB::select($className::TABLE, '*')->where('%n = %i', $this::getPrimaryKey(), $this->id)->fetchAll();
 		foreach ($rows as $row) {
 			/** @var Team $team */
 			$team = new $className($row->$primaryKey, $row);

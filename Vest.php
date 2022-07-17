@@ -2,19 +2,22 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels;
 
-use App\Core\AbstractModel;
-use App\Core\DB;
-use App\Core\ModelQuery;
 use App\GameModels\Game\Enums\VestStatus;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
+use Lsr\Core\Models\ModelQuery;
 
-class Vest extends AbstractModel
+#[PrimaryKey('id_vest')]
+class Vest extends Model
 {
 
-	public const TABLE       = 'system_vests';
-	public const PRIMARY_KEY = 'id_vest';
-	public const DEFINITION  = [
+	public const TABLE      = 'system_vests';
+	public const DEFINITION = [
 		'vestNum' => ['validators' => ['required'],],
 		'system'  => ['validators' => ['required', 'system'],],
 		'gridCol' => [],
@@ -34,6 +37,7 @@ class Vest extends AbstractModel
 	 * @param string $system
 	 *
 	 * @return Vest[]
+	 * @throws ValidationException
 	 */
 	public static function getForSystem(string $system) : array {
 		return self::querySystem($system)->get();

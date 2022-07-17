@@ -2,9 +2,17 @@
 
 namespace App\GameModels\Game\Evo5\GameModes;
 
-use App\Core\Controller;
+use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\GameModes\CustomResultsMode;
+use Lsr\Core\Controller;
+use Lsr\Core\Models\Attributes\Factory;
+use Lsr\Core\Models\Attributes\PrimaryKey;
 
+/**
+ * Special LaserMaxx Evo5 game mode
+ */
+#[PrimaryKey('id_mode')]
+#[Factory(GameModeFactory::class)]
 class Survival extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode
 {
 

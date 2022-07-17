@@ -2,46 +2,27 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels\Game\Evo5;
 
-use App\GameModels\Game\Enums\GameModeType;
-use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Player;
-use App\GameModels\Game\Scoring;
-use App\GameModels\Game\Timing;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\Factory;
+use Lsr\Core\Models\Attributes\NoDB;
+use Lsr\Core\Models\Attributes\PrimaryKey;
 
+/**
+ * LaserMaxx Evo5 game model
+ */
+#[PrimaryKey('id_game')]
+#[Factory(GameFactory::class, ['system' => 'evo5'])]
 class Game extends \App\GameModels\Game\Game
 {
 
-	public const SYSTEM     = 'evo5';
-	public const TABLE      = 'evo5_games';
-	public const DEFINITION = [
-		'fileNumber' => [],
-		'modeName'   => [],
-		'fileTime'   => ['noTest' => true],
-		'start'      => [],
-		'end'        => [],
-		'timing'     => [
-			'validators' => ['instanceOf:'.Timing::class],
-			'class'      => Timing::class,
-		],
-		'code'       => [
-			'validators' => [],
-		],
-		'mode'       => [
-			'validators' => ['instanceOf:'.AbstractMode::class],
-			'class'      => AbstractMode::class,
-		],
-		'gameType'   => ['class' => GameModeType::class],
-		'scoring'    => [
-			'validators' => ['instanceOf:'.Scoring::class],
-			'class'      => Scoring::class,
-		],
-		'lives'      => [],
-		'ammo'       => [],
-		'respawn'    => [],
-		'sync'       => [],
-	];
+	public const SYSTEM = 'evo5';
+	public const TABLE  = 'evo5_games';
 
 	public int    $fileNumber;
 	public string $modeName;
@@ -52,7 +33,9 @@ class Game extends \App\GameModels\Game\Game
 	/** @var int Respawn time in seconds */
 	public int $respawn = 5;
 
+	#[NoDB]
 	public string  $playerClass = \App\GameModels\Game\Evo5\Player::class;
+	#[NoDB]
 	public string  $teamClass   = Team::class;
 	protected bool $minesOn;
 
@@ -76,6 +59,11 @@ class Game extends \App\GameModels\Game\Game
 		return parent::save() && $this->saveTeams() && $this->savePlayers();
 	}
 
+	/**
+	 * @return array|string[]
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
 	public function getBestsFields() : array {
 		$info = parent::getBestsFields();
 		if ($this->mode->isTeam()) {
@@ -98,6 +86,8 @@ class Game extends \App\GameModels\Game\Game
 	 * Checks players until it finds one with some mine-related scores.
 	 *
 	 * @return bool
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function isMinesOn() : bool {
 		if (!isset($this->minesOn)) {

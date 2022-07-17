@@ -2,8 +2,11 @@
 
 namespace App\GameModels\Game\GameModes;
 
-use App\Core\Controller;
+use Lsr\Core\Controller;
 
+/**
+ * Interface for game modes which should use a different results template
+ */
 interface CustomResultsMode
 {
 
