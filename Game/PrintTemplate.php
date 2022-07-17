@@ -9,6 +9,9 @@ use App\GameModels\Game\Enums\PrintOrientation;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 
+/**
+ * Print template settings
+ */
 #[PrimaryKey('id_template')]
 class PrintTemplate extends Model
 {

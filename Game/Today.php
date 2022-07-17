@@ -8,6 +8,9 @@ use Dibi\Fluent;
 use Lsr\Core\DB;
 use Lsr\Helpers\Tools\Strings;
 
+/**
+ * Helper class for querying the best players for a day
+ */
 class Today
 {
 

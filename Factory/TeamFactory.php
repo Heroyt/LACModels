@@ -9,12 +9,17 @@ use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
+use Nette\Caching\Cache as CacheBase;
 use Throwable;
 
+/**
+ * Factory for team models
+ *
+ * Works with multiple different laser game systems.
+ */
 class TeamFactory implements FactoryInterface
 {
 
@@ -22,7 +27,7 @@ class TeamFactory implements FactoryInterface
 	 * @param array{system: string|null} $options
 	 *
 	 * @return Team[]
-	 * @throws ValidationException
+	 * @throws Throwable
 	 */
 	public static function getAll(array $options = []) : array {
 		if (!empty($options['system'])) {
@@ -71,6 +76,7 @@ class TeamFactory implements FactoryInterface
 			}
 			$queries[] = (string) $q;
 		}
+		/** @noinspection PhpParamsInspection */
 		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
 		return $query;
 	}
@@ -94,14 +100,14 @@ class TeamFactory implements FactoryInterface
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
 			$team = $cache->load('teams/'.$system.'/'.$id, function(array &$dependencies) use ($system, $id) {
-				$dependencies[Cache::EXPIRE] = '7 days';
+				$dependencies[CacheBase::EXPIRE] = '7 days';
 				/** @var Team|string $className */
 				$className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Team';
 				if (!class_exists($className)) {
 					throw new InvalidArgumentException('Team model of does not exist: '.$className);
 				}
 				$team = $className::get($id);
-				$dependencies[Cache::Tags] = [
+				$dependencies[CacheBase::Tags] = [
 					'models',
 					'teams',
 					'system/'.$system,
@@ -111,7 +117,7 @@ class TeamFactory implements FactoryInterface
 				return $team;
 			});
 
-		} catch (ModelNotFoundException $e) {
+		} catch (ModelNotFoundException) {
 			Timer::stop('factory.team');
 			return null;
 		}

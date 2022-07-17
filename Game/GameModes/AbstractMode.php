@@ -9,10 +9,18 @@ use App\GameModels\Game\ModeSettings;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\TeamCollection;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
+use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Attributes\Validation\Required;
+use Lsr\Core\Models\Attributes\Validation\StringLength;
 use Lsr\Core\Models\Model;
 
+/**
+ * Base class for all game mode models
+ */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)]
 abstract class AbstractMode extends Model
@@ -20,16 +28,12 @@ abstract class AbstractMode extends Model
 
 	public const TABLE = 'game_modes';
 
-	public const DEFINITION = [
-		'name'        => ['validators' => ['required']],
-		'description' => ['noTest' => true],
-		'type'        => ['class' => GameModeType::class],
-		'settings'    => ['noTest' => true, 'class' => ModeSettings::class, 'initialize' => true],
-	];
-
+	#[Required]
+	#[StringLength(1, 20)]
 	public string       $name        = '';
 	public ?string      $description = '';
 	public GameModeType $type        = GameModeType::TEAM;
+	#[Instantiate]
 	public ModeSettings $settings;
 
 
@@ -45,6 +49,8 @@ abstract class AbstractMode extends Model
 	 * @param Game $game
 	 *
 	 * @return Player|Team|null null = draw
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getWin(Game $game) : Player|Team|null {
 		if ($this->isTeam()) {

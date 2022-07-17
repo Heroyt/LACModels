@@ -11,6 +11,9 @@ use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
+/**
+ * LaserMaxx Evo5 team model
+ */
 #[PrimaryKey('id_team')]
 #[Factory(TeamFactory::class, ['system' => 'evo5'])]
 class Team extends \App\GameModels\Game\Team

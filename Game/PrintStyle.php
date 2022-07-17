@@ -13,6 +13,9 @@ use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 
+/**
+ * Model for print style settings
+ */
 #[PrimaryKey('id_style')]
 class PrintStyle extends Model
 {
@@ -27,7 +30,7 @@ class PrintStyle extends Model
 	public string      $colorLight   = '';
 	public string      $colorPrimary = '';
 	public string      $bg           = '';
-	public string      $bg_landscape = '';
+	public string      $bgLandscape  = '';
 	public bool        $default      = false;
 
 	/**

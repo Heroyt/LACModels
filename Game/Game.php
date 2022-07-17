@@ -22,6 +22,7 @@ use DateTimeZone;
 use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\Instantiate;
@@ -32,6 +33,9 @@ use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
 use Nette\Caching\Cache as CacheParent;
 
+/**
+ * Base class for game models
+ */
 #[PrimaryKey('id_game')]
 #[Factory(GameFactory::class)]
 abstract class Game extends Model
@@ -72,6 +76,8 @@ abstract class Game extends Model
 	 *
 	 * @return Game
 	 * @throws GameModeNotFoundException
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
 	 */
 	public static function fromJson(array $data) : Game {
 		$game = new static();
@@ -113,7 +119,7 @@ abstract class Game extends Model
 					break;
 				case 'players':
 				{
-					foreach ($value as $playerNum => $playerData) {
+					foreach ($value as $playerData) {
 						/** @var Player $player */
 						$player = new ($game->playerClass);
 						$player->setGame($game);
@@ -221,9 +227,13 @@ abstract class Game extends Model
 	}
 
 	/**
+	 * Get best player by some property
+	 *
 	 * @param string $property
 	 *
 	 * @return Player|null
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getBestPlayer(string $property) : ?Player {
 		$query = $this->getPlayers()->query()->sortBy($property);
@@ -268,11 +278,18 @@ abstract class Game extends Model
 	 * @param int $vestNum
 	 *
 	 * @return Player|null
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getVestPlayer(int $vestNum) : ?Player {
 		return $this->getPlayers()->query()->filter('vest', $vestNum)->first();
 	}
 
+	/**
+	 * @return array
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
 	public function jsonSerialize() : array {
 		$data = parent::jsonSerialize();
 		$data['players'] = $this->getPlayers()->getAll();
@@ -284,7 +301,6 @@ abstract class Game extends Model
 	 * Synchronize a game to public
 	 *
 	 * @return bool
-	 * @throws ValidationException
 	 */
 	public function sync() : bool {
 		/** @var LigaApi $liga */
@@ -293,7 +309,7 @@ abstract class Game extends Model
 			$this->sync = true;
 			try {
 				return $this->save();
-			} catch (ValidationException $e) {
+			} catch (ValidationException) {
 			}
 		}
 		return false;

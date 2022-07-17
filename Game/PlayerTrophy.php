@@ -6,8 +6,11 @@
 namespace App\GameModels\Game;
 
 use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\Core\Exceptions\ValidationException;
 
+/**
+ * A trophy (achievement) which a player can obtain
+ */
 class PlayerTrophy
 {
 
@@ -18,13 +21,15 @@ class PlayerTrophy
 	public bool         $solo;
 
 	public function __construct(
-		private Player $player
+		private readonly Player $player
 	) {
 		$this->solo = $player->getGame()->mode->isSolo();
 		self::getFields(); // Initialize fields array
 	}
 
 	/**
+	 * Get all available trophies
+	 *
 	 * @return array{name:string,description:string,icon:string}[]
 	 */
 	public static function getFields() : array {
@@ -161,9 +166,13 @@ class PlayerTrophy
 	}
 
 	/**
+	 * Get one trophy that a player obtained
+	 *
+	 * Trophies are checked in hierarchical order.
+	 *
 	 * @return array{name:string,description:string,icon:string}
 	 * @throws ModelNotFoundException
-	 * @throws DirectoryCreationException
+	 * @throws ValidationException
 	 */
 	public function getOne() : array {
 		// Special
@@ -199,11 +208,13 @@ class PlayerTrophy
 	}
 
 	/**
+	 * Check if the player obtained a trophy by its name
+	 *
 	 * @param string $name
 	 *
 	 * @return bool
 	 * @throws ModelNotFoundException
-	 * @throws DirectoryCreationException
+	 * @throws ValidationException
 	 */
 	private function check(string $name) : bool {
 		// Classic
@@ -272,7 +283,7 @@ class PlayerTrophy
 	/**
 	 * @return array{name:string,description:string,icon:string}[]
 	 * @throws ModelNotFoundException
-	 * @throws DirectoryCreationException
+	 * @throws ValidationException
 	 */
 	public function getAll() : array {
 		$fields = [];

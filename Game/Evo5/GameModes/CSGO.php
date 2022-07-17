@@ -2,6 +2,7 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
@@ -12,9 +13,14 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Team;
 use Lsr\Core\Controller;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
+/**
+ * Special LaserMaxx Evo5 game mode
+ */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)]
 class CSGO extends AbstractMode implements CustomResultsMode
@@ -26,6 +32,8 @@ class CSGO extends AbstractMode implements CustomResultsMode
 	 * @param Evo5Game $game
 	 *
 	 * @return Evo5Team|null
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getWin(Game $game) : ?Team {
 		$teams = $game->getTeams();
@@ -76,6 +84,8 @@ class CSGO extends AbstractMode implements CustomResultsMode
 	 * @param Evo5Team $team
 	 *
 	 * @return int
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getRemainingLives(Evo5Team $team) : int {
 		return $this->getTotalLives($team) - $team->getDeaths();
@@ -85,6 +95,8 @@ class CSGO extends AbstractMode implements CustomResultsMode
 	 * @param Evo5Team $team
 	 *
 	 * @return int
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getTotalLives(Evo5Team $team) : int {
 		/** @var Evo5Game $game */

@@ -4,6 +4,9 @@ namespace App\GameModels\Game\GameModes;
 
 use Lsr\Core\Controller;
 
+/**
+ * Interface for game modes which should use a different results template
+ */
 interface CustomResultsMode
 {
 

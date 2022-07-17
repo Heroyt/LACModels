@@ -19,6 +19,9 @@ use Lsr\Core\Models\Attributes\Validation\Required;
 use Lsr\Core\Models\Attributes\Validation\StringLength;
 use Lsr\Core\Models\Model;
 
+/**
+ * Base class for Team models
+ */
 #[PrimaryKey('id_team')]
 #[Factory(TeamFactory::class)]
 abstract class Team extends Model

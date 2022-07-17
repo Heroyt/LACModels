@@ -8,6 +8,9 @@ use Dibi\Row;
 use Lsr\Core\Models\Interfaces\InsertExtendInterface;
 use Lsr\Helpers\Tools\Strings;
 
+/**
+ * Data-model for all game mode settings
+ */
 class ModeSettings implements InsertExtendInterface
 {
 
@@ -55,7 +58,7 @@ class ModeSettings implements InsertExtendInterface
 		foreach (get_object_vars($class) as $name => $val) {
 			$column = Strings::toSnakeCase($name);
 			if (isset($row->$column)) {
-				$class->$name = $row->$column === 1;
+				$class->$name = (int) $row->$column === 1;
 			}
 		}
 		return $class;

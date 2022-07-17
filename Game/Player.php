@@ -20,8 +20,10 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Attributes\Validation\Required;
 use Lsr\Core\Models\Attributes\Validation\StringLength;
 use Lsr\Core\Models\Model;
-use Lsr\Logging\Exceptions\DirectoryCreationException;
 
+/**
+ * Base class for player models
+ */
 #[PrimaryKey('id_player')]
 #[Factory(PlayerFactory::class)]
 abstract class Player extends Model
@@ -82,22 +84,37 @@ abstract class Player extends Model
 		}
 		try {
 			return DB::replace($table, $values) > 0;
-		} catch (Exception $e) {
+		} catch (Exception) {
 			return false;
 		}
 	}
 
+	/**
+	 * Get a players position in today's leaderboard
+	 *
+	 * @param string $property
+	 *
+	 * @return int
+	 */
 	public function getTodayPosition(string $property) : int {
 		return 0; // TODO: Implement
 	}
 
+	/**
+	 * Get missed shots
+	 *
+	 * @return int
+	 */
 	public function getMiss() : int {
 		return $this->shots - $this->hits;
 	}
 
 	/**
+	 * Get one trophy
+	 *
 	 * @return array{name:string,icon:string}
-	 * @throws DirectoryCreationException
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getBestAt() : array {
 		if (!isset($this->trophy)) {
@@ -107,8 +124,11 @@ abstract class Player extends Model
 	}
 
 	/**
+	 * Get all trophies
+	 *
 	 * @return array{name:string,icon:string}[]
-	 * @throws DirectoryCreationException
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getAllBestAt() : array {
 		if (!isset($this->trophy)) {

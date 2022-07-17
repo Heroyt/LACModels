@@ -12,6 +12,9 @@ use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
+/**
+ * LaserMaxx Evo5 player model
+ */
 #[PrimaryKey('id_player')]
 #[Factory(PlayerFactory::class, ['system' => 'evo5'])]
 class Player extends \App\GameModels\Game\Player

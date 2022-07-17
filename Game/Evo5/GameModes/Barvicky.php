@@ -9,6 +9,9 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
+/**
+ * Special LaserMaxx Evo5 game mode
+ */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)]
 class Barvicky extends AbstractMode

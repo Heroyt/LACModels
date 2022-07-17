@@ -2,6 +2,7 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
@@ -11,9 +12,14 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Team;
 use Lsr\Core\Controller;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
+/**
+ * Special LaserMaxx Evo5 game mode
+ */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)]
 class Zakladny extends AbstractMode implements CustomResultsMode
@@ -25,6 +31,8 @@ class Zakladny extends AbstractMode implements CustomResultsMode
 	 * @param Game $game
 	 *
 	 * @return \App\GameModels\Game\Evo5\Team|null
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getWin(Game $game) : ?Team {
 		/** @var \App\GameModels\Game\Evo5\Team $team1 */
@@ -48,6 +56,8 @@ class Zakladny extends AbstractMode implements CustomResultsMode
 	 * @param \App\GameModels\Game\Evo5\Team $team
 	 *
 	 * @return int
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getBasesDestroyed(\App\GameModels\Game\Evo5\Team $team) : int {
 		return max(

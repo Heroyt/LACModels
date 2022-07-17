@@ -7,6 +7,9 @@ namespace App\GameModels\Game;
 use Dibi\Row;
 use Lsr\Core\Models\Interfaces\InsertExtendInterface;
 
+/**
+ * Game's timing settings
+ */
 class Timing implements InsertExtendInterface
 {
 
@@ -23,6 +26,7 @@ class Timing implements InsertExtendInterface
 	}
 
 	public static function parseRow(Row $row) : static {
+		/** @noinspection ProperNullCoalescingOperatorUsageInspection */
 		return new Timing(
 			$row->timing_before ?? 0,
 			$row->timing_game_length ?? 0,

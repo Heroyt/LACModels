@@ -12,8 +12,14 @@ use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
+use Nette\Caching\Cache as CacheBase;
 use Throwable;
 
+/**
+ * Factory for game models
+ *
+ * Works with multiple different laser game systems.
+ */
 class PlayerFactory implements FactoryInterface
 {
 
@@ -70,6 +76,7 @@ class PlayerFactory implements FactoryInterface
 			}
 			$queries[] = (string) $q;
 		}
+		/** @noinspection PhpParamsInspection */
 		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
 		return $query;
 	}
@@ -93,14 +100,14 @@ class PlayerFactory implements FactoryInterface
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
 			$player = $cache->load('players/'.$system.'/'.$id, function(array &$dependencies) use ($system, $id) {
-				$dependencies[Cache::EXPIRE] = '7 days';
+				$dependencies[CacheBase::EXPIRE] = '7 days';
 				/** @var Player|string $className */
 				$className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Player';
 				if (!class_exists($className)) {
 					throw new InvalidArgumentException('Player model of does not exist: '.$className);
 				}
 				$player = $className::get($id);
-				$dependencies[Cache::Tags] = [
+				$dependencies[CacheBase::Tags] = [
 					'models',
 					'players',
 					'system/'.$system,
@@ -108,7 +115,7 @@ class PlayerFactory implements FactoryInterface
 					'games/'.$system.'/'.$player->getGame()->id,
 				];
 			});
-		} catch (ModelNotFoundException $e) {
+		} catch (ModelNotFoundException) {
 			Timer::stop('factory.player');
 			return null;
 		}

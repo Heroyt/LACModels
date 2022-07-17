@@ -7,6 +7,11 @@ namespace App\GameModels\Game;
 use Dibi\Row;
 use Lsr\Core\Models\Interfaces\InsertExtendInterface;
 
+/**
+ * Structure containing game's scoring settings
+ *
+ * Scoring = how many points does a player get for an action.
+ */
 class Scoring implements InsertExtendInterface
 {
 
@@ -25,6 +30,7 @@ class Scoring implements InsertExtendInterface
 	}
 
 	public static function parseRow(Row $row) : static {
+		/** @noinspection ProperNullCoalescingOperatorUsageInspection */
 		return new Scoring(
 			$row->scoring_death_other ?? 0,
 			$row->scoring_hit_other ?? 0,

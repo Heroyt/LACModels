@@ -13,8 +13,14 @@ use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
+use Nette\Caching\Cache as CacheBase;
 use Throwable;
 
+/**
+ * Factory for game models
+ *
+ * Works with multiple different laser game systems.
+ */
 class GameFactory implements FactoryInterface
 {
 
@@ -31,17 +37,18 @@ class GameFactory implements FactoryInterface
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
 		$game = $cache->load('games/'.$code, static function(array &$dependencies) use ($code) {
-			$dependencies[Cache::EXPIRE] = '7 days';
-			$dependencies[Cache::Tags] = [
+			$dependencies[CacheBase::EXPIRE] = '7 days';
+			$dependencies[CacheBase::Tags] = [
 				'games',
 				'models',
 			];
 			$gameRow = self::queryGames()->where('[code] = %s', $code)->fetch();
 			if (isset($gameRow)) {
-				$game = self::getById($gameRow->id_game, ['system' => $gameRow->system]);
-				$dependencies[Cache::Tags][] = 'games/'.$game::SYSTEM;
+				/** @noinspection PhpUndefinedFieldInspection */
+				$game = self::getById((int) $gameRow->id_game, ['system' => $gameRow->system]);
+				$dependencies[CacheBase::Tags][] = 'games/'.$game::SYSTEM;
 				if (isset($game)) {
-					$dependencies[Cache::Tags][] = 'games/'.$game::SYSTEM.'/'.$game->id;
+					$dependencies[CacheBase::Tags][] = 'games/'.$game::SYSTEM.'/'.$game->id;
 				}
 				return $game;
 			}
@@ -72,6 +79,7 @@ class GameFactory implements FactoryInterface
 			}
 			$queries[] = (string) $q;
 		}
+		/** @noinspection PhpParamsInspection */
 		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
 		return $query;
 	}
@@ -104,8 +112,8 @@ class GameFactory implements FactoryInterface
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
 			$game = $cache->load('games/'.$system.'/'.$id, function(array &$dependencies) use ($system, $id) {
-				$dependencies[Cache::EXPIRE] = '7 days';
-				$dependencies[Cache::Tags] = [
+				$dependencies[CacheBase::EXPIRE] = '7 days';
+				$dependencies[CacheBase::Tags] = [
 					'models',
 					'games',
 					'system/'.$system,
@@ -119,7 +127,7 @@ class GameFactory implements FactoryInterface
 				}
 				return $className::get($id);
 			});
-		} catch (ModelNotFoundException $e) {
+		} catch (ModelNotFoundException) {
 			Timer::stop('factory.game');
 			return null;
 		}
@@ -145,7 +153,8 @@ class GameFactory implements FactoryInterface
 		}
 		$row = $query->orderBy('end')->desc()->fetch();
 		if (isset($row)) {
-			return self::getById($row->id_game, ['system' => $row->system]);
+			/** @noinspection PhpUndefinedFieldInspection */
+			return self::getById((int) $row->id_game, ['system' => $row->system]);
 		}
 		return null;
 	}
@@ -180,8 +189,8 @@ class GameFactory implements FactoryInterface
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
 		$games = $cache->load('games/'.$date->format('Y-m-d').($excludeNotFinished ? '/finished' : ''), static function(array &$dependencies) use ($date, $excludeNotFinished) {
-			$dependencies[Cache::EXPIRE] = '7 days';
-			$dependencies[Cache::Tags] = [
+			$dependencies[CacheBase::EXPIRE] = '7 days';
+			$dependencies[CacheBase::Tags] = [
 				'games',
 				'models',
 				'games/'.$date->format('Y-m-d'),
@@ -236,6 +245,7 @@ class GameFactory implements FactoryInterface
 			}
 			$queries[] = (string) $q;
 		}
+		/** @noinspection PhpParamsInspection */
 		$query
 			->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]')
 			->groupBy('date');

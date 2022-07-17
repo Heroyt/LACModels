@@ -2,14 +2,20 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels\Game\Evo5;
 
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Player;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
+/**
+ * LaserMaxx Evo5 game model
+ */
 #[PrimaryKey('id_game')]
 #[Factory(GameFactory::class, ['system' => 'evo5'])]
 class Game extends \App\GameModels\Game\Game
@@ -53,6 +59,11 @@ class Game extends \App\GameModels\Game\Game
 		return parent::save() && $this->saveTeams() && $this->savePlayers();
 	}
 
+	/**
+	 * @return array|string[]
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
 	public function getBestsFields() : array {
 		$info = parent::getBestsFields();
 		if ($this->mode->isTeam()) {
@@ -75,6 +86,8 @@ class Game extends \App\GameModels\Game\Game
 	 * Checks players until it finds one with some mine-related scores.
 	 *
 	 * @return bool
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function isMinesOn() : bool {
 		if (!isset($this->minesOn)) {

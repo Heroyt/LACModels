@@ -8,6 +8,9 @@ use App\GameModels\Factory\GameModeFactory;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
+/**
+ * Special LaserMaxx Evo5 game mode
+ */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)]
 class Tma extends TeamDeathmach
