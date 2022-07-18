@@ -99,6 +99,7 @@ abstract class Game extends Model
 				case 'fileNumber':
 				case 'code':
 				case 'respawn':
+				case 'sync':
 					$game->{$key} = $value;
 					break;
 				case 'end':
@@ -115,6 +116,9 @@ abstract class Game extends Model
 					$game->scoring = new Scoring(...$value);
 					break;
 				case 'mode':
+					if (!isset($value['type'])) {
+						$value['type'] = GameModeType::TEAM->value;
+					}
 					$game->mode = GameModeFactory::findByName($value['name'], GameModeType::from($value['type']) ?? GameModeType::TEAM, static::SYSTEM);
 					break;
 				case 'players':
@@ -223,7 +227,7 @@ abstract class Game extends Model
 	}
 
 	public function isFinished() : bool {
-		return $this->end !== null;
+		return $this->end !== null && $this->importTime !== null;
 	}
 
 	/**
@@ -291,9 +295,19 @@ abstract class Game extends Model
 	 * @throws ValidationException
 	 */
 	public function jsonSerialize() : array {
+		$this->getTeams();
+		$this->getPlayers();
 		$data = parent::jsonSerialize();
 		$data['players'] = $this->getPlayers()->getAll();
 		$data['teams'] = $this->getTeams()->getAll();
+		if (!isset($data['mode'])) {
+			$data['mode'] = GameModeFactory::findByName(
+				$this->gameType === GameModeType::TEAM ? 'Team deathmach' : 'Deathmach',
+				$this->gameType,
+				$this::SYSTEM
+			);
+			$this->mode = $data['mode'];
+		}
 		return $data;
 	}
 
@@ -326,7 +340,20 @@ abstract class Game extends Model
 		if (empty($this->code)) {
 			$this->code = uniqid('g', false);
 		}
-		return parent::save();
+		$success = parent::save();
+		if (!$success) {
+			return false;
+		}
+		foreach ($this->getTeams() as $team) {
+			$success &= $team->save();
+		}
+		if (!$success) {
+			return false;
+		}
+		foreach ($this->getPlayers() as $player) {
+			$success &= $player->save();
+		}
+		return $success;
 	}
 
 	public function update() : bool {

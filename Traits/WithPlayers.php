@@ -13,6 +13,7 @@ use Dibi\Row;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Model;
 
@@ -26,6 +27,7 @@ trait WithPlayers
 	#[NoDB]
 	public string $playerClass;
 	/** @var PlayerCollection */
+	#[Instantiate]
 	public PlayerCollection $players;
 	/** @var PlayerCollection */
 	protected PlayerCollection $playersSorted;
@@ -42,6 +44,9 @@ trait WithPlayers
 	 */
 	public function getPlayers() : PlayerCollection {
 		if (!isset($this->players)) {
+			$this->players = new PlayerCollection();
+		}
+		if ($this->players->count() === 0) {
 			$this->loadPlayers();
 		}
 		return $this->players;

@@ -237,7 +237,7 @@ abstract class Player extends Model
 	 */
 	public function getTeamColor() : int {
 		if (empty($this->color)) {
-			$this->color = isset($this->game) && $this->getGame()->mode->isSolo() ? 2 : $this->getTeam()->color;
+			$this->color = (isset($this->game) && $this->getGame()->mode->isSolo() ? 2 : $this->getTeam()?->color) ?? 2;
 		}
 		return $this->color;
 	}
