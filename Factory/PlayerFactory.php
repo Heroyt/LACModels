@@ -114,9 +114,11 @@ class PlayerFactory implements FactoryInterface
 					'players/'.$system,
 					'games/'.$system.'/'.$player->getGame()->id,
 				];
+				return $player;
 			});
-		} catch (ModelNotFoundException) {
+		} catch (ModelNotFoundException $e) {
 			Timer::stop('factory.player');
+			bdump($e);
 			return null;
 		}
 		Timer::stop('factory.player');
