@@ -350,8 +350,10 @@ abstract class Game extends Model
 		if (!$success) {
 			return false;
 		}
-		foreach ($this->getPlayers() as $player) {
-			$success &= $player->save();
+		if ($this->getTeams()->count() === 0) {
+			foreach ($this->getPlayers() as $player) {
+				$success &= $player->save();
+			}
 		}
 		return $success;
 	}

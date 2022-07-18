@@ -46,7 +46,7 @@ trait WithPlayers
 		if (!isset($this->players)) {
 			$this->players = new PlayerCollection();
 		}
-		if ($this->players->count() === 0) {
+		if ($this->players->count() === 0 && !empty($this->id)) {
 			$this->loadPlayers();
 		}
 		return $this->players;

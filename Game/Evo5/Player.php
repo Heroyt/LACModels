@@ -37,7 +37,7 @@ class Player extends \App\GameModels\Game\Player
 	#[ManyToOne(class: \App\GameModels\Game\Evo5\Game::class)]
 	public ?Game                         $game;
 	#[ManyToOne(foreignKey: 'id_team', class: Team::class)]
-	protected ?\App\GameModels\Game\Team $team        = null;
+	public ?\App\GameModels\Game\Team    $team        = null;
 
 	public function getMines() : int {
 		return $this->bonus->getSum();

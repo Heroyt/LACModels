@@ -51,7 +51,7 @@ abstract class Player extends Model
 	public int $teamNum = 0;
 
 	#[ManyToOne(foreignKey: 'id_team')]
-	protected ?Team        $team              = null;
+	public ?Team           $team              = null;
 	protected int          $color             = 0;
 	protected ?Player      $favouriteTarget   = null;
 	protected ?Player      $favouriteTargetOf = null;
@@ -256,6 +256,7 @@ abstract class Player extends Model
 	 */
 	public function setTeam(Team $team) : Player {
 		$this->team = $team;
+		//$team->getPlayers()->add($this);
 		return $this;
 	}
 
