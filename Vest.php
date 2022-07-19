@@ -46,7 +46,7 @@ class Vest extends Model
 	/**
 	 * @param string $system
 	 *
-	 * @return ModelQuery
+	 * @return ModelQuery<Vest>
 	 */
 	public static function querySystem(string $system) : ModelQuery {
 		return self::query()->where('system = %s', $system);
@@ -62,19 +62,22 @@ class Vest extends Model
 	}
 
 	public static function getGridCols(string $system) : int {
+		/* @phpstan-ignore-next-line */
 		return DB::select(self::TABLE, 'MAX(grid_col)')->where('system = %s', $system)->fetchSingle();
 	}
 
 	public static function getGridRows(string $system) : int {
+		/* @phpstan-ignore-next-line */
 		return DB::select(self::TABLE, 'MAX(grid_row)')->where('system = %s', $system)->fetchSingle();
 	}
 
 	/**
 	 * @param string $system
 	 *
-	 * @return object{cols:int,rows:int}
+	 * @return object{cols:int,rows:int}|null
 	 */
-	public static function getGridDimensions(string $system) : object {
+	public static function getGridDimensions(string $system) : ?object {
+		/* @phpstan-ignore-next-line */
 		return DB::select(self::TABLE, 'MAX([grid_col]) as [cols], MAX([grid_row]) as [rows]')->where('[system] = %s', $system)->fetch();
 	}
 

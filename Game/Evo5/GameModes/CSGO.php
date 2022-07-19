@@ -67,6 +67,7 @@ class CSGO extends AbstractMode implements CustomResultsMode
 		// More teams - Get alive team with the most hits
 		$max = 0;
 		$maxTeam = null;
+		/** @var Evo5Team $team */
 		foreach ($teams as $team) {
 			if ($this->getRemainingLives($team) === 0) {
 				continue;

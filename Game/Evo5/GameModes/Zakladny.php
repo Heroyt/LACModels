@@ -60,11 +60,16 @@ class Zakladny extends AbstractMode implements CustomResultsMode
 	 * @throws ValidationException
 	 */
 	public function getBasesDestroyed(\App\GameModels\Game\Evo5\Team $team) : int {
-		return max(
-			array_map(static function(Player $player) {
+		$max = max(
+			array_map(static function(\App\GameModels\Game\Player $player) : int {
+				/** @var Player $player */
 				return $player->bonus->shield;
 			}, $team->getPlayers()->getAll())
 		);
+		if ($max === false) {
+			return 0;
+		}
+		return $max;
 	}
 
 	/**

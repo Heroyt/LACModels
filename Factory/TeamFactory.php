@@ -24,7 +24,7 @@ class TeamFactory implements FactoryInterface
 {
 
 	/**
-	 * @param array{system: string|null} $options
+	 * @param array{system?:string} $options
 	 *
 	 * @return Team[]
 	 * @throws Throwable
@@ -38,7 +38,10 @@ class TeamFactory implements FactoryInterface
 		}
 		$models = [];
 		foreach ($rows as $row) {
-			$models[] = self::getById($row->id_team, ['system' => $row->system]);
+			$model = self::getById($row->id_team, ['system' => $row->system]);
+			if (isset($model)) {
+				$models[] = $model;
+			}
 		}
 		return $models;
 	}
@@ -85,7 +88,7 @@ class TeamFactory implements FactoryInterface
 	 * Get a game model
 	 *
 	 * @param int                   $id
-	 * @param array{system: string} $options
+	 * @param array{system?:string} $options
 	 *
 	 * @return Team|null
 	 * @throws Throwable
@@ -99,9 +102,10 @@ class TeamFactory implements FactoryInterface
 		try {
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
+			/** @var Team|null $team */
 			$team = $cache->load('teams/'.$system.'/'.$id, function(array &$dependencies) use ($system, $id) {
 				$dependencies[CacheBase::EXPIRE] = '7 days';
-				/** @var Team|string $className */
+				/** @var class-string<Team> $className */
 				$className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Team';
 				if (!class_exists($className)) {
 					throw new InvalidArgumentException('Team model of does not exist: '.$className);

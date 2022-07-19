@@ -11,6 +11,8 @@ use Lsr\Core\Models\Interfaces\InsertExtendInterface;
  * Structure containing game's scoring settings
  *
  * Scoring = how many points does a player get for an action.
+ *
+ * @phpstan-consistent-constructor
  */
 class Scoring implements InsertExtendInterface
 {
@@ -31,7 +33,7 @@ class Scoring implements InsertExtendInterface
 
 	public static function parseRow(Row $row) : static {
 		/** @noinspection ProperNullCoalescingOperatorUsageInspection */
-		return new Scoring(
+		return new static(
 			$row->scoring_death_other ?? 0,
 			$row->scoring_hit_other ?? 0,
 			$row->scoring_death_own ?? 0,
@@ -45,6 +47,11 @@ class Scoring implements InsertExtendInterface
 		);
 	}
 
+	/**
+	 * @param array<string,mixed> $data
+	 *
+	 * @return void
+	 */
 	public function addQueryData(array &$data) : void {
 		$data['scoring_hit_other'] = $this->hitOther;
 		$data['scoring_hit_own'] = $this->hitOwn;

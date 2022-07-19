@@ -36,6 +36,7 @@ class Tip extends Model
 	 * @throws ValidationException
 	 */
 	public static function shuffled() : array {
+		/* @phpstan-ignore-next-line */
 		return self::query()->orderBy('RAND()')->get();
 	}
 
@@ -45,7 +46,7 @@ class Tip extends Model
 	 * @return Tip|null
 	 */
 	public static function random() : ?Tip {
-		/** @noinspection PhpIncompatibleReturnTypeInspection */
+		/* @phpstan-ignore-next-line */
 		return self::query()->orderBy('RAND()')->first();
 	}
 

@@ -39,10 +39,12 @@ class Game extends \App\GameModels\Game\Game
 	/** @var int Respawn time in seconds */
 	public int $respawn = 5;
 
+	/** @var class-string<Player> */
 	#[NoDB]
-	public string  $playerClass = \App\GameModels\Game\Evo5\Player::class;
+	public string $playerClass = \App\GameModels\Game\Evo5\Player::class;
+	/** @var class-string<Team> */
 	#[NoDB]
-	public string  $teamClass   = Team::class;
+	public string  $teamClass = Team::class;
 	protected bool $minesOn;
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
@@ -58,6 +60,9 @@ class Game extends \App\GameModels\Game\Game
 		}
 	}
 
+	/**
+	 * @return string[]
+	 */
 	public static function getTeamColors() : array {
 		return [
 			0 => '#f00',
@@ -85,7 +90,7 @@ class Game extends \App\GameModels\Game\Game
 	 */
 	public function getBestsFields() : array {
 		$info = parent::getBestsFields();
-		if ($this->mode->isTeam()) {
+		if ($this->mode?->isTeam()) {
 			if ($this->mode->settings->bestHitsOwn) {
 				$info['hitsOwn'] = lang('Zabiják vlastního týmu', context: 'results.bests');
 			}
@@ -93,7 +98,7 @@ class Game extends \App\GameModels\Game\Game
 				$info['deathsOwn'] = lang('Největší vlastňák', context: 'results.bests');
 			}
 		}
-		if ($this->mode->settings->bestMines && $this->mode->settings->mines && $this->isMinesOn()) {
+		if ($this->mode?->settings->bestMines && $this->mode->settings->mines && $this->isMinesOn()) {
 			$info['mines'] = lang('Drtič min', context: 'results.bests');
 		}
 		return $info;
@@ -111,7 +116,7 @@ class Game extends \App\GameModels\Game\Game
 	public function isMinesOn() : bool {
 		if (!isset($this->minesOn)) {
 			$this->minesOn = false;
-			/** @var Player $player */
+			/** @var \App\GameModels\Game\Evo5\Player $player */
 			foreach ($this->getPlayers() as $player) {
 				if ($player->minesHits !== 0 || $player->scoreMines !== 0 || $player->bonus->getSum() > 0) {
 					$this->minesOn = true;

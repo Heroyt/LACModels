@@ -21,8 +21,11 @@ class Today
 	private Fluent $gameQuery;
 
 	public function __construct(Game $gameClass, Player $playerClass, Team $teamClass) {
+		/* @phpstan-ignore-next-line */
 		$this->games = DB::select($gameClass::TABLE, 'count(*)')->where('DATE(start) = %d', $gameClass->start)->fetchSingle();
+		/* @phpstan-ignore-next-line */
 		$this->players = DB::select($playerClass::TABLE, 'count(*)')->where('id_game IN %sql', $this->todayGames($gameClass))->fetchSingle();
+		/* @phpstan-ignore-next-line */
 		$this->teams = DB::select($teamClass::TABLE, 'count(*)')->where('id_game IN %sql', $this->todayGames($gameClass))->fetchSingle();
 	}
 

@@ -43,7 +43,8 @@ abstract class Team extends Model
 
 
 	public function save() : bool {
-		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s', $this->game->id, $this->name)->fetchSingle();
+		/** @var int|null $test */
+		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s', $this->game?->id, $this->name)->fetchSingle();
 		if (isset($test)) {
 			$this->id = $test;
 		}
@@ -109,7 +110,7 @@ abstract class Team extends Model
 		$sum = 0;
 		foreach ($this->getPlayers() as $player) {
 			foreach ($player->getHitsPlayers() as $hits) {
-				if ($hits->playerTarget->getTeam()->color === $team->color) {
+				if ($hits->playerTarget->getTeam()?->color === $team->color) {
 					$sum += $hits->count;
 				}
 			}
@@ -128,6 +129,9 @@ abstract class Team extends Model
 		return $this->color;
 	}
 
+	/**
+	 * @return array<string, mixed>
+	 */
 	public function jsonSerialize() : array {
 		$data = parent::jsonSerialize();
 		if (isset($data['players'])) {

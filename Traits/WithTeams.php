@@ -13,14 +13,14 @@ use Lsr\Core\Models\Attributes\NoDB;
 trait WithTeams
 {
 
-	/** @var Team */
+	/** @var class-string<Team> */
 	#[NoDB]
 	public string $teamClass;
 
-	/** @var TeamCollection|Team[] */
+	/** @var TeamCollection */
 	#[Instantiate]
 	public TeamCollection $teams;
-	/** @var TeamCollection|Team[] */
+	/** @var TeamCollection */
 	protected TeamCollection $teamsSorted;
 
 	public function addTeam(Team ...$teams) : static {
@@ -32,11 +32,11 @@ trait WithTeams
 	}
 
 	/**
-	 * @return TeamCollection|Team[]
+	 * @return TeamCollection
 	 */
 	public function getTeamsSorted() : TeamCollection {
 		if (empty($this->teamsSorted)) {
-			/** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+			/* @phpstan-ignore-next-line */
 			$this->teamsSorted = $this
 				->getTeams()
 				->query()
@@ -44,11 +44,12 @@ trait WithTeams
 				->desc()
 				->get();
 		}
+		/* @phpstan-ignore-next-line */
 		return $this->teamsSorted;
 	}
 
 	/**
-	 * @return TeamCollection|Team[]
+	 * @return TeamCollection
 	 */
 	public function getTeams() : TeamCollection {
 		if (!isset($this->teams)) {
@@ -64,12 +65,14 @@ trait WithTeams
 		if (!isset($this->teams)) {
 			$this->teams = new TeamCollection();
 		}
+		/** @var class-string<Game> $className */
 		$className = preg_replace('/(.+)Game$/', '${1}Team', get_class($this));
 		$primaryKey = $className::getPrimaryKey();
 		$rows = DB::select($className::TABLE, '*')->where('%n = %i', $this::getPrimaryKey(), $this->id)->fetchAll();
 		foreach ($rows as $row) {
 			/** @var Team $team */
 			$team = new $className($row->$primaryKey, $row);
+			/* @phpstan-ignore-next-line */
 			if ($this instanceof Game) {
 				$team->setGame($this);
 			}

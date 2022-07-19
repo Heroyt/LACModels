@@ -10,6 +10,8 @@ use Lsr\Helpers\Tools\Strings;
 
 /**
  * Data-model for all game mode settings
+ *
+ * @phpstan-consistent-constructor
  */
 class ModeSettings implements InsertExtendInterface
 {
@@ -51,10 +53,14 @@ class ModeSettings implements InsertExtendInterface
 	}
 
 	/**
-	 * @inheritDoc
+	 * Parse data from DB into the object
+	 *
+	 * @param Row $row Row from DB
+	 *
+	 * @return static
 	 */
-	public static function parseRow(Row $row) : ?static {
-		$class = new self;
+	public static function parseRow(Row $row) : static {
+		$class = new static;
 		foreach (get_object_vars($class) as $name => $val) {
 			$column = Strings::toSnakeCase($name);
 			if (isset($row->$column)) {
@@ -65,7 +71,9 @@ class ModeSettings implements InsertExtendInterface
 	}
 
 	/**
-	 * @inheritDoc
+	 * Add data from the object into the data array for DB INSERT/UPDATE
+	 *
+	 * @param array<string, mixed> $data
 	 */
 	public function addQueryData(array &$data) : void {
 		foreach (get_object_vars($this) as $name => $val) {

@@ -46,7 +46,7 @@ trait WithPlayers
 		if (!isset($this->players)) {
 			$this->players = new PlayerCollection();
 		}
-		if ($this->players->count() === 0 && !empty($this->id)) {
+		if (!empty($this->id) && $this->players->count() === 0) {
 			$this->loadPlayers();
 		}
 		return $this->players;
@@ -71,7 +71,7 @@ trait WithPlayers
 			if ($this instanceof Game) {
 				$player->setGame($this);
 			}
-			else if ($this instanceof Team) {
+			else if ($this instanceof Team) { // @phpstan-ignore-line
 				$player->setTeam($this);
 			}
 			$this->players->set($player, $player->vest);
@@ -112,8 +112,10 @@ trait WithPlayers
 			$this->players = new PlayerCollection();
 		}
 		$this->players->add(...$players);
-		foreach ($players as $player) {
-			$player->setTeam($this);
+		if ($this instanceof Team) {
+			foreach ($players as $player) {
+				$player->setTeam($this);
+			}
 		}
 		return $this;
 	}
@@ -125,6 +127,7 @@ trait WithPlayers
 	 */
 	public function getPlayersSorted() : PlayerCollection {
 		if (!isset($this->playersSorted)) {
+			/* @phpstan-ignore-next-line */
 			$this->playersSorted = $this
 				->getPlayers()
 				->query()
@@ -132,6 +135,7 @@ trait WithPlayers
 				->desc()
 				->get();
 		}
+		/* @phpstan-ignore-next-line */
 		return $this->playersSorted;
 	}
 

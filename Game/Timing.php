@@ -9,6 +9,8 @@ use Lsr\Core\Models\Interfaces\InsertExtendInterface;
 
 /**
  * Game's timing settings
+ *
+ * @phpstan-consistent-constructor
  */
 class Timing implements InsertExtendInterface
 {
@@ -27,13 +29,18 @@ class Timing implements InsertExtendInterface
 
 	public static function parseRow(Row $row) : static {
 		/** @noinspection ProperNullCoalescingOperatorUsageInspection */
-		return new Timing(
+		return new static(
 			$row->timing_before ?? 0,
 			$row->timing_game_length ?? 0,
 			$row->timing_after ?? 0,
 		);
 	}
 
+	/**
+	 * @param array<string,mixed> $data
+	 *
+	 * @return void
+	 */
 	public function addQueryData(array &$data) : void {
 		$data['timing_before'] = $this->before;
 		$data['timing_game_length'] = $this->gameLength;

@@ -51,12 +51,14 @@ class PrintStyle extends Model
 	 * @return int
 	 */
 	public static function getActiveStyleId() : int {
+		/** @var int|null $currentStyle */
 		$currentStyle = DB::select(self::TABLE.'_dates', 'id_style')
 											->where('DAYOFYEAR(CURDATE()) BETWEEN DAYOFYEAR(date_from) AND DAYOFYEAR(date_to)')
 											->fetchSingle();
 		if (isset($currentStyle)) {
 			return $currentStyle;
 		}
+		/** @var int|null $defaultStyle */
 		$defaultStyle = DB::select(self::TABLE, '[id_style]')->where('[default] = 1')->fetchSingle();
 		return $defaultStyle ?? 0;
 	}

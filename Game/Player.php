@@ -62,7 +62,8 @@ abstract class Player extends Model
 	 * @throws ValidationException
 	 */
 	public function save() : bool {
-		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s && vest = %i', $this->game->id, $this->name, $this->vest)->fetchSingle();
+		/** @var int|null $test */
+		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s && vest = %i', $this->game?->id, $this->name, $this->vest)->fetchSingle();
 		if (isset($test)) {
 			$this->id = $test;
 		}
@@ -207,6 +208,7 @@ abstract class Player extends Model
 	public function getFavouriteTargetOf() : ?Player {
 		if (!isset($this->favouriteTargetOf)) {
 			$max = 0;
+			/** @var static $player */
 			foreach ($this->getGame()->getPlayers() as $player) {
 				if ($player->id === $this->id) {
 					continue;
@@ -229,7 +231,7 @@ abstract class Player extends Model
 	 * @throws ValidationException
 	 */
 	public function getHitsPlayer(Player $player) : int {
-		return $this->getHitsPlayers()[$player->vest]?->count ?? 0;
+		return $this->getHitsPlayers()[$player->vest]->count ?? 0;
 	}
 
 	/**
@@ -237,7 +239,7 @@ abstract class Player extends Model
 	 */
 	public function getTeamColor() : int {
 		if (empty($this->color)) {
-			$this->color = (isset($this->game) && $this->getGame()->mode->isSolo() ? 2 : $this->getTeam()?->color) ?? 2;
+			$this->color = (isset($this->game) && $this->getGame()->mode?->isSolo() ? 2 : $this->getTeam()?->color) ?? 2;
 		}
 		return $this->color;
 	}
@@ -261,7 +263,7 @@ abstract class Player extends Model
 	}
 
 	/**
-	 * @return array
+	 * @return array<string, mixed>
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */

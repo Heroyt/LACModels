@@ -5,6 +5,7 @@ namespace App\GameModels\Factory;
 use App\GameModels\Game\Game;
 use DateTime;
 use Dibi\Fluent;
+use Dibi\Row;
 use InvalidArgumentException;
 use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
@@ -36,18 +37,30 @@ class GameFactory implements FactoryInterface
 		Timer::startIncrementing('factory.game');
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
+		/** @var Game|null $game */
 		$game = $cache->load('games/'.$code, static function(array &$dependencies) use ($code) {
 			$dependencies[CacheBase::EXPIRE] = '7 days';
 			$dependencies[CacheBase::Tags] = [
 				'games',
 				'models',
 			];
+			/**
+			 * @var null|Row{
+			 *   id_game:int,
+			 *   system:string,
+			 *   code: string,
+			 *   start: \Dibi\DateTime|null,
+			 *   end: \Dibi\DateTime|null,
+			 *   sync: int
+			 * } $gameRow
+			 */
 			$gameRow = self::queryGames()->where('[code] = %s', $code)->fetch();
 			if (isset($gameRow)) {
 				/** @noinspection PhpUndefinedFieldInspection */
+				/** @var Game|null $game */
 				$game = self::getById((int) $gameRow->id_game, ['system' => $gameRow->system]);
-				$dependencies[CacheBase::Tags][] = 'games/'.$game::SYSTEM;
 				if (isset($game)) {
+					$dependencies[CacheBase::Tags][] = 'games/'.$game::SYSTEM;
 					$dependencies[CacheBase::Tags][] = 'games/'.$game::SYSTEM.'/'.$game->id;
 				}
 				return $game;
@@ -96,8 +109,8 @@ class GameFactory implements FactoryInterface
 	/**
 	 * Get a game model
 	 *
-	 * @param int                  $id
-	 * @param array{system:string} $options
+	 * @param int                   $id
+	 * @param array{system?:string} $options
 	 *
 	 * @return Game|null
 	 * @throws Throwable
@@ -111,6 +124,7 @@ class GameFactory implements FactoryInterface
 		try {
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
+			/** @var Game|null $game */
 			$game = $cache->load('games/'.$system.'/'.$id, function(array &$dependencies) use ($system, $id) {
 				$dependencies[CacheBase::EXPIRE] = '7 days';
 				$dependencies[CacheBase::Tags] = [
@@ -120,7 +134,6 @@ class GameFactory implements FactoryInterface
 					'games/'.$system,
 					'games/'.$system.'/'.$id,
 				];
-				/** @var Game|string $className */
 				$className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Game';
 				if (!class_exists($className)) {
 					throw new InvalidArgumentException('Game model of does not exist: '.$className);
@@ -151,6 +164,16 @@ class GameFactory implements FactoryInterface
 		else {
 			$query = self::queryGamesSystem($system, $excludeNotFinished);
 		}
+		/**
+		 * @var null|Row{
+		 *   id_game:int,
+		 *   system:string,
+		 *   code: string,
+		 *   start: \Dibi\DateTime|null,
+		 *   end: \Dibi\DateTime|null,
+		 *   sync: int
+		 * } $row
+		 */
 		$row = $query->orderBy('end')->desc()->fetch();
 		if (isset($row)) {
 			/** @noinspection PhpUndefinedFieldInspection */
@@ -188,6 +211,7 @@ class GameFactory implements FactoryInterface
 		Timer::startIncrementing('factory.game');
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
+		/** @var Game[]|null $games */
 		$games = $cache->load('games/'.$date->format('Y-m-d').($excludeNotFinished ? '/finished' : ''), static function(array &$dependencies) use ($date, $excludeNotFinished) {
 			$dependencies[CacheBase::EXPIRE] = '7 days';
 			$dependencies[CacheBase::Tags] = [
@@ -207,7 +231,7 @@ class GameFactory implements FactoryInterface
 			return $games;
 		});
 		Timer::stop('factory.game');
-		return $games;
+		return $games ?? [];
 	}
 
 	/**
@@ -217,15 +241,23 @@ class GameFactory implements FactoryInterface
 	 * @param bool   $excludeNotFinished
 	 *
 	 * @return array<string,int>
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public static function getGamesCountPerDay(string $format = 'Y-m-d', bool $excludeNotFinished = false) : array {
+		/**
+		 * @var Row[] $rows
+		 */
 		$rows = self::queryGameCountPerDay($excludeNotFinished)->fetchAll();
 		$return = [];
 		foreach ($rows as $row) {
 			if (!isset($row->date)) {
 				continue;
 			}
-			$return[$row->date->format($format)] = $row->count;
+			/** @var \Dibi\DateTime $date */
+			$date = $row->date;
+			/** @var int $count */
+			$count = $row->count;
+			$return[$date->format($format)] = $count;
 		}
 		return $return;
 	}
@@ -270,7 +302,7 @@ class GameFactory implements FactoryInterface
 	}
 
 	/**
-	 * @param array{system:string|null, excludeNotFinished: bool|null} $options
+	 * @param array{system?:string, excludeNotFinished?: bool} $options
 	 *
 	 * @return Game[]
 	 * @throws Throwable
@@ -284,7 +316,10 @@ class GameFactory implements FactoryInterface
 		}
 		$models = [];
 		foreach ($rows as $row) {
-			$models[] = self::getById($row->id_game, ['system' => $row->system]);
+			$game = self::getById($row->id_game, ['system' => $row->system]);
+			if (isset($game)) {
+				$models[] = $game;
+			}
 		}
 		return $models;
 	}

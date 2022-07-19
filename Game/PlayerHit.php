@@ -2,6 +2,7 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels\Game;
 
 use Dibi\Exception;
@@ -21,7 +22,7 @@ class PlayerHit implements JsonSerializable
 	public function __construct(
 		public Player $playerShot,
 		public Player $playerTarget,
-		public int    $count = 0,) {
+		public int    $count = 0) {
 	}
 
 	/**
@@ -37,14 +38,15 @@ class PlayerHit implements JsonSerializable
 			else {
 				DB::insert($this::TABLE, $data);
 			}
-		} catch (Exception $e) {
+		} catch (Exception) {
 			return false;
 		}
 		return true;
 	}
 
 	/**
-	 * @return array{id_player:int,id_target:int,count:int}
+	 * @return array{id_player:int|null,id_target:int|null,count:int|null}
+	 * @noinspection PhpArrayShapeAttributeCanBeAddedInspection
 	 */
 	public function getQueryData() : array {
 		return [
@@ -57,10 +59,11 @@ class PlayerHit implements JsonSerializable
 	/**
 	 * Specify data which should be serialized to JSON
 	 *
-	 * @link  http://php.net/manual/en/jsonserializable.jsonserialize.php
-	 * @return array data which can be serialized by <b>json_encode</b>,
+	 * @link         http://php.net/manual/en/jsonserializable.jsonserialize.php
+	 * @return array<string,mixed> data which can be serialized by <b>json_encode</b>,
 	 * which is a value of any type other than a resource.
-	 * @since 5.4.0
+	 * @since        5.4.0
+	 * @noinspection PhpArrayShapeAttributeCanBeAddedInspection
 	 */
 	public function jsonSerialize() : array {
 		return [
