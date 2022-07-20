@@ -10,7 +10,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  * LaserMaxx Evo5 Deathmach game mode
  */
 #[PrimaryKey('id_mode')]
-#[Factory(GameModeFactory::class)]
+#[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class Deathmach extends \App\GameModels\Game\GameModes\Deathmach
 {
 

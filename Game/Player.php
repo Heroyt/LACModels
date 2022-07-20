@@ -20,12 +20,13 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Attributes\Validation\Required;
 use Lsr\Core\Models\Attributes\Validation\StringLength;
 use Lsr\Core\Models\Model;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 
 /**
  * Base class for player models
  */
 #[PrimaryKey('id_player')]
-#[Factory(PlayerFactory::class)]
+#[Factory(PlayerFactory::class)] // @phpstan-ignore-line
 abstract class Player extends Model
 {
 	use WithGame;
@@ -84,6 +85,7 @@ abstract class Player extends Model
 			$values[] = $hits->getQueryData();
 		}
 		try {
+			/** @phpstan-ignore-next-line */
 			return DB::replace($table, $values) > 0;
 		} catch (Exception) {
 			return false;
@@ -142,6 +144,7 @@ abstract class Player extends Model
 	 * Get a player that this player hit the most
 	 *
 	 * @return Player|null
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */
@@ -160,6 +163,7 @@ abstract class Player extends Model
 
 	/**
 	 * @return PlayerHit[]
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */
@@ -174,6 +178,7 @@ abstract class Player extends Model
 	 * @return PlayerHit[]
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
+	 * @throws DirectoryCreationException
 	 */
 	public function loadHits() : array {
 		/** @var PlayerHit $className */
@@ -202,6 +207,7 @@ abstract class Player extends Model
 	 * Get a player that hit this player the most
 	 *
 	 * @return Player|null
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */
@@ -227,6 +233,7 @@ abstract class Player extends Model
 	 * @param Player $player
 	 *
 	 * @return int
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */
@@ -266,6 +273,7 @@ abstract class Player extends Model
 	 * @return array<string, mixed>
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
+	 * @throws DirectoryCreationException
 	 */
 	public function jsonSerialize() : array {
 		$data = parent::jsonSerialize();

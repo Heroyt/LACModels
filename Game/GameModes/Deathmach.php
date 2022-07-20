@@ -11,7 +11,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  * Basic Deathmach game mode
  */
 #[PrimaryKey('id_mode')]
-#[Factory(GameModeFactory::class)]
+#[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class Deathmach extends AbstractMode
 {
 

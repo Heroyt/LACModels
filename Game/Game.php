@@ -41,7 +41,7 @@ use Nette\Caching\Cache as CacheParent;
  * @phpstan-consistent-constructor
  */
 #[PrimaryKey('id_game')]
-#[Factory(GameFactory::class)]
+#[Factory(GameFactory::class)] // @phpstan-ignore-line
 abstract class Game extends Model
 {
 	use WithPlayers;

@@ -23,7 +23,7 @@ use Lsr\Core\Models\Model;
  * Base class for Team models
  */
 #[PrimaryKey('id_team')]
-#[Factory(TeamFactory::class)]
+#[Factory(TeamFactory::class)] // @phpstan-ignore-line
 abstract class Team extends Model
 {
 	use WithPlayers;

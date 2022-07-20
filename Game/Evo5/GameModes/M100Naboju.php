@@ -14,7 +14,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  * Special LaserMaxx Evo5 game mode
  */
 #[PrimaryKey('id_mode')]
-#[Factory(GameModeFactory::class)]
+#[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class M100Naboju extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode
 {
 

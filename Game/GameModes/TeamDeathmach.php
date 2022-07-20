@@ -10,7 +10,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  * Basic team deathmach game mode
  */
 #[PrimaryKey('id_mode')]
-#[Factory(GameModeFactory::class)]
+#[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class TeamDeathmach extends AbstractMode
 {
 

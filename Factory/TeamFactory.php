@@ -19,6 +19,8 @@ use Throwable;
  * Factory for team models
  *
  * Works with multiple different laser game systems.
+ *
+ * @implements FactoryInterface<Team>
  */
 class TeamFactory implements FactoryInterface
 {

@@ -11,7 +11,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  * Basic solo game mode model
  */
 #[PrimaryKey('id_mode')]
-#[Factory(GameModeFactory::class)]
+#[Factory(GameModeFactory::class)] // @phpstan-ignore-line // @phpstan-ignore-line
 class CustomSoloMode extends AbstractMode
 {
 

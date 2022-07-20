@@ -49,6 +49,7 @@ class Vest extends Model
 	 * @return ModelQuery<Vest>
 	 */
 	public static function querySystem(string $system) : ModelQuery {
+		/** @phpstan-ignore-next-line */
 		return self::query()->where('system = %s', $system);
 	}
 

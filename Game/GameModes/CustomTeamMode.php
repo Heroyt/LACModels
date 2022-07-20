@@ -10,7 +10,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  * Basic team game mode
  */
 #[PrimaryKey('id_mode')]
-#[Factory(GameModeFactory::class)]
+#[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class CustomTeamMode extends AbstractMode
 {
 

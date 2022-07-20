@@ -19,6 +19,8 @@ use Throwable;
  * Factory for game models
  *
  * Works with multiple different laser game systems.
+ *
+ * @implements FactoryInterface<Player>
  */
 class PlayerFactory implements FactoryInterface
 {

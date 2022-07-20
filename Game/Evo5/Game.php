@@ -23,7 +23,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  * LaserMaxx Evo5 game model
  */
 #[PrimaryKey('id_game')]
-#[Factory(GameFactory::class, ['system' => 'evo5'])]
+#[Factory(GameFactory::class, ['system' => 'evo5'])] // @phpstan-ignore-line
 class Game extends \App\GameModels\Game\Game
 {
 

@@ -13,7 +13,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  * Special LaserMaxx Evo5 game mode
  */
 #[PrimaryKey('id_mode')]
-#[Factory(GameModeFactory::class)]
+#[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class TeamSurvival extends Survival
 {
 

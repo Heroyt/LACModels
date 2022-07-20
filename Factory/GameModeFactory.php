@@ -15,6 +15,8 @@ use Nette\Utils\Strings;
  * Factory for game mode models
  *
  * Works with multiple different laser game systems.
+ *
+ * @implements FactoryInterface<AbstractMode>
  */
 class GameModeFactory implements FactoryInterface
 {

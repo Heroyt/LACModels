@@ -22,7 +22,7 @@ use Lsr\Core\Models\Model;
  * Base class for all game mode models
  */
 #[PrimaryKey('id_mode')]
-#[Factory(GameModeFactory::class)]
+#[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 abstract class AbstractMode extends Model
 {
 
