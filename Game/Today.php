@@ -49,7 +49,7 @@ class Today
 							->fetchSingle();
 		$better++;
 		if ($same === 1) {
-			return $better;
+			return (string) $better;
 		}
 		return $better.'-'.($better + $same - 1);
 	}

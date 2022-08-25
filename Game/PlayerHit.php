@@ -8,6 +8,7 @@ namespace App\GameModels\Game;
 use Dibi\Exception;
 use JsonSerializable;
 use Lsr\Core\DB;
+use Lsr\Helpers\Tools\Timer;
 
 /**
  * Data model for player hits

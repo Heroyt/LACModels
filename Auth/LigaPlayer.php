@@ -2,26 +2,24 @@
 
 namespace App\GameModels\Auth;
 
-use App\Core\Auth\User;
-use App\Core\DB;
-use App\Exceptions\ValidationException;
 use App\Models\Arena;
+use App\Models\Auth\User;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Core\Models\Attributes\OneToOne;
+use Lsr\Core\Models\Attributes\PrimaryKey;
 
 /**
  * Same as the regular player, but with the addition of the arena and user parameters
  */
+#[PrimaryKey('id_user')]
 class LigaPlayer extends Player
 {
 
-	public const DEFINITION = [
-		'user'     => ['class' => User::class],
-		'arena'    => ['class' => Arena::class],
-		'code'     => ['validators' => [[__CLASS__, 'validateCode']]],
-		'nickname' => [],
-		// Removed an email because it is saved in a User class
-	];
-
+	#[OneToOne]
 	public User   $user;
+	#[ManyToOne]
 	public ?Arena $arena;
 
 	/**
@@ -37,6 +35,11 @@ class LigaPlayer extends Player
 		}
 	}
 
+	/**
+	 * @param string $code
+	 *
+	 * @return bool
+	 */
 	public function validateUniqueCode(string $code) : bool {
 		// Validate and parse a player's code
 		if (!preg_match('/(\d+)-([\da-zA-Z]{5})/', $code, $matches)) {
@@ -46,7 +49,7 @@ class LigaPlayer extends Player
 			$arenaId = (int) $matches[1];
 			$code = $matches[2];
 		}
-		$id = DB::select($this::TABLE, $this::PRIMARY_KEY)->where('%n = %i AND [code] = %s', Arena::PRIMARY_KEY, $arenaId, $code)->fetchSingle();
+		$id = DB::select($this::TABLE, $this::getPrimaryKey())->where('%n = %i AND [code] = %s', Arena::getPrimaryKey(), $arenaId, $code)->fetchSingle();
 		return !isset($id) || $id === $this->id;
 	}
 

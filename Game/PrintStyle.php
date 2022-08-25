@@ -12,6 +12,7 @@ use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 
 /**
  * Model for print style settings
@@ -37,6 +38,7 @@ class PrintStyle extends Model
 	 * @return PrintStyle|null
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
+	 * @throws DirectoryCreationException
 	 */
 	public static function getActiveStyle() : ?PrintStyle {
 		$id = self::getActiveStyleId();
@@ -66,6 +68,7 @@ class PrintStyle extends Model
 
 	/**
 	 * @return array{style:PrintStyle,from:DateTime,to:DateTime}[]
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */

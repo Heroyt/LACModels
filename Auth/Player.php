@@ -2,45 +2,27 @@
 
 namespace App\GameModels\Auth;
 
-use App\Core\AbstractModel;
-use App\Core\DB;
 use App\Core\Info;
-use App\Core\Interfaces\InsertExtendInterface;
-use App\Exceptions\ModelNotFoundException;
-use App\Exceptions\ValidationException;
-use App\Logging\DirectoryCreationException;
-use Dibi\Row;
+use App\GameModels\Auth\Validators\PlayerCode;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Attributes\Validation\Email;
+use Lsr\Core\Models\Model;
 use Nette\Utils\Random;
 
-class Player extends AbstractModel implements InsertExtendInterface
+#[PrimaryKey('id_user')]
+class Player extends Model
 {
 
-	public const TABLE       = 'players';
-	public const PRIMARY_KEY = 'id_user';
-
-	public const DEFINITION = [
-		'code'     => ['validators' => [[__CLASS__, 'validateCode']]],
-		'nickname' => [],
-		'email'    => ['validators' => ['email']],
-	];
+	public const TABLE = 'players';
 
 	/** @var string Unique code for each player - two players can have the same code if they are from different arenas. */
+	#[PlayerCode]
 	public string $code;
 	public string $nickname;
+	#[Email]
 	public string $email;
-
-	/**
-	 * @inheritDoc
-	 */
-	public static function parseRow(Row $row) : ?static {
-		if (isset($row->{static::PRIMARY_KEY})) {
-			try {
-				static::get((int) $row->{static::PRIMARY_KEY});
-			} catch (ModelNotFoundException|DirectoryCreationException $e) {
-			}
-		}
-		return null;
-	}
 
 	/**
 	 * @param string $code
@@ -63,15 +45,8 @@ class Player extends AbstractModel implements InsertExtendInterface
 	 * @return bool
 	 */
 	public function validateUniqueCode(string $code) : bool {
-		$id = DB::select($this::TABLE, $this::PRIMARY_KEY)->where('[code] = %s', $code)->fetchSingle();
+		$id = DB::select($this::TABLE, $this::getPrimaryKey())->where('[code] = %s', $code)->fetchSingle();
 		return !isset($id) || $id === $this->id;
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function addQueryData(array &$data) : void {
-		$data[$this::PRIMARY_KEY] = $this->id;
 	}
 
 	/**

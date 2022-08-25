@@ -81,7 +81,6 @@ class PlayerFactory implements FactoryInterface
 			}
 			$queries[] = (string) $q;
 		}
-		/** @noinspection PhpParamsInspection */
 		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
 		return $query;
 	}

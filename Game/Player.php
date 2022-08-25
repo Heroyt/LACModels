@@ -119,6 +119,7 @@ abstract class Player extends Model
 	 * Get one trophy
 	 *
 	 * @return array{name:string,icon:string}
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */
@@ -133,6 +134,7 @@ abstract class Player extends Model
 	 * Get all trophies
 	 *
 	 * @return array{name:string,icon:string}[]
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */

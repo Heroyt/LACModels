@@ -9,6 +9,7 @@ use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
+use Lsr\Helpers\Tools\Timer;
 
 trait WithTeams
 {

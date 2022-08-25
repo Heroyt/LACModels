@@ -16,6 +16,8 @@ use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Model;
+use Lsr\Helpers\Tools\Timer;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 
 trait WithPlayers
 {
@@ -54,8 +56,9 @@ trait WithPlayers
 
 	/**
 	 * @return PlayerCollection
-	 * @throws ValidationException
 	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 * @throws DirectoryCreationException
 	 */
 	public function loadPlayers() : PlayerCollection {
 		if (!isset($this->players)) {
