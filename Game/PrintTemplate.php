@@ -1,21 +1,22 @@
 <?php
+/**
+ * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
+ */
 
 namespace App\GameModels\Game;
 
-use App\Core\AbstractModel;
 use App\GameModels\Game\Enums\PrintOrientation;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
 
-class PrintTemplate extends AbstractModel
+/**
+ * Print template settings
+ */
+#[PrimaryKey('id_template')]
+class PrintTemplate extends Model
 {
 
-	public const TABLE       = 'print_templates';
-	public const PRIMARY_KEY = 'id_template';
-	public const DEFINITION  = [
-		'slug'        => ['validators' => ['required']],
-		'name'        => ['validators' => ['required']],
-		'description' => [],
-		'orientation' => ['class' => PrintOrientation::class],
-	];
+	public const TABLE = 'print_templates';
 
 	public string           $slug        = '';
 	public string           $name        = '';

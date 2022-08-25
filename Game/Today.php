@@ -1,11 +1,16 @@
 <?php
-
+/**
+ * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
+ */
 namespace App\GameModels\Game;
 
-use App\Core\DB;
-use App\Tools\Strings;
 use Dibi\Fluent;
+use Lsr\Core\DB;
+use Lsr\Helpers\Tools\Strings;
 
+/**
+ * Helper class for querying the best players for a day
+ */
 class Today
 {
 
@@ -16,8 +21,11 @@ class Today
 	private Fluent $gameQuery;
 
 	public function __construct(Game $gameClass, Player $playerClass, Team $teamClass) {
+		/* @phpstan-ignore-next-line */
 		$this->games = DB::select($gameClass::TABLE, 'count(*)')->where('DATE(start) = %d', $gameClass->start)->fetchSingle();
+		/* @phpstan-ignore-next-line */
 		$this->players = DB::select($playerClass::TABLE, 'count(*)')->where('id_game IN %sql', $this->todayGames($gameClass))->fetchSingle();
+		/* @phpstan-ignore-next-line */
 		$this->teams = DB::select($teamClass::TABLE, 'count(*)')->where('id_game IN %sql', $this->todayGames($gameClass))->fetchSingle();
 	}
 

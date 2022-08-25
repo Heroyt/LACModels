@@ -1,10 +1,16 @@
 <?php
+/**
+ * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
+ */
 
 namespace App\GameModels\Game\Evo5;
 
-use App\Core\Interfaces\InsertExtendInterface;
 use Dibi\Row;
+use Lsr\Core\Models\Interfaces\InsertExtendInterface;
 
+/**
+ * Structure containing player's bonuses
+ */
 class BonusCounts implements InsertExtendInterface
 {
 
@@ -20,6 +26,10 @@ class BonusCounts implements InsertExtendInterface
 	 * @inheritDoc
 	 */
 	public static function parseRow(Row $row) : static {
+		/**
+		 * @noinspection ProperNullCoalescingOperatorUsageInspection
+		 * @phpstan-ignore-next-line
+		 */
 		return new self(
 			$row->bonus_agent ?? 0,
 			$row->bonus_invisibility ?? 0,
@@ -29,7 +39,9 @@ class BonusCounts implements InsertExtendInterface
 	}
 
 	/**
-	 * @inheritDoc
+	 * Add data from the object into the data array for DB INSERT/UPDATE
+	 *
+	 * @param array<string, mixed> $data
 	 */
 	public function addQueryData(array &$data) : void {
 		$data['bonus_agent'] = $this->agent;
@@ -38,6 +50,9 @@ class BonusCounts implements InsertExtendInterface
 		$data['bonus_shield'] = $this->shield;
 	}
 
+	/**
+	 * @return array<string,mixed>
+	 */
 	public function getArray() : array {
 		$data = [];
 		$data['agent'] = $this->agent;

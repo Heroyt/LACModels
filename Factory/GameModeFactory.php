@@ -2,24 +2,35 @@
 
 namespace App\GameModels\Factory;
 
-use App\Core\DB;
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\GameModes\AbstractMode;
 use Dibi\Row;
+use Lsr\Core\DB;
+use Lsr\Core\Models\Interfaces\FactoryInterface;
+use Lsr\Helpers\Tools\Timer;
 use Nette\Utils\Strings;
 
-class GameModeFactory
+/**
+ * Factory for game mode models
+ *
+ * Works with multiple different laser game systems.
+ *
+ * @implements FactoryInterface<AbstractMode>
+ */
+class GameModeFactory implements FactoryInterface
 {
 
 	/**
+	 * @param array{system?:string} $options
+	 *
 	 * @return AbstractMode[]
 	 * @throws GameModeNotFoundException
 	 */
-	public static function getAll() : array {
+	public static function getAll(array $options = []) : array {
 		$ids = DB::select('game_modes', 'id_mode, name, system, type')->fetchAssoc('id_mode');
 		$modes = [];
-		foreach ($ids as $id => $mode) {
+		foreach ($ids as $mode) {
 			$system = $mode->system ?? '';
 			$modeType = GameModeType::tryFrom($mode->type ?? 'TEAM') ?? GameModeType::TEAM;
 			$modes[] = self::findModeObject($system, $mode, $modeType);
@@ -28,14 +39,16 @@ class GameModeFactory
 	}
 
 	/**
-	 * @param string         $system
-	 * @param array|Row|null $mode
-	 * @param GameModeType   $modeType
+	 * @param string       $system
+	 * @param Row|null     $mode
+	 * @param GameModeType $modeType
 	 *
-	 * @return mixed
+	 * @return AbstractMode
 	 * @throws GameModeNotFoundException
+	 * @noinspection PhpUndefinedFieldInspection
 	 */
-	protected static function findModeObject(string $system, array|Row|null $mode, GameModeType $modeType) : mixed {
+	protected static function findModeObject(string $system, ?Row $mode, GameModeType $modeType) : AbstractMode {
+		Timer::startIncrementing('factory.gamemode');
 		$args = [];
 		$classBase = 'App\\GameModels\\Game\\';
 		$classSystem = '';
@@ -82,31 +95,37 @@ class GameModeFactory
 		if (!class_exists($class)) {
 			throw new GameModeNotFoundException('Cannot find game mode class: '.(isset($dbName) ? $classBase.$classSystem.$classNamespace.$dbName.'|' : '').$classBase.$classSystem.$classNamespace.$className.'|'.$classBase.$classNamespace.$className);
 		}
-		return new $class(...$args);
+		/** @var AbstractMode $mode */
+		$mode = new $class(...$args);
+		Timer::stop('factory.gamemode');
+		return $mode;
 	}
 
 	/**
-	 * @param int $id
+	 * @param int                   $id
+	 * @param array{system?:string} $options
 	 *
-	 * @return AbstractMode
+	 * @return AbstractMode|null
 	 * @throws GameModeNotFoundException
 	 */
-	public static function getById(int $id) : AbstractMode {
+	public static function getById(int $id, array $options = []) : ?AbstractMode {
+		/** @var Row|null $mode */
 		$mode = DB::select('game_modes', 'id_mode, name, system, type')->where('id_mode = %i', $id)->fetch();
-		$system = $mode->system ?? '';
-		$modeType = GameModeType::tryFrom($mode->type ?? 'TEAM') ?? GameModeType::TEAM;
+		$system = (string) ($mode->system ?? '');
+		$modeType = GameModeType::tryFrom((string) ($mode->type ?? 'TEAM')) ?? GameModeType::TEAM;
 		return self::findModeObject($system, $mode, $modeType);
 	}
 
 	/**
-	 * @param string $modeName Raw game mode name
-	 * @param int    $modeType Mode type: 0 = Solo, 1 = Team
-	 * @param string $system   System name
+	 * @param string       $modeName Raw game mode name
+	 * @param GameModeType $modeType Mode type: 0 = Solo, 1 = Team
+	 * @param string       $system   System name
 	 *
 	 * @return AbstractMode
 	 * @throws GameModeNotFoundException
 	 */
 	public static function find(string $modeName, GameModeType $modeType = GameModeType::TEAM, string $system = '') : AbstractMode {
+		/** @var Row|null $mode */
 		$mode = DB::select('vModesNames', 'id_mode, name, system')->where('%s LIKE CONCAT(\'%\', [sysName], \'%\')', $modeName)->fetch();
 		if (isset($mode->system)) {
 			/** @noinspection CallableParameterUseCaseInTypeContextInspection */
@@ -124,6 +143,7 @@ class GameModeFactory
 	 * @throws GameModeNotFoundException
 	 */
 	public static function findByName(string $modeName, GameModeType $modeType = GameModeType::TEAM, string $system = '') : AbstractMode {
+		/** @var Row|null $mode */
 		$mode = DB::select('vModesNames', 'id_mode, name, system')->where('[name] = %s', $modeName)->fetch();
 		if (isset($mode->system)) {
 			/** @noinspection CallableParameterUseCaseInTypeContextInspection */

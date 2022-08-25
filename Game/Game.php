@@ -1,11 +1,14 @@
 <?php
+/**
+ * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
+ */
 
 namespace App\GameModels\Game;
 
-use App\Core\AbstractModel;
-use App\Core\DB;
-use App\Core\Interfaces\InsertExtendInterface;
+use App\Core\Collections\CollectionCompareFilter;
+use App\Core\Collections\Comparison;
 use App\Exceptions\GameModeNotFoundException;
+use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\BonusCounts;
@@ -13,67 +16,63 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Models\Arena;
-use App\Services\Timer;
-use App\Tools\Strings;
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
 use Dibi\Row;
+use JsonException;
+use Lsr\Core\App;
+use Lsr\Core\Caching\Cache;
+use Lsr\Core\DB;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\Factory;
+use Lsr\Core\Models\Attributes\Instantiate;
+use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Core\Models\Attributes\NoDB;
+use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\Model;
+use Lsr\Helpers\Tools\Strings;
+use Nette\Caching\Cache as CacheParent;
 
-abstract class Game extends AbstractModel implements InsertExtendInterface
+/**
+ * Base class for game models
+ *
+ * @phpstan-consistent-constructor
+ */
+#[PrimaryKey('id_game')]
+#[Factory(GameFactory::class)] // @phpstan-ignore-line
+abstract class Game extends Model
 {
 	use WithPlayers;
 	use WithTeams;
 
-	public const SYSTEM      = '';
-	public const PRIMARY_KEY = 'id_game';
-	public const DEFINITION  = [
-		'fileTime' => ['noTest' => true],
-		'start'    => [],
-		'end'      => [],
-		'timing'   => [
-			'validators' => ['instanceOf:'.Timing::class],
-			'class'      => Timing::class,
-		],
-		'code'     => [
-			'validators' => [],
-		],
-		'mode'     => [
-			'validators' => ['instanceOf:'.AbstractMode::class],
-			'class'      => AbstractMode::class,
-		],
-		'gameType' => ['class' => GameModeType::class],
-		'scoring'  => [
-			'validators' => ['instanceOf:'.Scoring::class],
-			'class'      => Scoring::class,
-		],
-		'arena'    => [
-			'class' => Arena::class
-		],
-	];
+	public const SYSTEM = '';
 
-	public int                $id_game;
 	public ?DateTimeInterface $fileTime   = null;
 	public ?DateTimeInterface $start      = null;
 	public ?DateTimeInterface $importTime = null;
 	public ?DateTimeInterface $end        = null;
+	#[Instantiate]
 	public ?Timing            $timing     = null;
 	public string             $code;
-	public ?AbstractMode      $mode       = null;
-	public GameModeType       $gameType   = GameModeType::TEAM;
-	public ?Scoring           $scoring    = null;
-	public ?Arena             $arena      = null;
 
+	#[ManyToOne]
+	public ?AbstractMode $mode     = null;
+	public GameModeType  $gameType = GameModeType::TEAM;
+	#[Instantiate]
+	public ?Scoring      $scoring  = null;
+	#[ManyToOne]
+	public ?Arena $arena = null;
+
+	#[NoDB]
 	public bool $started  = false;
+	#[NoDB]
 	public bool $finished = false;
 
-	public static function parseRow(Row $row) : ?static {
-		if (isset($row->id_game, static::$instances[static::TABLE][$row->id_game])) {
-			return static::$instances[static::TABLE][$row->id_game];
-		}
-		return null;
-	}
-
+	/**
+	 * @return array<int, string>
+	 */
 	public static function getTeamColors() : array {
 		return [];
 	}
@@ -81,10 +80,55 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	/**
 	 * Create a new game from JSON data
 	 *
-	 * @param array $data
+	 * @param array{
+	 *     gameType?: string,
+	 *     lives?: int,
+	 *     ammo?: int,
+	 *     modeName?: string,
+	 *     fileNumber?: int,
+	 *     code?: string,
+	 *     respawn?: int,
+	 *     sync?: int|bool,
+	 *     start?: array{date:string,timezone:string},
+	 *     end?: array{date:string,timezone:string},
+	 *     timing?: array<string,int>,
+	 *     scoring?: array<string,int>,
+	 *     mode?: array{type?:string,name:string},
+	 *     players?: array{
+	 *         id?: int,
+	 *         id_player?: int,
+	 *         name?: string,
+	 *         score?: int,
+	 *         shots?: int,
+	 *         accuracy?: int,
+	 *         vest?: int,
+	 *         hits?: int,
+	 *         deaths?: int,
+	 *         hitsOwn?: int,
+	 *         hitsOther?: int,
+	 *         deathsOwn?: int,
+	 *         deathsOther?: int,
+	 *         position?: int,
+	 *         shotPoints?: int,
+	 *         scoreBonus?: int,
+	 *         scoreMines?: int,
+	 *         ammoRest?: int,
+	 *         bonus?: array<string, int>,
+	 *     }[],
+	 *   teams?: array{
+	 *         id?: int,
+	 *         id_team?: int,
+	 *         name?: string,
+	 *         score?: int,
+	 *         color?: int,
+	 *         position?: int,
+	 *     }[],
+	 * } $data
 	 *
 	 * @return Game
 	 * @throws GameModeNotFoundException
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
 	 */
 	public static function fromJson(array $data) : Game {
 		$game = new static();
@@ -106,6 +150,8 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 				case 'fileNumber':
 				case 'code':
 				case 'respawn':
+				case 'sync':
+				/* @phpstan-ignore-next-line */
 					$game->{$key} = $value;
 					break;
 				case 'end':
@@ -122,11 +168,14 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 					$game->scoring = new Scoring(...$value);
 					break;
 				case 'mode':
-					$game->mode = GameModeFactory::findByName($value['name'], GameModeType::from($value['type']) ?? GameModeType::TEAM, static::SYSTEM);
+					if (!isset($value['type'])) {
+						$value['type'] = GameModeType::TEAM->value;
+					}
+					$game->mode = GameModeFactory::findByName($value['name'], GameModeType::tryFrom($value['type']) ?? GameModeType::TEAM, static::SYSTEM);
 					break;
 				case 'players':
 				{
-					foreach ($value as $playerNum => $playerData) {
+					foreach ($value as $playerData) {
 						/** @var Player $player */
 						$player = new ($game->playerClass);
 						$player->setGame($game);
@@ -158,9 +207,11 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 								case 'hitsOwn':
 								case 'deathsOther':
 								case 'deathsOwn':
+								/* @phpstan-ignore-next-line */
 									$player->{$keyPlayer} = $valuePlayer;
 									break;
 								case 'bonus':
+									/* @phpstan-ignore-next-line */
 									$player->bonus = new BonusCounts(...$valuePlayer);
 									break;
 							}
@@ -190,6 +241,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 								case 'score':
 								case 'color':
 								case 'position':
+									/* @phpstan-ignore-next-line */
 									$team->{$keyTeam} = $valueTeam;
 									break;
 							}
@@ -203,7 +255,8 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 		}
 
 		// Assign hits and teams
-		foreach ($data['players'] ?? [] as $playerData) {
+		/* @phpstan-ignore-next-line */
+		foreach (($data['players'] ?? []) as $playerData) {
 			$id = $playerData['id'] ?? $playerData['id_player'] ?? 0;
 			if (!isset($players[$id])) {
 				continue;
@@ -225,38 +278,23 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 		return $game;
 	}
 
-	public function save() : bool {
-		Timer::start('game.check');
-		$pk = $this::PRIMARY_KEY;
-		/** @var object{id_game:int,code:string|null}|null $test */
-		$test = DB::select($this::TABLE, $pk.', code')->where('start = %dt', $this->start)->fetch();
-		if (isset($test)) {
-			$this->id = $test->$pk;
-			$this->code = $test->code;
-		}
-		if (empty($this->code)) {
-			$this->code = uniqid('g', false);
-		}
-		Timer::stop('game.check');
-		return parent::save();
-	}
-
-	public function addQueryData(array &$data) : void {
-		$data[$this::PRIMARY_KEY] = $this->id;
-	}
-
 	public function isStarted() : bool {
 		return $this->start !== null;
 	}
 
 	public function isFinished() : bool {
-		return $this->end !== null;
+		return $this->end !== null && $this->importTime !== null;
 	}
 
 	/**
+	 * Get best player by some property
+	 *
 	 * @param string $property
 	 *
 	 * @return Player|null
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 * @noinspection PhpMissingBreakStatementInspection
 	 */
 	public function getBestPlayer(string $property) : ?Player {
 		$query = $this->getPlayers()->query()->sortBy($property);
@@ -264,6 +302,10 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 			case 'shots':
 				$query->asc();
 				break;
+			case 'hitsOwn':
+			case 'deathsOwn':
+			/* @phpstan-ignore-next-line */
+				$query->addFilter(new CollectionCompareFilter($property, Comparison::GREATER, 0));
 			default:
 				$query->desc();
 				break;
@@ -273,6 +315,7 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 
 	/**
 	 * @return array<string,string>
+	 * @noinspection PhpArrayShapeAttributeCanBeAddedInspection
 	 */
 	public function getBestsFields() : array {
 		$fields = [
@@ -298,16 +341,89 @@ abstract class Game extends AbstractModel implements InsertExtendInterface
 	 * @param int $vestNum
 	 *
 	 * @return Player|null
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public function getVestPlayer(int $vestNum) : ?Player {
 		return $this->getPlayers()->query()->filter('vest', $vestNum)->first();
 	}
 
+	/**
+	 * @return array<string, mixed>
+	 * @throws GameModeNotFoundException
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
 	public function jsonSerialize() : array {
+		$this->getTeams();
+		$this->getPlayers();
 		$data = parent::jsonSerialize();
 		$data['players'] = $this->getPlayers()->getAll();
 		$data['teams'] = $this->getTeams()->getAll();
+		if (!isset($data['mode'])) {
+			$data['mode'] = GameModeFactory::findByName(
+				$this->gameType === GameModeType::TEAM ? 'Team deathmach' : 'Deathmach',
+				$this->gameType,
+				$this::SYSTEM
+			);
+			$this->mode = $data['mode'];
+		}
 		return $data;
+	}
+
+	/**
+	 * @return bool
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 * @noinspection PhpUndefinedFieldInspection
+	 */
+	public function save() : bool {
+		$pk = $this::getPrimaryKey();
+		/** @var Row|null $test */
+		$test = DB::select($this::TABLE, $pk.', code')->where('start = %dt', $this->start)->fetch();
+		if (isset($test)) {
+			/** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+			$this->id = $test->$pk;
+			$this->code = $test->code;
+		}
+		if (empty($this->code)) {
+			$this->code = uniqid('g', false);
+		}
+		$success = parent::save();
+		if (!$success) {
+			return false;
+		}
+		foreach ($this->getTeams() as $team) {
+			$success &= $team->save();
+		}
+		if (!$success) {
+			return false;
+		}
+		if ($this->getTeams()->count() === 0) {
+			foreach ($this->getPlayers() as $player) {
+				$success = $success && $player->save();
+			}
+		}
+		/* @phpstan-ignore-next-line */
+		return $success;
+	}
+
+	public function update() : bool {
+		// Invalidate cache
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
+		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d')]]);
+		return parent::update();
+	}
+
+	public function delete() : bool {
+		// Invalidate cache
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
+		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d')]]);
+		return parent::delete();
 	}
 
 }

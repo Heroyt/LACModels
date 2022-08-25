@@ -1,10 +1,16 @@
 <?php
+/**
+ * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
+ */
 
 namespace App\GameModels\Game;
 
-use App\Exceptions\ModelNotFoundException;
-use App\Logging\DirectoryCreationException;
+use Lsr\Core\Exceptions\ModelNotFoundException;
+use Lsr\Core\Exceptions\ValidationException;
 
+/**
+ * A trophy (achievement) which a player can obtain
+ */
 class PlayerTrophy
 {
 
@@ -15,13 +21,15 @@ class PlayerTrophy
 	public bool         $solo;
 
 	public function __construct(
-		private Player $player
+		private readonly Player $player
 	) {
-		$this->solo = $player->getGame()->mode->isSolo();
+		$this->solo = $player->getGame()->mode?->isSolo() ?? false;
 		self::getFields(); // Initialize fields array
 	}
 
 	/**
+	 * Get all available trophies
+	 *
 	 * @return array{name:string,description:string,icon:string}[]
 	 */
 	public static function getFields() : array {
@@ -158,9 +166,13 @@ class PlayerTrophy
 	}
 
 	/**
+	 * Get one trophy that a player obtained
+	 *
+	 * Trophies are checked in hierarchical order.
+	 *
 	 * @return array{name:string,description:string,icon:string}
 	 * @throws ModelNotFoundException
-	 * @throws DirectoryCreationException
+	 * @throws ValidationException
 	 */
 	public function getOne() : array {
 		// Special
@@ -196,11 +208,13 @@ class PlayerTrophy
 	}
 
 	/**
+	 * Check if the player obtained a trophy by its name
+	 *
 	 * @param string $name
 	 *
 	 * @return bool
 	 * @throws ModelNotFoundException
-	 * @throws DirectoryCreationException
+	 * @throws ValidationException
 	 */
 	private function check(string $name) : bool {
 		// Classic
@@ -221,7 +235,7 @@ class PlayerTrophy
 			case 'not-found-shots':
 				return $this->player->shots === 404;
 			case 'team-50':
-				return !$this->solo && $this->player->getTeam()->score !== 0 && ($this->player->score / $this->player->getTeam()->score) > 0.45;
+				return !$this->solo && $this->player->getTeam()?->score !== 0 && $this->player->getTeam()?->playerCount > 1 && ($this->player->score / $this->player->getTeam()->score) > 0.45;
 			case 'kd-1':
 				return $this->player->deaths !== 0 && abs(($this->player->hits / $this->player->deaths) - 1) < 0.1;
 			case 'kd-2':
@@ -269,7 +283,7 @@ class PlayerTrophy
 	/**
 	 * @return array{name:string,description:string,icon:string}[]
 	 * @throws ModelNotFoundException
-	 * @throws DirectoryCreationException
+	 * @throws ValidationException
 	 */
 	public function getAll() : array {
 		$fields = [];
