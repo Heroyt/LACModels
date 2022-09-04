@@ -7,6 +7,7 @@ namespace App\GameModels\Game;
 
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Traits\WithGame;
+use App\Models\Auth\Player as User;
 use Dibi\Exception;
 use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
@@ -57,6 +58,9 @@ abstract class Player extends Model
 	protected ?Player      $favouriteTarget   = null;
 	protected ?Player      $favouriteTargetOf = null;
 	protected PlayerTrophy $trophy;
+
+	#[ManyToOne]
+	public ?User $user;
 
 	/**
 	 * @return bool
