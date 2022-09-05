@@ -74,6 +74,20 @@ class Game extends \App\GameModels\Game\Game
 		];
 	}
 
+	/**
+	 * @return string[]
+	 */
+	public static function getTeamNames() : array {
+		return [
+			0 => lang('Red team', context: 'team.names'),
+			1 => lang('Green team', context: 'team.names'),
+			2 => lang('Blue team', context: 'team.names'),
+			3 => lang('Pink team', context: 'team.names'),
+			4 => lang('Yellow team', context: 'team.names'),
+			5 => lang('Ocean team', context: 'team.names'),
+		];
+	}
+
 	public function insert() : bool {
 		$this->logger->info('Inserting game: '.$this->fileNumber);
 		return parent::insert();

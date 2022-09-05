@@ -77,6 +77,13 @@ abstract class Game extends Model
 	}
 
 	/**
+	 * @return array<int, string>
+	 */
+	public static function getTeamNames() : array {
+		return [];
+	}
+
+	/**
 	 * Create a new game from JSON data
 	 *
 	 * @param array{
