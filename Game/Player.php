@@ -75,6 +75,11 @@ abstract class Player extends Model
 		return parent::save();
 	}
 
+	public function instantiateProperties() : void {
+		parent::instantiateProperties();
+		$this->teamNum = $this->getTeamColor();
+	}
+
 	/**
 	 * @return bool
 	 */
