@@ -10,7 +10,7 @@ trait WithGame
 {
 
 	#[ManyToOne]
-	protected ?Game $game;
+	protected Game $game;
 
 	/**
 	 * @return Game

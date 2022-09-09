@@ -16,6 +16,9 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class Tma extends TeamDeathmach
 {
 
+	use Evo5Scores;
+
+
 	public string $name = 'T.M.A.';
 
 }

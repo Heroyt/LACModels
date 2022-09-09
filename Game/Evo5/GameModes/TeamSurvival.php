@@ -17,6 +17,9 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class TeamSurvival extends Survival
 {
 
+	use Evo5Scores;
+
+
 	public string       $name = 'Team Survival';
 	public GameModeType $type = GameModeType::TEAM;
 

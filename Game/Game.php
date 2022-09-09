@@ -33,6 +33,7 @@ use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Caching\Cache as CacheParent;
 
 /**
@@ -426,6 +427,7 @@ abstract class Game extends Model
 			return false;
 		}
 		if ($this->getTeams()->count() === 0) {
+			/** @var Player $player */
 			foreach ($this->getPlayers() as $player) {
 				$success = $success && $player->save();
 			}
@@ -450,6 +452,51 @@ abstract class Game extends Model
 		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
 		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d')]]);
 		return parent::delete();
+	}
+
+	protected float $realGameLength;
+
+	/**
+	 * Get the real game length in minutes.
+	 *
+	 * @return float Real game length in minutes.
+	 */
+	public function getRealGameLength() : float {
+		if (!isset($this->realGameLength)) {
+			if (!isset($this->end, $this->start) || !$this->isFinished()) {
+				// If the game is not finished, it does not have a game length
+				return 0;
+			}
+			$diff = $this->start->diff($this->end);
+			$this->realGameLength = (($diff->h * 3600) + ($diff->i * 60) + $diff->s) / 60;
+		}
+		return $this->realGameLength;
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getAverageKd() : float {
+		try {
+			/** @var float[] $kds */
+			$kds = $this->getPlayers()->query()->map(fn(Player $player) => $player->getKd())->get();
+		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
+			return 1;
+		}
+		return empty($kds) ? 1 : array_sum($kds) / count($kds);
+	}
+
+	public function recalculateScores() : void {
+		if (isset($this->mode)) {
+			$this->mode->recalculateScores($this);
+			$this->reorder();
+		}
+	}
+
+	public function reorder() : void {
+		if (isset($this->mode)) {
+			$this->mode->reorderGame($this);
+		}
 	}
 
 }

@@ -25,6 +25,6 @@ class Team extends \App\GameModels\Game\Team
 	public string $playerClass = Player::class;
 
 	#[ManyToOne(class: Game::class)]
-	public ?\App\GameModels\Game\Game $game;
+	public \App\GameModels\Game\Game $game;
 
 }

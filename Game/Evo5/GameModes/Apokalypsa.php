@@ -17,6 +17,9 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class Apokalypsa extends AbstractMode
 {
 
+	use Evo5Scores;
+
+
 	public string $name = 'Apokalypsa';
 
 }

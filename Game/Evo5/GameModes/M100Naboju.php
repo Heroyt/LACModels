@@ -18,6 +18,9 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class M100Naboju extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode
 {
 
+	use Evo5Scores;
+
+
 	public string $name = '100 nábojů';
 
 	/**

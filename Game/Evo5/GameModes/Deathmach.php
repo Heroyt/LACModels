@@ -14,4 +14,5 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class Deathmach extends \App\GameModels\Game\GameModes\Deathmach
 {
 
+	use Evo5Scores;
 }

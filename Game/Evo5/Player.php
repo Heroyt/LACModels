@@ -35,7 +35,7 @@ class Player extends \App\GameModels\Game\Player
 	public int                           $deathsOwn   = 0;
 	public int                           $deathsOther = 0;
 	#[ManyToOne(class: \App\GameModels\Game\Evo5\Game::class)]
-	public ?Game                         $game;
+	public Game                       $game;
 	#[ManyToOne(foreignKey: 'id_team', class: Team::class)]
 	public ?\App\GameModels\Game\Team    $team        = null;
 
