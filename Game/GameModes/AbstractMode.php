@@ -124,5 +124,19 @@ abstract class AbstractMode extends Model
 		}
 	}
 
+	/**
+	 * @return class-string<AbstractMode>
+	 */
+	public function getSoloAlternative() : string {
+		return $this::class;
+	}
+
+	/**
+	 * @return class-string<AbstractMode>
+	 */
+	public function getTeamAlternative() : string {
+		return $this::class;
+	}
+
 
 }

@@ -156,5 +156,21 @@ class GameModeFactory implements FactoryInterface
 		return self::findModeObject($system, $mode, $modeType);
 	}
 
+	/**
+	 * @param class-string<AbstractMode>|object $object
+	 *
+	 * @return int
+	 * @throws GameModeNotFoundException
+	 */
+	public static function getIdByObject(string|object $object) : int {
+		$modes = self::getAll();
+		foreach ($modes as $mode) {
+			if ($mode instanceof $object && isset($mode->id)) {
+				return $mode->id;
+			}
+		}
+		return 0;
+	}
+
 
 }

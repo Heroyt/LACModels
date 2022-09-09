@@ -18,4 +18,8 @@ class TeamDeathmach extends \App\GameModels\Game\GameModes\TeamDeathmach
 {
 
 	use Evo5Scores;
+
+	public function getSoloAlternative() : string {
+		return Deathmach::class;
+	}
 }

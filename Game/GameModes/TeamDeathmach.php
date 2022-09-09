@@ -17,4 +17,8 @@ class TeamDeathmach extends AbstractMode
 	public string  $name        = 'Team deathmach';
 	public ?string $description = 'Classic team game type.';
 
+	public function getSoloAlternative() : string {
+		return Deathmach::class;
+	}
+
 }
