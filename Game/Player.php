@@ -72,7 +72,7 @@ abstract class Player extends Model
 		if (isset($test)) {
 			$this->id = $test;
 		}
-		$this->calculateSkill();
+		//$this->calculateSkill();
 		return parent::save();
 	}
 
@@ -84,7 +84,8 @@ abstract class Player extends Model
 	 * Other LG system implementations should modify this function to calculate the value based on its specific metrics.
 	 * The value must be normalized based on the game's length.
 	 *
-	 * @pre The player's results should be set.
+	 * @pre  The player's results should be set.
+	 * @post The Player::$skill property is set to the calculated value
 	 *
 	 * @return int A whole number evaluation on an arbitrary scale (no max or min value).
 	 */
