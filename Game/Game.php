@@ -15,6 +15,7 @@ use App\GameModels\Game\Evo5\BonusCounts;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
+use App\Models\MusicMode;
 use App\Services\LigaApi;
 use DateTime;
 use DateTimeInterface;
@@ -65,10 +66,13 @@ abstract class Game extends Model
 	public ?Scoring      $scoring  = null;
 	public bool          $sync     = false;
 
+	#[ManyToOne]
+	public ?MusicMode $music = null;
+
 	#[NoDB]
-	public bool $started  = false;
+	public bool     $started  = false;
 	#[NoDB]
-	public bool $finished = false;
+	public bool     $finished = false;
 	protected float $realGameLength;
 
 	/**
