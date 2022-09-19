@@ -39,6 +39,8 @@ class Player extends \App\GameModels\Game\Player
 	#[ManyToOne(foreignKey: 'id_team', class: Team::class)]
 	public ?\App\GameModels\Game\Team $team        = null;
 
+	public bool $vip = false;
+
 	public function getMines() : int {
 		return $this->bonus->getSum();
 	}
