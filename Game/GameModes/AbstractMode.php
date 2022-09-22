@@ -9,6 +9,9 @@ use App\GameModels\Game\ModeSettings;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\TeamCollection;
+use App\Models\GameModeVariation;
+use App\Models\GameModeVariationValue;
+use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
@@ -34,9 +37,11 @@ abstract class AbstractMode extends Model
 	public string       $name        = '';
 	public ?string      $description = '';
 	public GameModeType $type        = GameModeType::TEAM;
+	public ?string      $loadName    = '';
 	#[Instantiate]
 	public ModeSettings $settings;
-
+	/** @var GameModeVariationValue[][] */
+	private array $variations = [];
 
 	public function isSolo() : bool {
 		return $this->type === GameModeType::SOLO;
@@ -78,22 +83,6 @@ abstract class AbstractMode extends Model
 		$this->recalculateScoresTeams($game);
 	}
 
-	public function reorderGame(Game $game) : void {
-		// Reorder players
-		$players = $game->getPlayersSorted();
-		$i = 1;
-		foreach ($players as $player) {
-			$player->position = $i++;
-		}
-
-		// Reorder teams
-		$teams = $game->getTeamsSorted();
-		$i = 1;
-		foreach ($teams as $team) {
-			$team->position = $i++;
-		}
-	}
-
 	protected function recalculateScoresPlayers(Game $game) : void {
 		if (!isset($game->scoring)) {
 			return;
@@ -124,6 +113,22 @@ abstract class AbstractMode extends Model
 		}
 	}
 
+	public function reorderGame(Game $game) : void {
+		// Reorder players
+		$players = $game->getPlayersSorted();
+		$i = 1;
+		foreach ($players as $player) {
+			$player->position = $i++;
+		}
+
+		// Reorder teams
+		$teams = $game->getTeamsSorted();
+		$i = 1;
+		foreach ($teams as $team) {
+			$team->position = $i++;
+		}
+	}
+
 	/**
 	 * @return class-string<AbstractMode>
 	 */
@@ -138,5 +143,34 @@ abstract class AbstractMode extends Model
 		return $this::class;
 	}
 
+	/**
+	 * @return GameModeVariationValue[][]
+	 * @throws DirectoryCreationException
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
+	public function getVariations() : array {
+		if (empty($this->variations)) {
+			$rows = DB::select(GameModeVariation::TABLE_VALUES, '[id_variation], [value], [suffix], [order]')
+								->where('[id_mode] = %i', $this->id)
+								->orderBy('[id_variation], [order]')
+								->fetchAssoc('id_variation|value');
+			foreach ($rows as $variationId => $values) {
+				if (!isset($this->variations[$variationId])) {
+					$this->variations[$variationId] = [];
+				}
+				foreach ($values as $value) {
+					$this->variations[$variationId][] = new GameModeVariationValue(
+						GameModeVariation::get($variationId),
+						$this,
+						$value->value,
+						$value->suffix,
+						$value->order
+					);
+				}
+			}
+		}
+		return $this->variations;
+	}
 
 }
