@@ -56,7 +56,7 @@ abstract class Player extends Model
 	#[ManyToOne(foreignKey: 'id_team')]
 	public ?Team           $team              = null;
 	#[ManyToOne]
-	public ?User           $user;
+	public ?User           $user              = null;
 	protected int          $color             = 0;
 	protected ?Player      $favouriteTarget   = null;
 	protected ?Player      $favouriteTargetOf = null;
@@ -166,6 +166,7 @@ abstract class Player extends Model
 	 */
 	public function setTeam(Team $team) : Player {
 		$this->team = $team;
+		$this->color = $this->team->color;
 		//$team->getPlayers()->add($this);
 		return $this;
 	}
@@ -370,6 +371,13 @@ abstract class Player extends Model
 		$cache = App::getService('cache');
 		$cache->remove('players/'.$this->getGame()::SYSTEM.'/'.$this->id);
 		return parent::delete();
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getColor() : int {
+		return $this->color;
 	}
 
 }

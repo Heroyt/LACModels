@@ -111,6 +111,7 @@ abstract class Game extends Model
 	 *         id_player?: int,
 	 *         name?: string,
 	 *         score?: int,
+	 *         skill?: int,
 	 *         shots?: int,
 	 *         accuracy?: int,
 	 *         vest?: int,
@@ -203,6 +204,7 @@ abstract class Game extends Model
 									break;
 								case 'name':
 								case 'score':
+								case 'skill':
 								case 'shots':
 								case 'accuracy':
 								case 'vest':
@@ -219,7 +221,8 @@ abstract class Game extends Model
 								case 'hitsOwn':
 								case 'deathsOther':
 								case 'deathsOwn':
-								/* @phpstan-ignore-next-line */
+								case 'teamNum':
+									/* @phpstan-ignore-next-line */
 									$player->{$keyPlayer} = $valuePlayer;
 									break;
 								case 'bonus':
@@ -281,7 +284,7 @@ abstract class Game extends Model
 				}
 			}
 			// Team
-			$teamId = $playerData['team'] ?? 0;
+			$teamId = (int) ($playerData['team'] ?? 0);
 			if (isset($teams[$teamId])) {
 				$player->setTeam($teams[$teamId]);
 				$teams[$teamId]->addPlayer($player);
