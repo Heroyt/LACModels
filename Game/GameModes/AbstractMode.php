@@ -38,6 +38,7 @@ abstract class AbstractMode extends Model
 	public ?string      $description = '';
 	public GameModeType $type        = GameModeType::TEAM;
 	public ?string      $loadName    = '';
+	public string       $teams       = '';
 	#[Instantiate]
 	public ModeSettings $settings;
 	/** @var GameModeVariationValue[][] */
