@@ -5,9 +5,9 @@
 
 namespace App\GameModels\Game;
 
+use App\GameModels\Auth\Player as User;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Traits\WithGame;
-use App\Models\Auth\Player as User;
 use Dibi\Exception;
 use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
