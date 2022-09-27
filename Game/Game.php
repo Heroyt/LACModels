@@ -64,7 +64,8 @@ abstract class Game extends Model
 	public GameModeType  $gameType = GameModeType::TEAM;
 	#[Instantiate]
 	public ?Scoring      $scoring  = null;
-	public bool          $sync     = false;
+	/** @var bool Indicates if the game is synchronized to public API */
+	public bool $sync = false;
 
 	#[ManyToOne]
 	public ?MusicMode $music = null;
@@ -139,9 +140,10 @@ abstract class Game extends Model
 	 * } $data
 	 *
 	 * @return Game
+	 * @throws DirectoryCreationException
 	 * @throws GameModeNotFoundException
-	 * @throws ValidationException
 	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public static function fromJson(array $data) : Game {
 		$game = new static();
@@ -539,6 +541,7 @@ abstract class Game extends Model
 		if (isset($this->mode)) {
 			$this->mode->recalculateScores($this);
 			$this->reorder();
+			$this->sync = false;
 		}
 	}
 
