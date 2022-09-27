@@ -303,6 +303,23 @@ class GameFactory implements FactoryInterface
 	}
 
 	/**
+	 * Get team names for all supported systems
+	 *
+	 * @return string[][]
+	 */
+	public static function getAllTeamsNames() : array {
+		$colors = [];
+		foreach (self::getSupportedSystems() as $system) {
+			/** @var Game $className */
+			$className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
+			if (method_exists($className, 'getTeamColors')) {
+				$colors[$system] = $className::getTeamNames();
+			}
+		}
+		return $colors;
+	}
+
+	/**
 	 * Get available filters for game query based on selected system
 	 *
 	 * @param string|null $system

@@ -16,6 +16,9 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class Survival extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode
 {
 
+	use Evo5Scores;
+
+
 	public string $name = 'Survival';
 
 	/**

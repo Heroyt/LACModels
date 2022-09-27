@@ -28,7 +28,11 @@ class GameModeFactory implements FactoryInterface
 	 * @throws GameModeNotFoundException
 	 */
 	public static function getAll(array $options = []) : array {
-		$ids = DB::select('game_modes', 'id_mode, name, system, type')->fetchAssoc('id_mode');
+		$ids = DB::select('game_modes', 'id_mode, name, system, type');
+		if (isset($options['system'])) {
+			$ids->where('system = %s', $options['system']);
+		}
+		$ids = $ids->fetchAssoc('id_mode');
 		$modes = [];
 		foreach ($ids as $mode) {
 			$system = $mode->system ?? '';
@@ -150,6 +154,22 @@ class GameModeFactory implements FactoryInterface
 			$system = $mode->system;
 		}
 		return self::findModeObject($system, $mode, $modeType);
+	}
+
+	/**
+	 * @param class-string<AbstractMode>|object $object
+	 *
+	 * @return int
+	 * @throws GameModeNotFoundException
+	 */
+	public static function getIdByObject(string|object $object) : int {
+		$modes = self::getAll();
+		foreach ($modes as $mode) {
+			if ($mode instanceof $object && isset($mode->id)) {
+				return $mode->id;
+			}
+		}
+		return 0;
 	}
 
 

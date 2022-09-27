@@ -10,6 +10,7 @@ use Dibi\DateTime;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
@@ -25,6 +26,7 @@ class PrintStyle extends Model
 
 	public const COLORS  = ['dark', 'light', 'primary'];
 	public const CLASSES = ['text', 'bg', ''];
+	#[NoDB]
 	public static bool $gotVars      = false;
 	public string      $name         = '';
 	public string      $colorDark    = '';

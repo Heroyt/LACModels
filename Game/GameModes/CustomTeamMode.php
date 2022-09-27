@@ -14,4 +14,8 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class CustomTeamMode extends AbstractMode
 {
 
+	public function getSoloAlternative() : string {
+		return CustomSoloMode::class;
+	}
+
 }

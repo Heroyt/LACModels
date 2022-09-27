@@ -25,6 +25,9 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class Zakladny extends AbstractMode implements CustomResultsMode
 {
 
+	use Evo5Scores;
+
+
 	public string $name = 'Základny';
 
 	/**

@@ -41,6 +41,7 @@ trait WithPlayers
 
 	/**
 	 * @return PlayerCollection
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */
@@ -125,6 +126,7 @@ trait WithPlayers
 
 	/**
 	 * @return PlayerCollection
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */

@@ -16,6 +16,7 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Models\Arena;
+use App\Models\MusicMode;
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
@@ -33,6 +34,7 @@ use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Caching\Cache as CacheParent;
 
 /**
@@ -65,15 +67,26 @@ abstract class Game extends Model
 	#[ManyToOne]
 	public ?Arena $arena = null;
 
+	#[ManyToOne]
+	public ?MusicMode $music = null;
+
 	#[NoDB]
-	public bool $started  = false;
+	public bool     $started  = false;
 	#[NoDB]
-	public bool $finished = false;
+	public bool     $finished = false;
+	protected float $realGameLength;
 
 	/**
 	 * @return array<int, string>
 	 */
 	public static function getTeamColors() : array {
+		return [];
+	}
+
+	/**
+	 * @return array<int, string>
+	 */
+	public static function getTeamNames() : array {
 		return [];
 	}
 
@@ -99,6 +112,7 @@ abstract class Game extends Model
 	 *         id_player?: int,
 	 *         name?: string,
 	 *         score?: int,
+	 *         skill?: int,
 	 *         shots?: int,
 	 *         accuracy?: int,
 	 *         vest?: int,
@@ -191,6 +205,7 @@ abstract class Game extends Model
 									break;
 								case 'name':
 								case 'score':
+								case 'skill':
 								case 'shots':
 								case 'accuracy':
 								case 'vest':
@@ -207,7 +222,8 @@ abstract class Game extends Model
 								case 'hitsOwn':
 								case 'deathsOther':
 								case 'deathsOwn':
-								/* @phpstan-ignore-next-line */
+								case 'teamNum':
+									/* @phpstan-ignore-next-line */
 									$player->{$keyPlayer} = $valuePlayer;
 									break;
 								case 'bonus':
@@ -269,7 +285,7 @@ abstract class Game extends Model
 				}
 			}
 			// Team
-			$teamId = $playerData['team'] ?? 0;
+			$teamId = (int) ($playerData['team'] ?? 0);
 			if (isset($teams[$teamId])) {
 				$player->setTeam($teams[$teamId]);
 				$teams[$teamId]->addPlayer($player);
@@ -280,10 +296,6 @@ abstract class Game extends Model
 
 	public function isStarted() : bool {
 		return $this->start !== null;
-	}
-
-	public function isFinished() : bool {
-		return $this->end !== null && $this->importTime !== null;
 	}
 
 	/**
@@ -393,6 +405,9 @@ abstract class Game extends Model
 		if (!$success) {
 			return false;
 		}
+
+		$this->calculateSkills();
+
 		foreach ($this->getTeams() as $team) {
 			$success &= $team->save();
 		}
@@ -400,12 +415,53 @@ abstract class Game extends Model
 			return false;
 		}
 		if ($this->getTeams()->count() === 0) {
+			/** @var Player $player */
 			foreach ($this->getPlayers() as $player) {
 				$success = $success && $player->save();
 			}
 		}
 		/* @phpstan-ignore-next-line */
 		return $success;
+	}
+
+	public function calculateSkills() : void {
+		/** @var Player[] $players */
+		$players = $this->getPlayers()->getAll();
+
+		// Calculate the base skill for all players first
+		$skills = [];
+		foreach ($players as $player) {
+			$skills[] = $player->calculateSkill();
+		}
+		// -1 because we will always subtract one player while calculating the average
+		$playerCount = count($skills) - 1;
+		if ($playerCount === 0) {
+			return;
+		}
+		$skillSum = array_sum($skills);
+
+		// Modulate the skill value based on the average skill value for each player.
+		// This should lower the skill value for players, if they are playing against weak opponents and vice versa.
+		foreach ($players as $player) {
+			// Recalculate the average skill of all other players using the skill sum
+			$avg = ($skillSum - $player->skill) / $playerCount;
+			// Negative if the player skill is greater than the average and vice versa
+			$diff = $avg - $player->skill;
+			if ($avg === 0) {
+				$avg = 1;
+			}
+			$diffPercent = abs($diff / $avg);
+
+			// 1-(1/x) has an asymptote in y=1, therefore it is never possible to lower the skill value by 100%.
+			$percent = 1 - (8 / ($diffPercent + 8));
+			$newDiff = (int) abs(round($player->skill * $percent));
+			if ($diff < 0) {
+				$player->skill -= $newDiff;
+			}
+			else {
+				$player->skill += $newDiff;
+			}
+		}
 	}
 
 	public function update() : bool {
@@ -424,6 +480,53 @@ abstract class Game extends Model
 		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
 		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d')]]);
 		return parent::delete();
+	}
+
+	/**
+	 * Get the real game length in minutes.
+	 *
+	 * @return float Real game length in minutes.
+	 */
+	public function getRealGameLength() : float {
+		if (!isset($this->realGameLength)) {
+			if (!isset($this->end, $this->start) || !$this->isFinished()) {
+				// If the game is not finished, it does not have a game length
+				return 0;
+			}
+			$diff = $this->start->diff($this->end);
+			$this->realGameLength = (($diff->h * 3600) + ($diff->i * 60) + $diff->s) / 60;
+		}
+		return $this->realGameLength;
+	}
+
+	public function isFinished() : bool {
+		return $this->end !== null && $this->importTime !== null;
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getAverageKd() : float {
+		try {
+			/** @var float[] $kds */
+			$kds = $this->getPlayers()->query()->map(fn(Player $player) => $player->getKd())->get();
+		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
+			return 1;
+		}
+		return empty($kds) ? 1 : array_sum($kds) / count($kds);
+	}
+
+	public function recalculateScores() : void {
+		if (isset($this->mode)) {
+			$this->mode->recalculateScores($this);
+			$this->reorder();
+		}
+	}
+
+	public function reorder() : void {
+		if (isset($this->mode)) {
+			$this->mode->reorderGame($this);
+		}
 	}
 
 }

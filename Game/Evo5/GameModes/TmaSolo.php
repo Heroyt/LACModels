@@ -16,6 +16,9 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class TmaSolo extends Deathmach
 {
 
+	use Evo5Scores;
+
+
 	public string $name = 'T.M.A. - solo';
 
 }

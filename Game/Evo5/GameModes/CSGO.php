@@ -26,6 +26,9 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class CSGO extends AbstractMode implements CustomResultsMode
 {
 
+	use Evo5Scores;
+
+
 	public string $name = 'CSGO';
 
 	/**
