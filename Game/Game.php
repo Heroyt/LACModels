@@ -487,19 +487,13 @@ abstract class Game extends Model
 
 	public function update() : bool {
 		// Invalidate cache
-		/** @var Cache $cache */
-		$cache = App::getService('cache');
-		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
-		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d')]]);
+		$this->invalidateCache();
 		return parent::update();
 	}
 
 	public function delete() : bool {
 		// Invalidate cache
-		/** @var Cache $cache */
-		$cache = App::getService('cache');
-		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
-		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d')]]);
+		$this->invalidateCache();
 		return parent::delete();
 	}
 
@@ -548,6 +542,31 @@ abstract class Game extends Model
 	public function reorder() : void {
 		if (isset($this->mode)) {
 			$this->mode->reorderGame($this);
+		}
+	}
+
+	/**
+	 * Invalidate all cache related to this game
+	 *
+	 * @post Object cache is cleared
+	 * @post Results cache files are cleared
+	 *
+	 * @return void
+	 */
+	public function invalidateCache() : void {
+		// Invalidate cached objects
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
+		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d')]]);
+
+		// Invalidate generated results cache
+		/** @var string[]|false $files */
+		$files = glob(TMP_DIR.'results/'.$this->code.'*');
+		if ($files !== false) {
+			foreach ($files as $file) {
+				@unlink($file);
+			}
 		}
 	}
 
