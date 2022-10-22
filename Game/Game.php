@@ -563,6 +563,10 @@ abstract class Game extends Model
 		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
 		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d'), 'games/'.$this->code]]);
 
+		if (isset($this->group)) {
+			$this->group->clearCache();
+		}
+
 		// Invalidate generated results cache
 		/** @var string[]|false $files */
 		$files = glob(TMP_DIR.'results/'.$this->code.'*');
