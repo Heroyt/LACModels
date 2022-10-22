@@ -13,6 +13,7 @@ use Lsr\Core\Models\Interfaces\FactoryInterface;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
 use Nette\Caching\Cache as CacheBase;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -118,8 +119,11 @@ class TeamFactory implements FactoryInterface
 					'teams',
 					'system/'.$system,
 					'teams/'.$system,
-					'games/'.$system.'/'.$team->getGame()->id,
 				];
+				try {
+					$dependencies[CacheBase::Tags][] = 'games/'.$system.'/'.$team->getGame()->id;
+				} catch (RuntimeException) {
+				}
 				return $team;
 			});
 
