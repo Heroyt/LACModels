@@ -488,6 +488,13 @@ abstract class Game extends Model
 		}
 	}
 
+	public function insert() : bool {
+		if (isset($this->group)) {
+			$this->group->clearCache();
+		}
+		return parent::insert();
+	}
+
 	public function update() : bool {
 		// Invalidate cache
 		$this->invalidateCache();
