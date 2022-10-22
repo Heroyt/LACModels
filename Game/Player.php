@@ -21,7 +21,9 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Attributes\Validation\Required;
 use Lsr\Core\Models\Attributes\Validation\StringLength;
 use Lsr\Core\Models\Model;
+use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Throwable;
 
 /**
  * Base class for player models
@@ -354,6 +356,7 @@ abstract class Player extends Model
 			unset($data['game']);
 		}
 		$data['hitPlayers'] = $this->getHitsPlayers();
+		$data['avgSkill'] = $this->getSkill();
 		return $data;
 	}
 
@@ -378,6 +381,23 @@ abstract class Player extends Model
 	 */
 	public function getColor() : int {
 		return $this->color;
+	}
+
+	/**
+	 * Get the player's skill value. If the player is a part of a group, returns the average group value.
+	 *
+	 * @return int
+	 */
+	public function getSkill() : int {
+		if (!isset($this->getGame()->group)) {
+			return $this->skill;
+		}
+		try {
+			$players = $this->getGame()->group->getPlayers();
+			return ($players[Strings::toAscii($this->name)] ?? $this)->skill;
+		} catch (Throwable $e) {
+			return $this->skill;
+		}
 	}
 
 }

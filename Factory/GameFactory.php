@@ -78,14 +78,33 @@ class GameFactory implements FactoryInterface
 	 *
 	 * @param bool          $excludeNotFinished
 	 * @param DateTime|null $date
+	 * @param array         $fields
 	 *
 	 * @return Fluent
 	 */
-	public static function queryGames(bool $excludeNotFinished = false, ?DateTime $date = null) : Fluent {
+	public static function queryGames(bool $excludeNotFinished = false, ?DateTime $date = null, array $fields = []) : Fluent {
 		$query = DB::getConnection()->select('*');
 		$queries = [];
+		$defaultFields = ['id_game', 'system', 'code', 'start', 'end', 'sync'];
 		foreach (self::getSupportedSystems() as $key => $system) {
-			$q = DB::select(["[{$system}_games]", "[g$key]"], "[g$key].[id_game], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end], [g$key].[sync]", $system);
+			$addFields = '';
+			if (!empty($fields)) {
+				foreach ($fields as $name => $field) {
+					// Prevent duplicate fields
+					if (in_array($name, $defaultFields, true) || in_array($field, $defaultFields, true)) {
+						continue;
+					}
+					if (is_string($name)) {
+						// Allows setting alias
+						$addFields .= ', [g'.$key.'].['.$name.'] as ['.$field.']';
+					}
+					else {
+						// No alias
+						$addFields .= ', [g'.$key.'].['.$field.']';
+					}
+				}
+			}
+			$q = DB::select(["[{$system}_games]", "[g$key]"], "[g$key].[id_game], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end], [g$key].[sync]".$addFields, $system);
 			if ($excludeNotFinished) {
 				$q->where("[g$key].[end] IS NOT NULL");
 			}
