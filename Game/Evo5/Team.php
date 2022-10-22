@@ -19,7 +19,8 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class Team extends \App\GameModels\Game\Team
 {
 
-	public const TABLE = 'evo5_teams';
+	public const TABLE  = 'evo5_teams';
+	public const SYSTEM = 'evo5';
 
 	#[NoDB]
 	public string $playerClass = Player::class;

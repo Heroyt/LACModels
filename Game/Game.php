@@ -561,7 +561,7 @@ abstract class Game extends Model
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
 		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
-		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d')]]);
+		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d'), 'games/'.$this->code]]);
 
 		// Invalidate generated results cache
 		/** @var string[]|false $files */

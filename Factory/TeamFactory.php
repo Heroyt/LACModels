@@ -119,6 +119,8 @@ class TeamFactory implements FactoryInterface
 					'teams',
 					'system/'.$system,
 					'teams/'.$system,
+					'games/'.$team->getGame()->code,
+					'games/'.$system.'/'.$team->getGame()->id,
 				];
 				try {
 					$dependencies[CacheBase::Tags][] = 'games/'.$system.'/'.$team->getGame()->id;

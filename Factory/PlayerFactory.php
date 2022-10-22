@@ -118,6 +118,7 @@ class PlayerFactory implements FactoryInterface
 					'players',
 					'system/'.$system,
 					'players/'.$system,
+					'games/'.$player->getGame()->code,
 					'games/'.$system.'/'.$player->getGame()->id,
 				];
 				return $player;

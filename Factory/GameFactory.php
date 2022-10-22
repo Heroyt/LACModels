@@ -45,6 +45,7 @@ class GameFactory implements FactoryInterface
 			$dependencies[CacheBase::Tags] = [
 				'games',
 				'models',
+				'games/'.$code,
 			];
 			/**
 			 * @var null|Row{
@@ -153,13 +154,16 @@ class GameFactory implements FactoryInterface
 					'games',
 					'system/'.$system,
 					'games/'.$system,
-					'games/'.$system.'/'.$id,
+					'games/'.$system.'/'.$id
 				];
 				$className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Game';
 				if (!class_exists($className)) {
 					throw new InvalidArgumentException('Game model of does not exist: '.$className);
 				}
-				return $className::get($id);
+				/** @var Game $game */
+				$game = $className::get($id);
+				$dependencies[CacheBase::Tags][] = 'games/'.$game->code;
+				return $game;
 			});
 		} catch (ModelNotFoundException) {
 			Timer::stop('factory.game');

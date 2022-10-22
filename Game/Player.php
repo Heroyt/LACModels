@@ -35,6 +35,7 @@ abstract class Player extends Model
 	use WithGame;
 
 	public const CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
+	public const SYSTEM        = '';
 
 	#[Required]
 	#[StringLength(1, 15)]
