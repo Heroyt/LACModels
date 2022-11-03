@@ -4,12 +4,12 @@ namespace App\GameModels\Factory;
 
 use App\GameModels\Game\Game;
 use DateTime;
-use Dibi\Fluent;
 use Dibi\Row;
 use InvalidArgumentException;
 use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
+use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
 use Lsr\Helpers\Tools\Strings;
@@ -61,9 +61,9 @@ class GameFactory implements FactoryInterface
 	/**
 	 * Prepare a SQL query for all games (from all systems)
 	 *
-	 * @param bool          $excludeNotFinished
-	 * @param DateTime|null $date
-	 * @param array         $fields
+	 * @param bool                      $excludeNotFinished
+	 * @param DateTime|null             $date
+	 * @param array<string|int, string> $fields
 	 *
 	 * @return Fluent
 	 */
@@ -98,9 +98,8 @@ class GameFactory implements FactoryInterface
 			}
 			$queries[] = (string) $q;
 		}
-		/** @noinspection PhpParamsInspection */
 		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
-		return $query;
+		return new Fluent($query);
 	}
 
 	/**
@@ -237,9 +236,6 @@ class GameFactory implements FactoryInterface
 	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public static function getGamesCountPerDay(string $format = 'Y-m-d', bool $excludeNotFinished = false) : array {
-		/**
-		 * @var Row[] $rows
-		 */
 		$rows = self::queryGameCountPerDay($excludeNotFinished)->fetchAll();
 		$return = [];
 		foreach ($rows as $row) {
@@ -270,11 +266,10 @@ class GameFactory implements FactoryInterface
 			}
 			$queries[] = (string) $q;
 		}
-		/** @noinspection PhpParamsInspection */
 		$query
 			->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]')
 			->groupBy('date');
-		return $query;
+		return new Fluent($query);
 	}
 
 	/**

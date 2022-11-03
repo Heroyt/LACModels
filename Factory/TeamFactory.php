@@ -3,9 +3,9 @@
 namespace App\GameModels\Factory;
 
 use App\GameModels\Game\Team;
-use Dibi\Fluent;
 use InvalidArgumentException;
 use Lsr\Core\DB;
+use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
 use Lsr\Helpers\Tools\Strings;
@@ -78,9 +78,8 @@ class TeamFactory implements FactoryInterface
 			}
 			$queries[] = (string) $q;
 		}
-		/** @noinspection PhpParamsInspection */
 		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
-		return $query;
+		return new Fluent($query);
 	}
 
 	/**
