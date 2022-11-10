@@ -9,8 +9,7 @@ use App\GameModels\Auth\Player as User;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Traits\WithGame;
 use Dibi\Exception;
-use Lsr\Core\App;
-use Lsr\Core\Caching\Cache;
+use Dibi\Row;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -34,6 +33,7 @@ abstract class Player extends Model
 {
 	use WithGame;
 
+	public const CACHE_TAGS    = ['players'];
 	public const CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
 	public const SYSTEM        = '';
 
@@ -65,13 +65,19 @@ abstract class Player extends Model
 	protected ?Player      $favouriteTargetOf = null;
 	protected PlayerTrophy $trophy;
 
+	public function __construct(?int $id = null, ?Row $dbRow = null) {
+		$this->cacheTags[] = 'games/'.$this::SYSTEM;
+		$this->cacheTags[] = 'players/'.$this::SYSTEM;
+		parent::__construct($id, $dbRow);
+	}
+
 	/**
 	 * @return bool
 	 * @throws ValidationException
 	 */
 	public function save() : bool {
 		/** @var int|null $test */
-		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s && vest = %i', $this->game?->id, $this->name, $this->vest)->fetchSingle();
+		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s && vest = %i', $this->game?->id, $this->name, $this->vest)->fetchSingle(cache: false);
 		if (isset($test)) {
 			$this->id = $test;
 		}
@@ -364,22 +370,6 @@ abstract class Player extends Model
 		$data['hitPlayers'] = $this->getHitsPlayers();
 		$data['avgSkill'] = $this->getSkill();
 		return $data;
-	}
-
-	public function update() : bool {
-		// Invalidate cache
-		/** @var Cache $cache */
-		$cache = App::getService('cache');
-		$cache->remove('players/'.$this->getGame()::SYSTEM.'/'.$this->id);
-		return parent::update();
-	}
-
-	public function delete() : bool {
-		// Invalidate cache
-		/** @var Cache $cache */
-		$cache = App::getService('cache');
-		$cache->remove('players/'.$this->getGame()::SYSTEM.'/'.$this->id);
-		return parent::delete();
 	}
 
 	/**
