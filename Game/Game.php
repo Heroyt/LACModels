@@ -50,7 +50,8 @@ abstract class Game extends Model
 	use WithPlayers;
 	use WithTeams;
 
-	public const SYSTEM = '';
+	public const SYSTEM     = '';
+	public const CACHE_TAGS = ['games'];
 
 	public ?DateTimeInterface $fileTime   = null;
 	public ?DateTimeInterface $start      = null;
@@ -78,6 +79,11 @@ abstract class Game extends Model
 	#[NoDB]
 	public bool     $finished = false;
 	protected float $realGameLength;
+
+	public function __construct(?int $id = null, ?Row $dbRow = null) {
+		$this->cacheTags[] = 'games/'.$this::SYSTEM;
+		parent::__construct($id, $dbRow);
+	}
 
 	/**
 	 * @return array<int, string>
@@ -366,6 +372,7 @@ abstract class Game extends Model
 
 	/**
 	 * @return array<string, mixed>
+	 * @throws DirectoryCreationException
 	 * @throws GameModeNotFoundException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
@@ -392,6 +399,7 @@ abstract class Game extends Model
 	 * Synchronize a game to public
 	 *
 	 * @return bool
+	 * @throws DirectoryCreationException
 	 * @throws JsonException
 	 * @throws ModelNotFoundException
 	 */
@@ -410,6 +418,7 @@ abstract class Game extends Model
 
 	/**
 	 * @return bool
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 * @noinspection PhpUndefinedFieldInspection
@@ -417,7 +426,7 @@ abstract class Game extends Model
 	public function save() : bool {
 		$pk = $this::getPrimaryKey();
 		/** @var Row|null $test */
-		$test = DB::select($this::TABLE, $pk.', code')->where('start = %dt', $this->start)->fetch();
+		$test = DB::select($this::TABLE, $pk.', code')->where('start = %dt', $this->start)->fetch(cache: false);
 		if (isset($test)) {
 			/** @noinspection PhpFieldAssignmentTypeMismatchInspection */
 			$this->id = $test->$pk;
@@ -449,6 +458,12 @@ abstract class Game extends Model
 		return $success;
 	}
 
+	/**
+	 * @return void
+	 * @throws DirectoryCreationException
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
 	public function calculateSkills() : void {
 		/** @var Player[] $players */
 		$players = $this->getPlayers()->getAll();
@@ -493,19 +508,40 @@ abstract class Game extends Model
 		if (isset($this->group)) {
 			$this->group->clearCache();
 		}
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->clean([CacheParent::Tags => ['games/counts']]);
 		return parent::insert();
 	}
 
-	public function update() : bool {
-		// Invalidate cache
-		$this->invalidateCache();
-		return parent::update();
+	public function delete() : bool {
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->clean([CacheParent::Tags => ['games/counts']]);
+		return parent::delete();
 	}
 
-	public function delete() : bool {
-		// Invalidate cache
-		$this->invalidateCache();
-		return parent::delete();
+	public function clearCache() : void {
+		parent::clearCache();
+
+		// Invalidate cached objects
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
+		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d'), 'games/'.$this->code]]);
+
+		if (isset($this->group)) {
+			$this->group->clearCache();
+		}
+
+		// Invalidate generated results cache
+		/** @var string[]|false $files */
+		$files = glob(TMP_DIR.'results/'.$this->code.'*');
+		if ($files !== false) {
+			foreach ($files as $file) {
+				@unlink($file);
+			}
+		}
 	}
 
 	/**
@@ -553,35 +589,6 @@ abstract class Game extends Model
 	public function reorder() : void {
 		if (isset($this->mode)) {
 			$this->mode->reorderGame($this);
-		}
-	}
-
-	/**
-	 * Invalidate all cache related to this game
-	 *
-	 * @post Object cache is cleared
-	 * @post Results cache files are cleared
-	 *
-	 * @return void
-	 */
-	public function invalidateCache() : void {
-		// Invalidate cached objects
-		/** @var Cache $cache */
-		$cache = App::getService('cache');
-		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
-		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d'), 'games/'.$this->code]]);
-
-		if (isset($this->group)) {
-			$this->group->clearCache();
-		}
-
-		// Invalidate generated results cache
-		/** @var string[]|false $files */
-		$files = glob(TMP_DIR.'results/'.$this->code.'*');
-		if ($files !== false) {
-			foreach ($files as $file) {
-				@unlink($file);
-			}
 		}
 	}
 

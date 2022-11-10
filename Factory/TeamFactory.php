@@ -54,7 +54,8 @@ class TeamFactory implements FactoryInterface
 	 * @return Fluent
 	 */
 	public static function queryTeamsSystem(string $system, array $gameIds = []) : Fluent {
-		$q = DB::select(["[{$system}_teams]", "[g]"], "[g].[id_team], [g].[id_game], [g].[color], %s as [system], [g].[name], [g].[score]", $system);
+		$q = DB::select(["[{$system}_teams]", "[g]"], "[g].[id_team], [g].[id_game], [g].[color], %s as [system], [g].[name], [g].[score]", $system)
+					 ->cacheTags('teams', 'teams/'.$system);
 		if (!empty($gameIds)) {
 			$q->where("[g].[id_game] IN %in", $gameIds);
 		}
@@ -79,7 +80,7 @@ class TeamFactory implements FactoryInterface
 			$queries[] = (string) $q;
 		}
 		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
-		return new Fluent($query);
+		return (new Fluent($query))->cacheTags('teams');
 	}
 
 	/**

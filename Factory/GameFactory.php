@@ -48,7 +48,7 @@ class GameFactory implements FactoryInterface
 		 *   sync: int
 		 * } $gameRow
 		 */
-		$gameRow = self::queryGames()->where('[code] = %s', $code)->fetch();
+		$gameRow = self::queryGames()->where('[code] = %s', $code)->cacheTags('games/'.$code)->fetch();
 		if (isset($gameRow)) {
 			/** @noinspection PhpUndefinedFieldInspection */
 			/** @var Game|null $game */
@@ -99,7 +99,7 @@ class GameFactory implements FactoryInterface
 			$queries[] = (string) $q;
 		}
 		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
-		return new Fluent($query);
+		return (new Fluent($query))->cacheTags('games');
 	}
 
 	/**
@@ -184,7 +184,8 @@ class GameFactory implements FactoryInterface
 	 * @return Fluent
 	 */
 	public static function queryGamesSystem(string $system, bool $excludeNotFinished = false) : Fluent {
-		$query = DB::select(["[{$system}_games]"], "[id_game], %s as [system], [code], [start], [end]", $system);
+		$query = DB::select(["[{$system}_games]"], "[id_game], %s as [system], [code], [start], [end]", $system)
+							 ->cacheTags('games', 'games/'.$system);
 		if ($excludeNotFinished) {
 			$query->where("[end] IS NOT NULL");
 		}
@@ -212,7 +213,10 @@ class GameFactory implements FactoryInterface
 				'models',
 				'games/'.$date->format('Y-m-d'),
 			];
-			$query = self::queryGames($excludeNotFinished)->where('DATE([start]) = %d', $date)->orderBy('start')->desc();
+			$query = self::queryGames($excludeNotFinished)
+									 ->cacheTags('games', 'games/'.$date->format('Y-m-d'))
+									 ->where('DATE([start]) = %d', $date)
+									 ->orderBy('start')->desc();
 			return $query->fetchAll();
 		});
 		$games = [];
@@ -269,7 +273,7 @@ class GameFactory implements FactoryInterface
 		$query
 			->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]')
 			->groupBy('date');
-		return new Fluent($query);
+		return (new Fluent($query))->cacheTags('games', 'games/counts');
 	}
 
 	/**

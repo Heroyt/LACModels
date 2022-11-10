@@ -8,8 +8,7 @@ namespace App\GameModels\Game;
 use App\GameModels\Factory\TeamFactory;
 use App\GameModels\Traits\WithGame;
 use App\GameModels\Traits\WithPlayers;
-use Lsr\Core\App;
-use Lsr\Core\Caching\Cache;
+use Dibi\Row;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -43,9 +42,15 @@ abstract class Team extends Model
 	public string $name;
 
 
+	public function __construct(?int $id = null, ?Row $dbRow = null) {
+		$this->cacheTags[] = 'games/'.$this::SYSTEM;
+		$this->cacheTags[] = 'teams/'.$this::SYSTEM;
+		parent::__construct($id, $dbRow);
+	}
+
 	public function save() : bool {
 		/** @var int|null $test */
-		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s', $this->game?->id, $this->name)->fetchSingle();
+		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s', $this->getGame()?->id, $this->name)->fetchSingle(cache: false);
 		if (isset($test)) {
 			$this->id = $test;
 		}
@@ -142,22 +147,6 @@ abstract class Team extends Model
 			unset($data['game']);
 		}
 		return $data;
-	}
-
-	public function update() : bool {
-		// Invalidate cache
-		/** @var Cache $cache */
-		$cache = App::getService('cache');
-		$cache->remove('teams/'.$this->getGame()::SYSTEM.'/'.$this->id);
-		return parent::update();
-	}
-
-	public function delete() : bool {
-		// Invalidate cache
-		/** @var Cache $cache */
-		$cache = App::getService('cache');
-		$cache->remove('teams/'.$this->getGame()::SYSTEM.'/'.$this->id);
-		return parent::delete();
 	}
 
 }

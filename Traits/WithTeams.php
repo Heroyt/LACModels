@@ -68,7 +68,10 @@ trait WithTeams
 		/** @var class-string<Game> $className */
 		$className = preg_replace('/(.+)Game$/', '${1}Team', get_class($this));
 		$primaryKey = $className::getPrimaryKey();
-		$rows = DB::select($className::TABLE, '*')->where('%n = %i', $this::getPrimaryKey(), $this->id)->fetchAll();
+		$rows = DB::select($className::TABLE, '*')
+							->where('%n = %i', $this::getPrimaryKey(), $this->id)
+							->cacheTags('games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this::SYSTEM.'/'.$this->id.'/teams', 'games/'.$this->start?->format('Y-m-d'), 'teams', 'teams/'.$this::SYSTEM)
+							->fetchAll();
 		foreach ($rows as $row) {
 			/** @var Team $team */
 			$team = new $className($row->$primaryKey, $row);

@@ -17,6 +17,7 @@ use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Model;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Throwable;
 
 trait WithPlayers
 {
@@ -43,6 +44,7 @@ trait WithPlayers
 	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
+	 * @throws Throwable
 	 */
 	public function getPlayers() : PlayerCollection {
 		if (!isset($this->players)) {
@@ -56,9 +58,10 @@ trait WithPlayers
 
 	/**
 	 * @return PlayerCollection
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
-	 * @throws DirectoryCreationException
+	 * @throws Throwable
 	 */
 	public function loadPlayers() : PlayerCollection {
 		if (!isset($this->players)) {
@@ -67,7 +70,15 @@ trait WithPlayers
 		/** @var Model|string $className */
 		$className = preg_replace(['/(.+)Game$/', '/(.+)Team$/'], '${1}Player', get_class($this));
 		$primaryKey = $className::getPrimaryKey();
-		$rows = DB::select($className::TABLE, '*')->where('%n = %i', $this::getPrimaryKey(), $this->id)->fetchAll();
+		$gameId = $this instanceof Game ? $this->id : $this->getGame()->id;
+		$date = $this instanceof Game ? $this->start?->format('Y-m-d') : $this->getGame()->start?->format('Y-m-d');
+		$query = DB::select($className::TABLE, '*')
+							 ->where('%n = %i', $this::getPrimaryKey(), $this->id)
+							 ->cacheTags('games/'.$this::SYSTEM.'/'.$gameId, 'games/'.$this::SYSTEM.'/'.$gameId.'/players', 'games/'.$date, 'players', 'players/'.$this::SYSTEM);
+		if ($this instanceof Team) {
+			$query->cacheTags('teams/'.$this::SYSTEM.'/'.$this->id, 'teams/'.$this::SYSTEM.'/'.$this->id.'/players');
+		}
+		$rows = $query->fetchAll();
 		foreach ($rows as $row) {
 			/** @var Player $player */
 			$player = $className::get($row->$primaryKey, $row);
@@ -84,7 +95,9 @@ trait WithPlayers
 
 	/**
 	 * @return int
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
+	 * @throws Throwable
 	 * @throws ValidationException
 	 */
 	public function getMinScore() : int {
@@ -98,7 +111,9 @@ trait WithPlayers
 
 	/**
 	 * @return int
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
+	 * @throws Throwable
 	 * @throws ValidationException
 	 */
 	public function getMaxScore() : int {
@@ -127,6 +142,7 @@ trait WithPlayers
 	 * @return PlayerCollection
 	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
+	 * @throws Throwable
 	 * @throws ValidationException
 	 */
 	public function getPlayersSorted() : PlayerCollection {
