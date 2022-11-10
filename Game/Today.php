@@ -4,8 +4,8 @@
  */
 namespace App\GameModels\Game;
 
-use Dibi\Fluent;
 use Lsr\Core\DB;
+use Lsr\Core\Dibi\Fluent;
 use Lsr\Helpers\Tools\Strings;
 
 /**

@@ -30,6 +30,7 @@ abstract class Team extends Model
 	use WithGame;
 
 	public const PRIMARY_KEY = 'id_team';
+	public const SYSTEM      = '';
 
 	#[Required]
 	public int    $color;

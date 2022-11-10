@@ -21,6 +21,7 @@ class Player extends \App\GameModels\Game\Player
 {
 
 	public const TABLE         = 'evo5_players';
+	public const SYSTEM        = 'evo5';
 	public const CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss', 'hitsOwn', 'deathsOwn', 'mines'];
 	public int                        $shotPoints  = 0;
 	public int                        $scoreBonus  = 0;

@@ -3,16 +3,13 @@
 namespace App\GameModels\Factory;
 
 use App\GameModels\Game\Team;
-use Dibi\Fluent;
 use InvalidArgumentException;
-use Lsr\Core\App;
-use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
+use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
-use Nette\Caching\Cache as CacheBase;
 use Throwable;
 
 /**
@@ -82,7 +79,7 @@ class TeamFactory implements FactoryInterface
 			$queries[] = (string) $q;
 		}
 		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
-		return $query;
+		return new Fluent($query);
 	}
 
 	/**
@@ -101,27 +98,11 @@ class TeamFactory implements FactoryInterface
 		}
 		Timer::startIncrementing('factory.team');
 		try {
-			/** @var Cache $cache */
-			$cache = App::getService('cache');
-			/** @var Team|null $team */
-			$team = $cache->load('teams/'.$system.'/'.$id, function(array &$dependencies) use ($system, $id) {
-				$dependencies[CacheBase::EXPIRE] = '7 days';
-				/** @var class-string<Team> $className */
-				$className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Team';
-				if (!class_exists($className)) {
-					throw new InvalidArgumentException('Team model of does not exist: '.$className);
-				}
-				$team = $className::get($id);
-				$dependencies[CacheBase::Tags] = [
-					'models',
-					'teams',
-					'system/'.$system,
-					'teams/'.$system,
-					'games/'.$system.'/'.$team->getGame()->id,
-				];
-				return $team;
-			});
-
+			$className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Team';
+			if (!class_exists($className)) {
+				throw new InvalidArgumentException('Team model of does not exist: '.$className);
+			}
+			$team = $className::get($id);
 		} catch (ModelNotFoundException) {
 			Timer::stop('factory.team');
 			return null;

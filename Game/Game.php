@@ -15,6 +15,7 @@ use App\GameModels\Game\Evo5\BonusCounts;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
+use App\Models\GameGroup;
 use App\Models\Arena;
 use App\Models\MusicMode;
 use DateTime;
@@ -69,6 +70,8 @@ abstract class Game extends Model
 
 	#[ManyToOne]
 	public ?MusicMode $music = null;
+	#[ManyToOne]
+	public ?GameGroup $group = null;
 
 	#[NoDB]
 	public bool     $started  = false;
@@ -140,9 +143,10 @@ abstract class Game extends Model
 	 * } $data
 	 *
 	 * @return Game
+	 * @throws DirectoryCreationException
 	 * @throws GameModeNotFoundException
-	 * @throws ValidationException
 	 * @throws ModelNotFoundException
+	 * @throws ValidationException
 	 */
 	public static function fromJson(array $data) : Game {
 		$game = new static();
@@ -464,21 +468,22 @@ abstract class Game extends Model
 		}
 	}
 
+	public function insert() : bool {
+		if (isset($this->group)) {
+			$this->group->clearCache();
+		}
+		return parent::insert();
+	}
+
 	public function update() : bool {
 		// Invalidate cache
-		/** @var Cache $cache */
-		$cache = App::getService('cache');
-		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
-		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d')]]);
+		$this->invalidateCache();
 		return parent::update();
 	}
 
 	public function delete() : bool {
 		// Invalidate cache
-		/** @var Cache $cache */
-		$cache = App::getService('cache');
-		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
-		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d')]]);
+		$this->invalidateCache();
 		return parent::delete();
 	}
 
@@ -520,12 +525,42 @@ abstract class Game extends Model
 		if (isset($this->mode)) {
 			$this->mode->recalculateScores($this);
 			$this->reorder();
+			$this->sync = false;
 		}
 	}
 
 	public function reorder() : void {
 		if (isset($this->mode)) {
 			$this->mode->reorderGame($this);
+		}
+	}
+
+	/**
+	 * Invalidate all cache related to this game
+	 *
+	 * @post Object cache is cleared
+	 * @post Results cache files are cleared
+	 *
+	 * @return void
+	 */
+	public function invalidateCache() : void {
+		// Invalidate cached objects
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
+		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d'), 'games/'.$this->code]]);
+
+		if (isset($this->group)) {
+			$this->group->clearCache();
+		}
+
+		// Invalidate generated results cache
+		/** @var string[]|false $files */
+		$files = glob(TMP_DIR.'results/'.$this->code.'*');
+		if ($files !== false) {
+			foreach ($files as $file) {
+				@unlink($file);
+			}
 		}
 	}
 
