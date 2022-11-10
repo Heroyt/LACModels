@@ -376,6 +376,7 @@ abstract class Game extends Model
 		$data = parent::jsonSerialize();
 		$data['players'] = $this->getPlayers()->getAll();
 		$data['teams'] = $this->getTeams()->getAll();
+		$data['group'] = $this->group;
 		if (!isset($data['mode'])) {
 			$data['mode'] = GameModeFactory::findByName(
 				$this->gameType === GameModeType::TEAM ? 'Team deathmach' : 'Deathmach',
