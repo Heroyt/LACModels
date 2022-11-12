@@ -17,6 +17,7 @@ use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
+use App\Models\Table;
 use App\Services\LigaApi;
 use DateTime;
 use DateTimeInterface;
@@ -73,6 +74,8 @@ abstract class Game extends Model
 	public ?MusicMode $music = null;
 	#[ManyToOne]
 	public ?GameGroup $group = null;
+	#[ManyToOne]
+	public ?Table     $table = null;
 
 	#[NoDB]
 	public bool     $started  = false;
