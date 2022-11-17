@@ -36,7 +36,7 @@ trait WithPlayers
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		parent::__construct($id, $dbRow);
-		$this->playerCount = count($this->getPlayers());
+		$this->playerCount = $this->getPlayers()->count();
 	}
 
 	/**

@@ -86,6 +86,7 @@ abstract class Game extends Model
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		$this->cacheTags[] = 'games/'.$this::SYSTEM;
 		parent::__construct($id, $dbRow);
+		$this->playerCount = $this->getPlayers()->count();
 	}
 
 	/**

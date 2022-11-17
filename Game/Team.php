@@ -46,6 +46,7 @@ abstract class Team extends Model
 		$this->cacheTags[] = 'games/'.$this::SYSTEM;
 		$this->cacheTags[] = 'teams/'.$this::SYSTEM;
 		parent::__construct($id, $dbRow);
+		$this->playerCount = $this->getPlayers()->count();
 	}
 
 	public function save() : bool {
