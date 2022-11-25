@@ -38,6 +38,7 @@ use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Caching\Cache as CacheParent;
+use Throwable;
 
 /**
  * Base class for game models
@@ -425,6 +426,7 @@ abstract class Game extends Model
 	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
+	 * @throws Throwable
 	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function save() : bool {
@@ -458,6 +460,11 @@ abstract class Game extends Model
 				$success = $success && $player->save();
 			}
 		}
+
+		if (isset($this->group)) {
+			$success = $success && $this->group->save();
+		}
+
 		/* @phpstan-ignore-next-line */
 		return $success;
 	}
@@ -518,13 +525,6 @@ abstract class Game extends Model
 		return parent::insert();
 	}
 
-	public function delete() : bool {
-		/** @var Cache $cache */
-		$cache = App::getService('cache');
-		$cache->clean([CacheParent::Tags => ['games/counts']]);
-		return parent::delete();
-	}
-
 	public function clearCache() : void {
 		parent::clearCache();
 
@@ -546,6 +546,13 @@ abstract class Game extends Model
 				@unlink($file);
 			}
 		}
+	}
+
+	public function delete() : bool {
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->clean([CacheParent::Tags => ['games/counts']]);
+		return parent::delete();
 	}
 
 	/**
