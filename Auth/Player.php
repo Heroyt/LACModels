@@ -56,7 +56,7 @@ class Player extends Model
 	 */
 	public function generateRandomCode() : void {
 		do {
-			$code = Random::generate(5, '0-9a-zA-Z');
+			$code = Random::generate(5, '0-9A-Z');
 		} while (!$this->validateUniqueCode($code));
 		$this->code = $code;
 	}

@@ -339,10 +339,8 @@ class GameFactory implements FactoryInterface
 			throw new InvalidArgumentException('Cannot find Game class for system: '.$system);
 		}
 
-		foreach ($className::DEFINITION as $field => $definition) {
-			if (!isset($definition['class'])) {
-				$fields[] = $field;
-			}
+		foreach (get_class_vars($className) as $field => $definition) {
+			$fields[] = $field;
 		}
 
 		return array_unique($fields);
