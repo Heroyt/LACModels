@@ -127,6 +127,7 @@ class GameFactory implements FactoryInterface
 		}
 		Timer::startIncrementing('factory.game');
 		try {
+			/** @var class-string<Game> $className */
 			$className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Game';
 			if (!class_exists($className)) {
 				throw new InvalidArgumentException('Game model of does not exist: '.$className);
