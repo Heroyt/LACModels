@@ -38,7 +38,7 @@ abstract class Team extends Model
 	#[Required]
 	public int    $position;
 	#[Required]
-	#[StringLength(1, 15)]
+	#[StringLength(1, 99)]
 	public string $name;
 
 
