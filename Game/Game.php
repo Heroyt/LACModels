@@ -37,6 +37,7 @@ use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Caching\Cache as CacheParent;
+use Throwable;
 
 /**
  * Base class for game models
@@ -83,6 +84,7 @@ abstract class Game extends Model
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		$this->cacheTags[] = 'games/'.$this::SYSTEM;
 		parent::__construct($id, $dbRow);
+		$this->playerCount = $this->getPlayers()->count();
 	}
 
 	/**
@@ -400,6 +402,7 @@ abstract class Game extends Model
 	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
+	 * @throws Throwable
 	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function save() : bool {
@@ -433,6 +436,11 @@ abstract class Game extends Model
 				$success = $success && $player->save();
 			}
 		}
+
+		if (isset($this->group)) {
+			$success = $success && $this->group->save();
+		}
+
 		/* @phpstan-ignore-next-line */
 		return $success;
 	}

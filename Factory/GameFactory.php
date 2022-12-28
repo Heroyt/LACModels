@@ -127,6 +127,7 @@ class GameFactory implements FactoryInterface
 		}
 		Timer::startIncrementing('factory.game');
 		try {
+			/** @var class-string<Game> $className */
 			$className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Game';
 			if (!class_exists($className)) {
 				throw new InvalidArgumentException('Game model of does not exist: '.$className);
@@ -167,7 +168,7 @@ class GameFactory implements FactoryInterface
 		 *   sync: int
 		 * } $row
 		 */
-		$row = $query->orderBy('end')->desc()->fetch();
+		$row = $query->orderBy('end')->desc()->fetch(cache: false);
 		if (isset($row)) {
 			/** @noinspection PhpUndefinedFieldInspection */
 			return self::getById((int) $row->id_game, ['system' => $row->system]);
