@@ -17,6 +17,8 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class LigaPlayer extends Player
 {
 
+	public const CACHE_TAGS = ['liga-players'];
+
 	#[OneToOne]
 	public User   $user;
 	#[ManyToOne]
@@ -60,6 +62,24 @@ class LigaPlayer extends Player
 	public function fetch(bool $refresh = false) : void {
 		parent::fetch($refresh);
 		$this->email = $this->user->email;
+	}
+
+	public function jsonSerialize() : array {
+		$connections = [];
+		try {
+			foreach ($this->user->getConnections() as $connection) {
+				$connections[] = ['type' => $connection->type->value, 'identifier' => $connection->identifier];
+			}
+		} catch (ValidationException $e) {
+		}
+		return [
+			'id'          => $this->id,
+			'nickname'    => $this->nickname,
+			'code'        => $this->getCode(),
+			'arena'       => $this->arena?->id,
+			'email'       => $this->email,
+			'connections' => $connections,
+		];
 	}
 
 }
