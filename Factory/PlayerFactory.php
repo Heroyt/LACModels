@@ -73,7 +73,7 @@ class PlayerFactory implements FactoryInterface
 		$query = DB::getConnection()->select('*');
 		$queries = [];
 		foreach (GameFactory::getSupportedSystems() as $key => $system) {
-			$q = DB::select(["[{$system}_players]", "[g$key]"], "[g$key].[id_player], [g$key].[id_game], [g$key].[id_team], %s as [system], [g$key].[name], [g$key].[score], [g$key].[accuracy], [g$key].[hits], [g$key].[deaths], [g$key].[shots]", $system);
+			$q = DB::select(["[{$system}_players]", "[g$key]"], "[g$key].[id_player], [g$key].[id_game], [g$key].[id_team], %s as [system], [g$key].[name], [g$key].[score], [g$key].[accuracy], [g$key].[hits], [g$key].[deaths], [g$key].[shots], [g$key].[skill]", $system);
 			if (!empty($gameIds[$system])) {
 				$q->where("[g$key].[id_game] IN %in", $gameIds[$system]);
 			}

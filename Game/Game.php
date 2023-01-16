@@ -15,18 +15,16 @@ use App\GameModels\Game\Evo5\BonusCounts;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
-use App\Models\GameGroup;
 use App\Models\Arena;
+use App\Models\GameGroup;
 use App\Models\MusicMode;
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
 use Dibi\Row;
-use JsonException;
 use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\Instantiate;
@@ -35,9 +33,7 @@ use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
-use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Caching\Cache as CacheParent;
-use Throwable;
 
 /**
  * Base class for game models
@@ -68,7 +64,7 @@ abstract class Game extends Model
 	#[Instantiate]
 	public ?Scoring      $scoring  = null;
 	#[ManyToOne]
-	public ?Arena $arena = null;
+	public ?Arena        $arena    = null;
 
 	#[ManyToOne]
 	public ?MusicMode $music = null;
@@ -80,6 +76,7 @@ abstract class Game extends Model
 	#[NoDB]
 	public bool     $finished = false;
 	protected float $realGameLength;
+	public bool     $visited  = false;
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		$this->cacheTags[] = 'games/'.$this::SYSTEM;
@@ -122,6 +119,7 @@ abstract class Game extends Model
 	 *         id?: int,
 	 *         id_player?: int,
 	 *         name?: string,
+	 *         team?: int,
 	 *         score?: int,
 	 *         skill?: int,
 	 *         shots?: int,
@@ -131,6 +129,7 @@ abstract class Game extends Model
 	 *         deaths?: int,
 	 *         hitsOwn?: int,
 	 *         hitsOther?: int,
+	 *         hitPlayers?: array{target:int,count:int}[],
 	 *         deathsOwn?: int,
 	 *         deathsOther?: int,
 	 *         position?: int,
@@ -151,10 +150,7 @@ abstract class Game extends Model
 	 * } $data
 	 *
 	 * @return Game
-	 * @throws DirectoryCreationException
 	 * @throws GameModeNotFoundException
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
 	 */
 	public static function fromJson(array $data) : Game {
 		$game = new static();
@@ -269,7 +265,6 @@ abstract class Game extends Model
 								case 'score':
 								case 'color':
 								case 'position':
-									/* @phpstan-ignore-next-line */
 									$team->{$keyTeam} = $valueTeam;
 									break;
 							}
@@ -283,7 +278,6 @@ abstract class Game extends Model
 		}
 
 		// Assign hits and teams
-		/* @phpstan-ignore-next-line */
 		foreach (($data['players'] ?? []) as $playerData) {
 			$id = $playerData['id'] ?? $playerData['id_player'] ?? 0;
 			if (!isset($players[$id])) {
@@ -291,7 +285,7 @@ abstract class Game extends Model
 			}
 			$player = $players[$id];
 			// Hits
-			foreach ($playerData['hitPlayers'] ?? [] as $hit) {
+			foreach (($playerData['hitPlayers'] ?? []) as $hit) {
 				if (isset($players[$hit['target']])) {
 					$player->addHits($players[$hit['target']], $hit['count']);
 				}
@@ -316,8 +310,6 @@ abstract class Game extends Model
 	 * @param string $property
 	 *
 	 * @return Player|null
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
 	 * @noinspection PhpMissingBreakStatementInspection
 	 */
 	public function getBestPlayer(string $property) : ?Player {
@@ -365,8 +357,6 @@ abstract class Game extends Model
 	 * @param int $vestNum
 	 *
 	 * @return Player|null
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
 	 */
 	public function getVestPlayer(int $vestNum) : ?Player {
 		return $this->getPlayers()->query()->filter('vest', $vestNum)->first();
@@ -374,10 +364,7 @@ abstract class Game extends Model
 
 	/**
 	 * @return array<string, mixed>
-	 * @throws DirectoryCreationException
 	 * @throws GameModeNotFoundException
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
 	 */
 	public function jsonSerialize() : array {
 		$this->getTeams();
@@ -399,10 +386,7 @@ abstract class Game extends Model
 
 	/**
 	 * @return bool
-	 * @throws DirectoryCreationException
-	 * @throws ModelNotFoundException
 	 * @throws ValidationException
-	 * @throws Throwable
 	 * @noinspection PhpUndefinedFieldInspection
 	 */
 	public function save() : bool {
@@ -415,7 +399,8 @@ abstract class Game extends Model
 			$this->code = $test->code;
 		}
 		if (empty($this->code)) {
-			$this->code = uniqid('g', false);
+			/** @noinspection NonSecureUniqidUsageInspection */
+			$this->code = uniqid('g');
 		}
 		$success = parent::save();
 		if (!$success) {
@@ -447,9 +432,6 @@ abstract class Game extends Model
 
 	/**
 	 * @return void
-	 * @throws DirectoryCreationException
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
 	 */
 	public function calculateSkills() : void {
 		/** @var Player[] $players */
@@ -501,13 +483,6 @@ abstract class Game extends Model
 		return parent::insert();
 	}
 
-	public function delete() : bool {
-		/** @var Cache $cache */
-		$cache = App::getService('cache');
-		$cache->clean([CacheParent::Tags => ['games/counts']]);
-		return parent::delete();
-	}
-
 	public function clearCache() : void {
 		parent::clearCache();
 
@@ -529,6 +504,13 @@ abstract class Game extends Model
 				@unlink($file);
 			}
 		}
+	}
+
+	public function delete() : bool {
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->clean([CacheParent::Tags => ['games/counts']]);
+		return parent::delete();
 	}
 
 	/**
@@ -556,12 +538,8 @@ abstract class Game extends Model
 	 * @return float
 	 */
 	public function getAverageKd() : float {
-		try {
-			/** @var float[] $kds */
-			$kds = $this->getPlayers()->query()->map(fn(Player $player) => $player->getKd())->get();
-		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
-			return 1;
-		}
+		/** @var float[] $kds */
+		$kds = $this->getPlayers()->query()->map(fn(Player $player) => $player->getKd())->get();
 		return empty($kds) ? 1 : array_sum($kds) / count($kds);
 	}
 
@@ -569,7 +547,6 @@ abstract class Game extends Model
 		if (isset($this->mode)) {
 			$this->mode->recalculateScores($this);
 			$this->reorder();
-			$this->sync = false;
 		}
 	}
 

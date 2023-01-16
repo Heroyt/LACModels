@@ -76,10 +76,13 @@ abstract class Player extends Model
 	 * @throws ValidationException
 	 */
 	public function save() : bool {
-		/** @var int|null $test */
-		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s && vest = %i', $this->game?->id, $this->name, $this->vest)->fetchSingle(cache: false);
-		if (isset($test)) {
-			$this->id = $test;
+		try {
+			/** @var int|null $test */
+			$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s && vest = %i', $this->getGame()->id, $this->name, $this->vest)->fetchSingle(cache: false);
+			if (isset($test)) {
+				$this->id = $test;
+			}
+		} catch (Throwable) {
 		}
 		//$this->calculateSkill();
 		return parent::save();
@@ -97,6 +100,7 @@ abstract class Player extends Model
 	 * @post The Player::$skill property is set to the calculated value
 	 *
 	 * @return int A whole number evaluation on an arbitrary scale (no max or min value).
+	 * @throws Throwable
 	 */
 	public function calculateSkill() : int {
 		$this->skill = (int) round($this->calculateBaseSkill());
@@ -108,6 +112,7 @@ abstract class Player extends Model
 	 * Calculate the base, not rounded skill level
 	 *
 	 * @return float
+	 * @throws Throwable
 	 */
 	protected function calculateBaseSkill() : float {
 		$skill = 0.0;
@@ -144,6 +149,10 @@ abstract class Player extends Model
 		return $this->hits / ($this->deaths === 0 ? 1 : $this->deaths);
 	}
 
+	/**
+	 * @return void
+	 * @throws Throwable
+	 */
 	public function instantiateProperties() : void {
 		parent::instantiateProperties();
 
@@ -153,6 +162,7 @@ abstract class Player extends Model
 
 	/**
 	 * @return int
+	 * @throws Throwable
 	 */
 	public function getTeamColor() : int {
 		if (empty($this->color)) {
@@ -187,14 +197,10 @@ abstract class Player extends Model
 		if (empty($this->hitPlayers)) {
 			return true;
 		}
-		$table = '';
 		$values = [];
 		$table = str_replace('players', 'hits', $this::TABLE);
 		foreach ($this->hitPlayers as $hits) {
-			$data = $hits->getQueryData();
-			if (!empty($data)) {
-				$values[] = $data;
-			}
+			$values[] = $hits->getQueryData();
 		}
 		try {
 			/** @phpstan-ignore-next-line */
@@ -299,7 +305,8 @@ abstract class Player extends Model
 		$className = str_replace('Player', 'PlayerHit', get_class($this));
 		$hits = DB::select($className::TABLE, 'id_target, count')->where('id_player = %i', $this->id)->fetchAll();
 		foreach ($hits as $row) {
-			$this->addHits($this::get($row->id_target), $row->count);
+			/** @noinspection PhpUndefinedFieldInspection */
+			$this->addHits($this::get((int) $row->id_target), (int) $row->count);
 		}
 		return $this->hitPlayers;
 	}
@@ -324,6 +331,7 @@ abstract class Player extends Model
 	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
+	 * @throws Throwable
 	 */
 	public function getFavouriteTargetOf() : ?Player {
 		if (!isset($this->favouriteTargetOf)) {
@@ -357,9 +365,10 @@ abstract class Player extends Model
 
 	/**
 	 * @return array<string, mixed>
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
 	 * @throws DirectoryCreationException
+	 * @throws ModelNotFoundException
+	 * @throws Throwable
+	 * @throws ValidationException
 	 */
 	public function jsonSerialize() : array {
 		$data = parent::jsonSerialize();
@@ -373,16 +382,10 @@ abstract class Player extends Model
 	}
 
 	/**
-	 * @return int
-	 */
-	public function getColor() : int {
-		return $this->color;
-	}
-
-	/**
 	 * Get the player's skill value. If the player is a part of a group, returns the average group value.
 	 *
 	 * @return int
+	 * @throws Throwable
 	 */
 	public function getSkill() : int {
 		if (!isset($this->getGame()->group)) {
@@ -390,10 +393,20 @@ abstract class Player extends Model
 		}
 		try {
 			$players = $this->getGame()->group->getPlayers();
-			return ($players[Strings::toAscii($this->name)] ?? $this)->skill;
-		} catch (Throwable $e) {
-			return $this->skill;
+			$name = Strings::toAscii($this->name);
+			if (isset($players[$name])) {
+				return $players[$name]->getSkill();
+			}
+		} catch (Throwable) {
 		}
+		return $this->skill;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getColor() : int {
+		return $this->color;
 	}
 
 }

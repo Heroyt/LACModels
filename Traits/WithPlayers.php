@@ -42,17 +42,17 @@ trait WithPlayers
 
 	/**
 	 * @return PlayerCollection
-	 * @throws DirectoryCreationException
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
-	 * @throws Throwable
 	 */
 	public function getPlayers() : PlayerCollection {
 		if (!isset($this->players)) {
 			$this->players = new PlayerCollection();
 		}
 		if (!empty($this->id) && $this->players->count() === 0) {
-			$this->loadPlayers();
+			try {
+				$this->loadPlayers();
+			} catch (Throwable $e) {
+				// Do nothing
+			}
 		}
 		return $this->players;
 	}
