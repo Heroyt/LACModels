@@ -21,34 +21,36 @@ interface CustomLoadMode
 	 * Modify the game data which should be passed to the load file.
 	 *
 	 * @param array{
-	 *      meta:array<string,string>,
-	 *      players:array{
-	 *        vest:int,
-	 *        name:string,
-	 *        team:string,
-	 *        vip:bool
-	 *      }[],
-	 *      teams:array{
-	 *        key:string,
-	 *        name:string,
-	 *        playerCount:int
-	 *      }[]
-	 *    } $data
+	 *   meta:array<string,string|numeric>,
+	 *   players:array{
+	 *       vest:int,
+	 *       name:string,
+	 *       vip:bool,
+	 *       team:int,
+	 *       code?:string
+	 *   }[],
+	 *   teams:array{
+	 *       key:int,
+	 *       name:string,
+	 *       playerCount:int
+	 *   }
+	 *   } $data
 	 *
 	 * @return array{
-	 *      meta:array<string,string>,
-	 *      players:array{
-	 *        vest:int,
-	 *        name:string,
-	 *        team:string,
-	 *        vip:bool
-	 *      }[],
-	 *      teams:array{
-	 *        key:string,
-	 *        name:string,
-	 *        playerCount:int
-	 *      }[]
-	 *    } Modified data
+	 *   meta:array<string,string|numeric>,
+	 *   players:array{
+	 *       vest:int,
+	 *       name:string,
+	 *       vip:bool,
+	 *       team:int,
+	 *       code?:string
+	 *   }[],
+	 *   teams:array{
+	 *       key:int,
+	 *       name:string,
+	 *       playerCount:int
+	 *   }
+	 *   } Modified data
 	 */
 	public function modifyGameDataBeforeLoad(array $data) : array;
 

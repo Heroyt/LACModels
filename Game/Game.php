@@ -125,6 +125,7 @@ abstract class Game extends Model
 	 *         id?: int,
 	 *         id_player?: int,
 	 *         name?: string,
+	 *         code?: string,
 	 *         score?: int,
 	 *         skill?: int,
 	 *         shots?: int,
@@ -157,6 +158,7 @@ abstract class Game extends Model
 	 * @throws DirectoryCreationException
 	 * @throws GameModeNotFoundException
 	 * @throws ModelNotFoundException
+	 * @throws Throwable
 	 * @throws ValidationException
 	 */
 	public static function fromJson(array $data) : Game {
@@ -210,7 +212,7 @@ abstract class Game extends Model
 						$player->setGame($game);
 						$id = 0;
 						foreach ($playerData as $keyPlayer => $valuePlayer) {
-							if (!property_exists($player, $keyPlayer)) {
+							if ($keyPlayer !== 'code' && !property_exists($player, $keyPlayer)) {
 								continue;
 							}
 							switch ($keyPlayer) {
@@ -244,6 +246,9 @@ abstract class Game extends Model
 								case 'bonus':
 									/* @phpstan-ignore-next-line */
 									$player->bonus = new BonusCounts(...$valuePlayer);
+									break;
+								case 'code':
+									$player->user = \App\Models\Auth\Player::getByCode($valuePlayer);
 									break;
 							}
 							$game->getPlayers()->add($player);

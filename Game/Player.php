@@ -358,6 +358,11 @@ abstract class Player extends Model
 	 */
 	public function jsonSerialize() : array {
 		$data = parent::jsonSerialize();
+		$data['user'] = $this->user?->id;
+		if (isset($this->user)) {
+			$data['code'] = $this->user->getCode();
+			$data['rank'] = $this->user->rank;
+		}
 		$data['team'] = $this->getTeam()?->id;
 		if (isset($data['game'])) {
 			unset($data['game']);
