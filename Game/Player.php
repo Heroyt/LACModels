@@ -112,10 +112,10 @@ abstract class Player extends Model
 	protected function calculateBaseSkill() : float {
 		$skill = 0.0;
 
-		// Add points for each hit
-		$skill += $this->hits * 4;
+		// Add points for each hit (4 points) normalized to 10 players
+		$skill += $this->hits * 40 / $this->game->playerCount;
 
-		// Add points for K:D -
+		// Add points for K:D
 		$kd = $this->getKd();
 		if ($kd >= 1) {
 			$skill += $kd * 10;

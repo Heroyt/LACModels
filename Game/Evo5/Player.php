@@ -68,8 +68,8 @@ class Player extends \App\GameModels\Game\Player
 
 		$newSkill = 0;
 
-		// Remove points for each teammate hit
-		$newSkill -= $this->hitsOwn * 2;
+		// Remove points for each teammate hit (2) normalized to 10 players
+		$newSkill -= $this->hitsOwn * 20 / $this->game->playerCount;
 
 		// Add points for bonuses
 		$newSkill += $this->bonus->getSum();
