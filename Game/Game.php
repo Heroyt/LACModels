@@ -8,6 +8,7 @@ namespace App\GameModels\Game;
 use App\Core\Collections\CollectionCompareFilter;
 use App\Core\Collections\Comparison;
 use App\Exceptions\GameModeNotFoundException;
+use App\GameModels\Auth\LigaPlayer;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
@@ -119,6 +120,7 @@ abstract class Game extends Model
 	 *         id?: int,
 	 *         id_player?: int,
 	 *         name?: string,
+	 *         code?: string,
 	 *         team?: int,
 	 *         score?: int,
 	 *         skill?: int,
@@ -203,7 +205,7 @@ abstract class Game extends Model
 						$player->setGame($game);
 						$id = 0;
 						foreach ($playerData as $keyPlayer => $valuePlayer) {
-							if (!property_exists($player, $keyPlayer)) {
+							if ($keyPlayer !== 'code' && !property_exists($player, $keyPlayer)) {
 								continue;
 							}
 							switch ($keyPlayer) {
@@ -237,6 +239,9 @@ abstract class Game extends Model
 								case 'bonus':
 									/* @phpstan-ignore-next-line */
 									$player->bonus = new BonusCounts(...$valuePlayer);
+									break;
+								case 'code':
+									$player->user = LigaPlayer::getByCode($valuePlayer);
 									break;
 							}
 							$game->getPlayers()->add($player);
@@ -531,7 +536,7 @@ abstract class Game extends Model
 	}
 
 	public function isFinished() : bool {
-		return $this->end !== null && $this->importTime !== null;
+		return $this->end !== null;
 	}
 
 	/**

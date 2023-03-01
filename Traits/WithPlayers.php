@@ -89,7 +89,11 @@ trait WithPlayers
 			else if ($this instanceof Team) { // @phpstan-ignore-line
 				$player->setTeam($this);
 			}
-			$this->players->set($player, $player->vest);
+			try {
+				$this->players->set($player, $player->vest);
+			} catch (\InvalidArgumentException) {
+
+			}
 		}
 		return $this->players;
 	}
@@ -189,5 +193,15 @@ trait WithPlayers
 		Timer::stop('game.save.players.hits');
 		Timer::stop('game.save.players');
 		return true;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getPlayerCount() : int {
+		if (!isset($this->playerCount) || $this->playerCount < 1) {
+			$this->playerCount = $this->getPlayers()->count();
+		}
+		return $this->playerCount;
 	}
 }

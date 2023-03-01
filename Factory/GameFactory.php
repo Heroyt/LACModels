@@ -4,6 +4,7 @@ namespace App\GameModels\Factory;
 
 use App\GameModels\Game\Game;
 use DateTime;
+use DateTimeInterface;
 use Dibi\Row;
 use InvalidArgumentException;
 use Lsr\Core\App;
@@ -218,13 +219,13 @@ class GameFactory implements FactoryInterface
 	/**
 	 * Get games for the day
 	 *
-	 * @param DateTime $date
-	 * @param bool     $excludeNotFinished
+	 * @param DateTimeInterface $date
+	 * @param bool              $excludeNotFinished
 	 *
 	 * @return Game[]
 	 * @throws Throwable
 	 */
-	public static function getByDate(DateTime $date, bool $excludeNotFinished = false) : array {
+	public static function getByDate(DateTimeInterface $date, bool $excludeNotFinished = false) : array {
 		Timer::startIncrementing('factory.game');
 		/** @var Cache $cache */
 		$cache = App::getService('cache');

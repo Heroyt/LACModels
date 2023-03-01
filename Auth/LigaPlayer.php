@@ -4,11 +4,14 @@ namespace App\GameModels\Auth;
 
 use App\Models\Arena;
 use App\Models\Auth\User;
+use Lsr\Core\App;
+use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\OneToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
+use Nette\Caching\Cache as CacheParent;
 
 /**
  * Same as the regular player, but with the addition of the arena and user parameters
@@ -70,7 +73,7 @@ class LigaPlayer extends Player
 			foreach ($this->user->getConnections() as $connection) {
 				$connections[] = ['type' => $connection->type->value, 'identifier' => $connection->identifier];
 			}
-		} catch (ValidationException $e) {
+		} catch (ValidationException) {
 		}
 		return [
 			'id'          => $this->id,
@@ -78,8 +81,18 @@ class LigaPlayer extends Player
 			'code'        => $this->getCode(),
 			'arena'       => $this->arena?->id,
 			'email'       => $this->email,
+			'stats'       => $this->stats,
 			'connections' => $connections,
 		];
+	}
+
+	public function clearCache() : void {
+		parent::clearCache();
+
+		// Invalidate cached objects
+		/** @var Cache $cache */
+		$cache = App::getService('cache');
+		$cache->clean([CacheParent::Tags => ['user/'.$this->id.'/games', 'user/'.$this->id.'/stats']]);
 	}
 
 }

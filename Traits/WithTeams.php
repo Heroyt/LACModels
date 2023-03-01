@@ -80,7 +80,11 @@ trait WithTeams
 			if ($this instanceof Game) {
 				$team->setGame($this);
 			}
-			$this->teams->set($team, $team->color);
+			try {
+				$this->teams->set($team, $team->color);
+			} catch (\InvalidArgumentException) {
+
+			}
 		}
 		return $this->teams;
 	}

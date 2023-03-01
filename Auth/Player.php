@@ -4,7 +4,13 @@ namespace App\GameModels\Auth;
 
 use App\Core\Info;
 use App\GameModels\Auth\Validators\PlayerCode;
+use App\GameModels\Factory\GameFactory;
+use App\GameModels\Factory\PlayerFactory;
+use App\GameModels\Game\Query\PlayerQuery;
+use App\Models\DataObjects\PlayerStats;
+use Dibi\Row;
 use Lsr\Core\DB;
+use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Attributes\Validation\Email;
@@ -17,12 +23,40 @@ class Player extends Model
 
 	public const TABLE = 'players';
 
+
+	public PlayerStats $stats;
+
 	/** @var string Unique code for each player - two players can have the same code if they are from different arenas. */
 	#[PlayerCode]
 	public string $code;
 	public string $nickname;
 	#[Email]
 	public string $email;
+
+	public function __construct(?int $id = null, ?Row $dbRow = null) {
+		parent::__construct($id, $dbRow);
+		if (!isset($this->stats)) {
+			$this->stats = new PlayerStats();
+		}
+	}
+
+	public static function getByCode(string $code) : ?static {
+		$code = strtoupper(trim($code));
+		if (preg_match('/(\d)+-([A-Z\d]{5})/', $code, $matches) !== 1) {
+			throw new \InvalidArgumentException('Code is not valid');
+		}
+		return static::query()->where('[id_arena] = %i AND [code] = %s', $matches[1], $matches[2])->first();
+	}
+
+	public function queryGames(?\DateTimeInterface $date = null) : Fluent {
+		$query = PlayerFactory::queryPlayersWithGames()
+													->where('[id_user] = %i', $this->id);
+		if (isset($date)) {
+			$query->where('DATE([start]) = %d', $date);
+		}
+		$query->cacheTags('user/'.$this->id.'/games');
+		return $query;
+	}
 
 	/**
 	 * @param string $code

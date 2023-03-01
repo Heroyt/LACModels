@@ -5,7 +5,7 @@
 
 namespace App\GameModels\Game;
 
-use App\GameModels\Auth\Player as User;
+use App\GameModels\Auth\LigaPlayer;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Traits\WithGame;
 use Dibi\Exception;
@@ -59,7 +59,7 @@ abstract class Player extends Model
 	#[ManyToOne(foreignKey: 'id_team')]
 	public ?Team           $team              = null;
 	#[ManyToOne]
-	public ?User           $user              = null;
+	public ?LigaPlayer     $user              = null;
 	protected int          $color             = 0;
 	protected ?Player      $favouriteTarget   = null;
 	protected ?Player      $favouriteTargetOf = null;
@@ -117,31 +117,53 @@ abstract class Player extends Model
 	protected function calculateBaseSkill() : float {
 		$skill = 0.0;
 
-		// Add points for each hit
-		$skill += $this->hits * 4;
-
-		// Add points for K:D -
-		$kd = $this->getKd();
-		if ($kd >= 1) {
-			$skill += $kd * 10;
+		// Based on data collected, players hits on average 12.5 enemies per enemy with 6.15 standard deviation.
+		// We used regression to calculate the best model to describe the best model to predict the average number of hits based on the player's enemy and teammate count;
+		// We can easily calculate the expected average hit count for each player based on our findings.
+		$enemyPlayerCount = $this->game->getPlayerCount() - ($this->game->mode?->isSolo() ? 1 : $this->team?->getPlayerCount());
+		$teamPlayerCount = ($this->team?->getPlayerCount() ?? 1) - 1;
+		if ($this->game->mode?->isTeam()) {
+			$expectedAverageHits = (2.5771 * $enemyPlayerCount) + (2.48007 * $teamPlayerCount) + 36.76356;
 		}
-		else if ($kd !== 0.0) {
-			$skill -= (1 / $kd) * 5;
+		else {
+			$expectedAverageHits = (2.05869 * $enemyPlayerCount) + 44.8715;
 		}
+		$hitsDiff = $this->hits - $expectedAverageHits;
 
-		// Add points for deviation from an average K:D
-		$averageKd = $this->getGame()->getAverageKd();
-		$kdDiff = $kd - $averageKd;
-		$skill += $kdDiff * 2;
+		// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
+		$hitsDiffPercent = 1 + ($hitsDiff / $expectedAverageHits);
 
-		// Add points for accuracy
-		$skill += 5 * ($this->accuracy / 100);
+		// Completely average game should acquire at least 200 points
+		$hitsSkill = $hitsDiffPercent * 200;
 
 		// Normalize based on the game's length
 		$gameLength = $this->getGame()->getRealGameLength();
 		if ($gameLength !== 0.0) {
-			$skill *= 15 / $gameLength;
+			$hitsSkill *= 15 / $gameLength;
 		}
+
+		$skill += $hitsSkill;
+
+		// Add points for K:D
+		$kd = $this->getKd();
+		if ($kd >= 1) {
+			$skill += $kd * 50;
+		}
+		else if ($kd !== 0.0) {
+			$skill -= (1 / $kd) * 10;
+		}
+
+		// Add points for deviation from an average K:D
+		$averageKd = $this->getGame()->getAverageKd();
+		if ($averageKd === 0.0) {
+			$averageKd = 1.0;
+		}
+		$kdDiff = 1 + (($kd - $averageKd) / $averageKd); // $average K:D should never be 0 if any hits were fired
+		$skill += $kdDiff * 50;
+
+		// Add points for accuracy - 100% accuracy <=> 600 points
+		$skill += 600 * ($this->accuracy / 100);
+
 		return $skill;
 	}
 
@@ -373,6 +395,10 @@ abstract class Player extends Model
 	public function jsonSerialize() : array {
 		$data = parent::jsonSerialize();
 		$data['team'] = $this->getTeam()?->id;
+		$data['user'] = $this->user?->id;
+		if (isset($this->user)) {
+			$data['code'] = $this->user->getCode();
+		}
 		if (isset($data['game'])) {
 			unset($data['game']);
 		}
