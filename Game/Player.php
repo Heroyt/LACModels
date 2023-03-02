@@ -97,6 +97,7 @@ abstract class Player extends Model
 	 * @post The Player::$skill property is set to the calculated value
 	 *
 	 * @return int A whole number evaluation on an arbitrary scale (no max or min value).
+	 * @throws Throwable
 	 */
 	public function calculateSkill() : int {
 		$this->skill = (int) round($this->calculateBaseSkill());
@@ -108,35 +109,58 @@ abstract class Player extends Model
 	 * Calculate the base, not rounded skill level
 	 *
 	 * @return float
+	 * @throws Throwable
 	 */
 	protected function calculateBaseSkill() : float {
 		$skill = 0.0;
 
-		// Add points for each hit (4 points) normalized to 10 players
-		$skill += $this->hits * 40 / $this->game->playerCount;
-
-		// Add points for K:D
-		$kd = $this->getKd();
-		if ($kd >= 1) {
-			$skill += $kd * 10;
+		// Based on data collected, players hits on average 12.5 enemies per enemy with 6.15 standard deviation.
+		// We used regression to calculate the best model to describe the best model to predict the average number of hits based on the player's enemy and teammate count;
+		// We can easily calculate the expected average hit count for each player based on our findings.
+		$enemyPlayerCount = $this->game->getPlayerCount() - ($this->game->mode?->isSolo() ? 1 : $this->team?->getPlayerCount());
+		$teamPlayerCount = ($this->team?->getPlayerCount() ?? 1) - 1;
+		if ($this->game->mode?->isTeam()) {
+			$expectedAverageHits = (2.5771 * $enemyPlayerCount) + (2.48007 * $teamPlayerCount) + 36.76356;
 		}
-		else if ($kd !== 0.0) {
-			$skill -= (1 / $kd) * 5;
+		else {
+			$expectedAverageHits = (2.05869 * $enemyPlayerCount) + 44.8715;
 		}
+		$hitsDiff = $this->hits - $expectedAverageHits;
 
-		// Add points for deviation from an average K:D
-		$averageKd = $this->getGame()->getAverageKd();
-		$kdDiff = $kd - $averageKd;
-		$skill += $kdDiff * 2;
+		// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
+		$hitsDiffPercent = 1 + ($hitsDiff / $expectedAverageHits);
 
-		// Add points for accuracy
-		$skill += 5 * ($this->accuracy / 100);
+		// Completely average game should acquire at least 200 points
+		$hitsSkill = $hitsDiffPercent * 200;
 
 		// Normalize based on the game's length
 		$gameLength = $this->getGame()->getRealGameLength();
 		if ($gameLength !== 0.0) {
-			$skill *= 15 / $gameLength;
+			$hitsSkill *= 15 / $gameLength;
 		}
+
+		$skill += $hitsSkill;
+
+		// Add points for K:D
+		$kd = $this->getKd();
+		if ($kd >= 1) {
+			$skill += $kd * 50;
+		}
+		else if ($kd !== 0.0) {
+			$skill -= (1 / $kd) * 10;
+		}
+
+		// Add points for deviation from an average K:D
+		$averageKd = $this->getGame()->getAverageKd();
+		if ($averageKd === 0.0) {
+			$averageKd = 1.0;
+		}
+		$kdDiff = 1 + (($kd - $averageKd) / $averageKd); // $average K:D should never be 0 if any hits were fired
+		$skill += $kdDiff * 50;
+
+		// Add points for accuracy - 100% accuracy <=> 600 points
+		$skill += 600 * ($this->accuracy / 100);
+
 		return $skill;
 	}
 
@@ -144,6 +168,10 @@ abstract class Player extends Model
 		return $this->hits / ($this->deaths === 0 ? 1 : $this->deaths);
 	}
 
+	/**
+	 * @return void
+	 * @throws Throwable
+	 */
 	public function instantiateProperties() : void {
 		parent::instantiateProperties();
 
@@ -153,6 +181,7 @@ abstract class Player extends Model
 
 	/**
 	 * @return int
+	 * @throws Throwable
 	 */
 	public function getTeamColor() : int {
 		if (empty($this->color)) {
@@ -390,10 +419,13 @@ abstract class Player extends Model
 		}
 		try {
 			$players = $this->getGame()->group->getPlayers();
-			return ($players[Strings::toAscii($this->name)] ?? $this)->skill;
-		} catch (Throwable $e) {
-			return $this->skill;
+			$name = Strings::toAscii($this->name);
+			if (isset($players[$name])) {
+				return $players[$name]->getSkill();
+			}
+		} catch (Throwable) {
 		}
+		return $this->skill;
 	}
 
 }

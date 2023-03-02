@@ -44,6 +44,8 @@ abstract class AbstractMode extends Model
 	/** @var GameModeVariationValue[][] */
 	private array $variations = [];
 
+	public bool $rankable = true;
+
 	public function isSolo() : bool {
 		return $this->type === GameModeType::SOLO;
 	}

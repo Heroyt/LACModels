@@ -16,6 +16,7 @@ use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Model;
+use Lsr\Helpers\Tools\Timer;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Throwable;
 
@@ -41,17 +42,17 @@ trait WithPlayers
 
 	/**
 	 * @return PlayerCollection
-	 * @throws DirectoryCreationException
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
-	 * @throws Throwable
 	 */
 	public function getPlayers() : PlayerCollection {
 		if (!isset($this->players)) {
 			$this->players = new PlayerCollection();
 		}
 		if (!empty($this->id) && $this->players->count() === 0) {
-			$this->loadPlayers();
+			try {
+				$this->loadPlayers();
+			} catch (Throwable $e) {
+				// Do nothing
+			}
 		}
 		return $this->players;
 	}
@@ -88,7 +89,11 @@ trait WithPlayers
 			else if ($this instanceof Team) { // @phpstan-ignore-line
 				$player->setTeam($this);
 			}
-			$this->players->set($player, $player->vest);
+			try {
+				$this->players->set($player, $player->vest);
+			} catch (\InvalidArgumentException) {
+
+			}
 		}
 		return $this->players;
 	}
@@ -167,19 +172,36 @@ trait WithPlayers
 		if (!isset($this->players)) {
 			return true;
 		}
+		Timer::start('game.save.players');
 		/** @var Player $player */
 		// Save players first
 		foreach ($this->players as $player) {
 			if (!$player->save()) {
+				Timer::stop('game.save.players');
 				return false;
 			}
 		}
 		// Save player hits
+		Timer::start('game.save.players.hits');
 		foreach ($this->players as $player) {
 			if (!$player->saveHits()) {
+				Timer::stop('game.save.players');
+				Timer::stop('game.save.players.hits');
 				return false;
 			}
 		}
+		Timer::stop('game.save.players.hits');
+		Timer::stop('game.save.players');
 		return true;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getPlayerCount() : int {
+		if (!isset($this->playerCount) || $this->playerCount < 1) {
+			$this->playerCount = $this->getPlayers()->count();
+		}
+		return $this->playerCount;
 	}
 }

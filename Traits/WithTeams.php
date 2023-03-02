@@ -9,6 +9,7 @@ use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
+use Lsr\Helpers\Tools\Timer;
 
 trait WithTeams
 {
@@ -79,7 +80,11 @@ trait WithTeams
 			if ($this instanceof Game) {
 				$team->setGame($this);
 			}
-			$this->teams->set($team, $team->color);
+			try {
+				$this->teams->set($team, $team->color);
+			} catch (\InvalidArgumentException) {
+
+			}
 		}
 		return $this->teams;
 	}
@@ -91,14 +96,18 @@ trait WithTeams
 	 * @throws ValidationException
 	 */
 	public function saveTeams() : bool {
+		Timer::start('game.save.teams');
 		if (!isset($this->teams)) {
+			Timer::stop('game.save.teams');
 			return true;
 		}
 		foreach ($this->teams as $team) {
 			if (!$team->save()) {
+				Timer::stop('game.save.teams');
 				return false;
 			}
 		}
+		Timer::stop('game.save.teams');
 		return true;
 	}
 }

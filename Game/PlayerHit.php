@@ -8,6 +8,7 @@ namespace App\GameModels\Game;
 use Dibi\Exception;
 use JsonSerializable;
 use Lsr\Core\DB;
+use Lsr\Helpers\Tools\Timer;
 
 /**
  * Data model for player hits
@@ -29,15 +30,19 @@ class PlayerHit implements JsonSerializable
 	 * @return bool
 	 */
 	public function save() : bool {
+		Timer::start('player.hits.check');
 		$test = DB::select($this::TABLE, '*')->where('[id_player] = %i AND [id_target] = %i', $this->playerShot->id, $this->playerTarget->id)->fetch();
+		Timer::stop('player.hits.check');
 		$data = $this->getQueryData();
 		try {
+			Timer::start('player.hits.insertUpdate');
 			if (isset($test)) {
 				DB::update($this::TABLE, $data, ['[id_player] = %i AND [id_target] = %i', $this->playerShot->id, $this->playerTarget->id]);
 			}
 			else {
 				DB::insert($this::TABLE, $data);
 			}
+			Timer::stop('player.hits.insertUpdate');
 		} catch (Exception) {
 			return false;
 		}

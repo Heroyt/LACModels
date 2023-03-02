@@ -126,6 +126,7 @@ abstract class Game extends Model
 	 *         id_player?: int,
 	 *         name?: string,
 	 *         code?: string,
+	 *         team?: int,
 	 *         score?: int,
 	 *         skill?: int,
 	 *         shots?: int,
@@ -135,6 +136,7 @@ abstract class Game extends Model
 	 *         deaths?: int,
 	 *         hitsOwn?: int,
 	 *         hitsOther?: int,
+	 *         hitPlayers?: array{target:int,count:int}[],
 	 *         deathsOwn?: int,
 	 *         deathsOther?: int,
 	 *         position?: int,
@@ -299,7 +301,7 @@ abstract class Game extends Model
 			}
 			$player = $players[$id];
 			// Hits
-			foreach ($playerData['hitPlayers'] ?? [] as $hit) {
+			foreach (($playerData['hitPlayers'] ?? []) as $hit) {
 				if (isset($players[$hit['target']])) {
 					$player->addHits($players[$hit['target']], $hit['count']);
 				}

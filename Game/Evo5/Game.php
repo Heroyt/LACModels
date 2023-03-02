@@ -18,6 +18,7 @@ use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
+use App\Models\Arena;
 
 /**
  * LaserMaxx Evo5 game model

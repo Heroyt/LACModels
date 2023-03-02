@@ -11,6 +11,7 @@ use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
+use Throwable;
 
 /**
  * LaserMaxx Evo5 player model
@@ -61,6 +62,7 @@ class Player extends \App\GameModels\Game\Player
 	 * @pre The player's results should be set.
 	 *
 	 * @return int A whole number evaluation on an arbitrary scale (no max or min value).
+	 * @throws Throwable
 	 */
 	public function calculateSkill() : int {
 		// Base skill value - hits, K:D, K:D deviation, accuracy - already normalized
@@ -68,20 +70,37 @@ class Player extends \App\GameModels\Game\Player
 
 		$newSkill = 0;
 
-		// Remove points for each teammate hit (2) normalized to 10 players
-		$newSkill -= $this->hitsOwn * 20 / $this->game->playerCount;
+		if ($this->game->mode?->isTeam() ?? true) {
+			// Based on data collected, players hits on average 0.8 teammates per teammate with 0.8 standard deviation.
+			// We used regression to calculate the best model to describe the best model to predict the average number of hits based on the player's enemy and teammate count;
+			// We can easily calculate the expected average hit count for each player.
+			$enemyPlayerCount = $this->game->getPlayerCount() - ($this->team?->getPlayerCount() ?? 1);
+			$teamPlayerCount = $this->team?->getPlayerCount() - 1;
+			$expectedAverageHits = ($enemyPlayerCount * 0.21216) + ($teamPlayerCount * 0.42801) + 1.34791;
+			$hitsDiff = $this->hitsOwn - $expectedAverageHits;
 
-		// Add points for bonuses
-		$newSkill += $this->bonus->getSum();
+			// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
+			$hitsDiffPercent = 1 + ($hitsDiff / $expectedAverageHits);
 
-		// Add points for accuracy
-		$newSkill += 5 * ($this->accuracy / 100);
+			// Completely average game should lose at least 100 points
+			// On the other hand -> hitting no teammates will grant 100 points
+			$hitsSkill = $hitsDiffPercent * 100;
+		}
+		else {
+			// In solo game, no teammates can be hit. Adds 100 points as a base.
+			$hitsSkill = 100;
+		}
 
 		// Normalize based on the game's length
 		$gameLength = $this->getGame()->getRealGameLength();
 		if ($gameLength !== 0.0) {
-			$newSkill *= 15 / $gameLength;
+			$hitsSkill *= 15 / $gameLength;
 		}
+
+		$newSkill -= $hitsSkill;
+
+		// Add points for bonuses
+		$newSkill += $this->bonus->getSum() * 10;
 
 		$this->skill = (int) round($skill + $newSkill);
 

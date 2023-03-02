@@ -17,6 +17,8 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Attributes\Validation\Required;
 use Lsr\Core\Models\Attributes\Validation\StringLength;
 use Lsr\Core\Models\Model;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Throwable;
 
 /**
  * Base class for Team models
@@ -50,18 +52,19 @@ abstract class Team extends Model
 	}
 
 	public function save() : bool {
-		/** @var int|null $test */
-		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s', $this->getGame()?->id, $this->name)->fetchSingle(cache: false);
-		if (isset($test)) {
-			$this->id = $test;
+		try {
+			/** @var int|null $test */
+			$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s', $this->getGame()->id, $this->name)->fetchSingle(cache: false);
+			if (isset($test)) {
+				$this->id = $test;
+			}
+		} catch (Throwable) {
 		}
 		return parent::save();
 	}
 
 	/**
 	 * @return int
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
 	 */
 	public function getDeaths() : int {
 		$sum = 0;
@@ -73,8 +76,6 @@ abstract class Team extends Model
 
 	/**
 	 * @return float
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
 	 */
 	public function getAccuracy() : float {
 		return $this->getShots() === 0 ? 0 : round(100 * $this->getHits() / $this->getShots(), 2);
@@ -82,8 +83,6 @@ abstract class Team extends Model
 
 	/**
 	 * @return int
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
 	 */
 	public function getShots() : int {
 		$sum = 0;
@@ -95,8 +94,6 @@ abstract class Team extends Model
 
 	/**
 	 * @return int
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
 	 */
 	public function getHits() : int {
 		$sum = 0;
@@ -112,6 +109,7 @@ abstract class Team extends Model
 	 * @return int
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
+	 * @throws DirectoryCreationException
 	 */
 	public function getHitsTeam(Team $team) : int {
 		$sum = 0;
@@ -125,6 +123,12 @@ abstract class Team extends Model
 		return $sum;
 	}
 
+	/**
+	 * @param bool $includeSystem
+	 *
+	 * @return string
+	 * @throws Throwable
+	 */
 	public function getTeamBgClass(bool $includeSystem = false) : string {
 		return 'team-'.($includeSystem ? $this->getGame()::SYSTEM.'-' : '').$this->color;
 	}

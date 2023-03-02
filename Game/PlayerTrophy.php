@@ -7,6 +7,7 @@ namespace App\GameModels\Game;
 
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 
 /**
  * A trophy (achievement) which a player can obtain
@@ -171,6 +172,7 @@ class PlayerTrophy
 	 * Trophies are checked in hierarchical order.
 	 *
 	 * @return array{name:string,description:string,icon:string}
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */
@@ -215,6 +217,7 @@ class PlayerTrophy
 	 * @return bool
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
+	 * @throws DirectoryCreationException
 	 */
 	private function check(string $name) : bool {
 		// Classic
@@ -282,6 +285,7 @@ class PlayerTrophy
 
 	/**
 	 * @return array{name:string,description:string,icon:string}[]
+	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */
