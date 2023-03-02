@@ -4,9 +4,7 @@ namespace App\GameModels\Auth;
 
 use App\Core\Info;
 use App\GameModels\Auth\Validators\PlayerCode;
-use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\PlayerFactory;
-use App\GameModels\Game\Query\PlayerQuery;
 use App\Models\DataObjects\PlayerStats;
 use Dibi\Row;
 use Lsr\Core\DB;
@@ -44,6 +42,9 @@ class Player extends Model
 		$code = strtoupper(trim($code));
 		if (preg_match('/(\d)+-([A-Z\d]{5})/', $code, $matches) !== 1) {
 			throw new \InvalidArgumentException('Code is not valid');
+		}
+		if (((int) $matches[1]) === 0) {
+			return static::query()->where('[id_arena] IS NULL AND [code] = %s', $matches[2])->first();
 		}
 		return static::query()->where('[id_arena] = %i AND [code] = %s', $matches[1], $matches[2])->first();
 	}
