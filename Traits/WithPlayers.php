@@ -10,6 +10,7 @@ use App\GameModels\Game\Player;
 use App\GameModels\Game\PlayerCollection;
 use App\GameModels\Game\Team;
 use Dibi\Row;
+use InvalidArgumentException;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -20,19 +21,22 @@ use Lsr\Helpers\Tools\Timer;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Throwable;
 
+/**
+ * @template P of Player
+ */
 trait WithPlayers
 {
 
 	/** @var int */
 	#[NoDB]
 	public int $playerCount = 0;
-	/** @var string */
+	/** @var class-string<P> */
 	#[NoDB]
 	public string $playerClass;
-	/** @var PlayerCollection */
+	/** @var PlayerCollection<P> */
 	#[Instantiate]
 	public PlayerCollection $players;
-	/** @var PlayerCollection */
+	/** @var PlayerCollection<P> */
 	protected PlayerCollection $playersSorted;
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
@@ -41,7 +45,7 @@ trait WithPlayers
 	}
 
 	/**
-	 * @return PlayerCollection
+	 * @return PlayerCollection<P>
 	 */
 	public function getPlayers() : PlayerCollection {
 		if (!isset($this->players)) {
@@ -58,7 +62,7 @@ trait WithPlayers
 	}
 
 	/**
-	 * @return PlayerCollection
+	 * @return PlayerCollection<P>
 	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
@@ -91,7 +95,7 @@ trait WithPlayers
 			}
 			try {
 				$this->players->set($player, $player->vest);
-			} catch (\InvalidArgumentException) {
+			} catch (InvalidArgumentException) {
 
 			}
 		}
@@ -130,6 +134,11 @@ trait WithPlayers
 		return 0;
 	}
 
+	/**
+	 * @param P ...$players
+	 *
+	 * @return $this
+	 */
 	public function addPlayer(Player ...$players) : static {
 		if (!isset($this->players)) {
 			$this->players = new PlayerCollection();
@@ -144,11 +153,7 @@ trait WithPlayers
 	}
 
 	/**
-	 * @return PlayerCollection
-	 * @throws DirectoryCreationException
-	 * @throws ModelNotFoundException
-	 * @throws Throwable
-	 * @throws ValidationException
+	 * @return PlayerCollection<P>
 	 */
 	public function getPlayersSorted() : PlayerCollection {
 		if (!isset($this->playersSorted)) {

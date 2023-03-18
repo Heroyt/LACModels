@@ -9,7 +9,9 @@ use App\GameModels\Game\Player;
 /**
  * Query object for player models
  *
- * @extends AbstractCollectionQuery<Player>
+ * @template P of Player
+ *
+ * @extends AbstractCollectionQuery<P>
  */
 class PlayerQuery extends AbstractCollectionQuery
 {

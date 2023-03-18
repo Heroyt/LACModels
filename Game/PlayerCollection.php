@@ -10,9 +10,11 @@ use App\Core\Interfaces\CollectionQueryInterface;
 use App\GameModels\Game\Query\PlayerQuery;
 
 /**
- * @property Player[] $data
+ * @template P of Player
  *
- * @extends AbstractCollection<Player>
+ * @property P[] $data
+ *
+ * @extends AbstractCollection<P>
  */
 class PlayerCollection extends AbstractCollection
 {
@@ -20,7 +22,7 @@ class PlayerCollection extends AbstractCollection
 	protected string $type = Player::class;
 
 	/**
-	 * @return CollectionQueryInterface<Player>
+	 * @return PlayerQuery<P>
 	 */
 	public function query() : CollectionQueryInterface {
 		return new PlayerQuery($this);

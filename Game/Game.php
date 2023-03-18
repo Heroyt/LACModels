@@ -44,12 +44,20 @@ use Throwable;
  * Base class for game models
  *
  * @phpstan-consistent-constructor
+ * @template T of Team
+ * @template P of Player
+ *
+ * @use WithTeams<T>
+ * @use WithPlayers<P>
  */
 #[PrimaryKey('id_game')]
 #[Factory(GameFactory::class)] // @phpstan-ignore-line
 abstract class Game extends Model
 {
+	/** @phpstan-use WithPlayers<P> */
 	use WithPlayers;
+
+	/** @phpstan-use WithTeams<T> */
 	use WithTeams;
 
 	public const SYSTEM     = '';
@@ -372,13 +380,11 @@ abstract class Game extends Model
 	/**
 	 * Get player by vest number
 	 *
-	 * @param int $vestNum
+	 * @param int|string $vestNum
 	 *
 	 * @return Player|null
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
 	 */
-	public function getVestPlayer(int $vestNum) : ?Player {
+	public function getVestPlayer(int|string $vestNum) : ?Player {
 		return $this->getPlayers()->query()->filter('vest', $vestNum)->first();
 	}
 

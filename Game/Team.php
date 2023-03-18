@@ -22,12 +22,21 @@ use Throwable;
 
 /**
  * Base class for Team models
+ *
+ * @template P of Player
+ * @template G of Game
+ *
+ * @use WithPlayers<P>
+ * @use WithGame<G>
  */
 #[PrimaryKey('id_team')]
 #[Factory(TeamFactory::class)] // @phpstan-ignore-line
 abstract class Team extends Model
 {
+	/** @phpstan-use WithPlayers<P> */
 	use WithPlayers;
+
+	/** @phpstan-use WithGame<G> */
 	use WithGame;
 
 	public const PRIMARY_KEY = 'id_team';

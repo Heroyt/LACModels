@@ -8,14 +8,18 @@ use Lsr\Core\Models\Attributes\ManyToOne;
 use RuntimeException;
 use Throwable;
 
+/**
+ * @template G of Game
+ */
 trait WithGame
 {
 
+	/** @var G */
 	#[ManyToOne]
 	public Game $game;
 
 	/**
-	 * @return Game
+	 * @return G
 	 * @throws Throwable
 	 */
 	public function getGame() : Game {
@@ -30,7 +34,7 @@ trait WithGame
 	}
 
 	/**
-	 * @param Game $game
+	 * @param G $game
 	 *
 	 * @return static
 	 */

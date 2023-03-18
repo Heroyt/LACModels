@@ -6,7 +6,7 @@
 namespace App\GameModels\Game\Evo5;
 
 use App\GameModels\Factory\PlayerFactory;
-use App\GameModels\Game\Game;
+use App\GameModels\Game\Game as BaseGame;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
@@ -15,6 +15,8 @@ use Throwable;
 
 /**
  * LaserMaxx Evo5 player model
+ *
+ * @extends \App\GameModels\Game\Player<Game, Team>
  */
 #[PrimaryKey('id_player')]
 #[Factory(PlayerFactory::class, ['system' => 'evo5'])] // @phpstan-ignore-line
@@ -36,8 +38,8 @@ class Player extends \App\GameModels\Game\Player
 	public int                        $hitsOwn     = 0;
 	public int                        $deathsOwn   = 0;
 	public int                        $deathsOther = 0;
-	#[ManyToOne(class: \App\GameModels\Game\Evo5\Game::class)]
-	public Game                       $game;
+	#[ManyToOne(class: Game::class)]
+	public BaseGame                   $game;
 	#[ManyToOne(foreignKey: 'id_team', class: Team::class)]
 	public ?\App\GameModels\Game\Team $team        = null;
 

@@ -11,7 +11,9 @@ use App\GameModels\Game\Query\TeamQuery;
 /**
  * A collection for team models
  *
- * @extends AbstractCollection<Team>
+ * @template T of Team
+ *
+ * @extends AbstractCollection<T>
  */
 class TeamCollection extends AbstractCollection
 {
@@ -19,7 +21,7 @@ class TeamCollection extends AbstractCollection
 	public string $type = Team::class;
 
 	/**
-	 * @return CollectionQueryInterface<Team>
+	 * @return CollectionQueryInterface<T>
 	 */
 	public function query() : CollectionQueryInterface {
 		return new TeamQuery($this);

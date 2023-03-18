@@ -13,6 +13,8 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 
 /**
  * LaserMaxx Evo5 team model
+ *
+ * @extends \App\GameModels\Game\Team<Player, Game>
  */
 #[PrimaryKey('id_team')]
 #[Factory(TeamFactory::class, ['system' => 'evo5'])] // @phpstan-ignore-line

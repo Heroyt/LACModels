@@ -26,11 +26,17 @@ use Throwable;
 
 /**
  * Base class for player models
+ *
+ * @template G of Game
+ * @template T of Team
+ *
+ * @use WithGame<G>
  */
 #[PrimaryKey('id_player')]
 #[Factory(PlayerFactory::class)] // @phpstan-ignore-line
 abstract class Player extends Model
 {
+	/** @phpstan-use WithGame<G> */
 	use WithGame;
 
 	public const CACHE_TAGS    = ['players'];
@@ -39,15 +45,15 @@ abstract class Player extends Model
 
 	#[Required]
 	#[StringLength(1, 15)]
-	public string $name     = '';
-	public int    $score    = 0;
-	public int    $skill    = 0;
-	public int    $vest     = 0;
-	public int    $shots    = 0;
-	public int    $accuracy = 0;
-	public int    $hits     = 0;
-	public int    $deaths   = 0;
-	public int    $position = 0;
+	public string     $name     = '';
+	public int        $score    = 0;
+	public int        $skill    = 0;
+	public int|string $vest     = 0;
+	public int        $shots    = 0;
+	public int        $accuracy = 0;
+	public int        $hits     = 0;
+	public int        $deaths   = 0;
+	public int        $position = 0;
 
 	/** @var PlayerHit[] */
 	#[NoDB]
@@ -56,12 +62,15 @@ abstract class Player extends Model
 	#[NoDB]
 	public int $teamNum = 0;
 
+	/** @var T|null */
 	#[ManyToOne(foreignKey: 'id_team')]
 	public ?Team           $team              = null;
 	#[ManyToOne]
 	public ?User           $user              = null;
 	protected int          $color             = 0;
+	/** @var Player<G,T>|null */
 	protected ?Player      $favouriteTarget   = null;
+	/** @var Player<G,T>|null */
 	protected ?Player      $favouriteTargetOf = null;
 	protected PlayerTrophy $trophy;
 
@@ -77,7 +86,7 @@ abstract class Player extends Model
 	 */
 	public function save() : bool {
 		/** @var int|null $test */
-		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s && vest = %i', $this->game?->id, $this->name, $this->vest)->fetchSingle(cache: false);
+		$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s && vest = '.(is_string($this->vest) ? '%s' : '%i'), $this->game?->id, $this->name, $this->vest)->fetchSingle(cache: false);
 		if (isset($test)) {
 			$this->id = $test;
 		}
@@ -191,18 +200,18 @@ abstract class Player extends Model
 	}
 
 	/**
-	 * @return Team|null
+	 * @return T|null
 	 */
 	public function getTeam() : ?Team {
 		return $this->team;
 	}
 
 	/**
-	 * @param Team $team
+	 * @param T $team
 	 *
-	 * @return Player
+	 * @return $this
 	 */
-	public function setTeam(Team $team) : Player {
+	public function setTeam(Team $team) : static {
 		$this->team = $team;
 		$this->color = $this->team->color;
 		//$team->getPlayers()->add($this);
@@ -281,7 +290,7 @@ abstract class Player extends Model
 	/**
 	 * Get a player that this player hit the most
 	 *
-	 * @return Player|null
+	 * @return Player<G,T>|null
 	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
@@ -329,14 +338,18 @@ abstract class Player extends Model
 	}
 
 	/**
-	 * @param Player $player
-	 * @param int    $count
+	 * @param Player<G,T> $player
+	 * @param int         $count
 	 *
 	 * @return $this
 	 */
-	public function addHits(Player $player, int $count) : Player {
+	public function addHits(Player $player, int $count = 1) : static {
 		/** @var PlayerHit $className */
 		$className = str_replace('Player', 'PlayerHit', get_class($this));
+		if (isset($this->hitPlayers[$player->vest])) {
+			$this->hitPlayers[$player->vest]->count += $count;
+			return $this;
+		}
 		$this->hitPlayers[$player->vest] = new $className($this, $player, $count);
 		return $this;
 	}
@@ -344,9 +357,10 @@ abstract class Player extends Model
 	/**
 	 * Get a player that hit this player the most
 	 *
-	 * @return Player|null
+	 * @return Player<G,T>|null
 	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
+	 * @throws Throwable
 	 * @throws ValidationException
 	 */
 	public function getFavouriteTargetOf() : ?Player {
@@ -368,7 +382,7 @@ abstract class Player extends Model
 	}
 
 	/**
-	 * @param Player $player
+	 * @param Player<G,T> $player
 	 *
 	 * @return int
 	 * @throws DirectoryCreationException
@@ -402,13 +416,6 @@ abstract class Player extends Model
 	}
 
 	/**
-	 * @return int
-	 */
-	public function getColor() : int {
-		return $this->color;
-	}
-
-	/**
 	 * Get the player's skill value. If the player is a part of a group, returns the average group value.
 	 *
 	 * @return int
@@ -426,6 +433,13 @@ abstract class Player extends Model
 		} catch (Throwable) {
 		}
 		return $this->skill;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getColor() : int {
+		return $this->color;
 	}
 
 }

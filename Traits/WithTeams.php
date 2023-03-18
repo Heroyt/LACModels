@@ -5,25 +5,34 @@ namespace App\GameModels\Traits;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\TeamCollection;
+use InvalidArgumentException;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Helpers\Tools\Timer;
 
+/**
+ * @template T of Team
+ */
 trait WithTeams
 {
 
-	/** @var class-string<Team> */
+	/** @var class-string<T> */
 	#[NoDB]
 	public string $teamClass;
 
-	/** @var TeamCollection */
+	/** @var TeamCollection<T> */
 	#[Instantiate]
 	public TeamCollection $teams;
-	/** @var TeamCollection */
+	/** @var TeamCollection<T> */
 	protected TeamCollection $teamsSorted;
 
+	/**
+	 * @param T ...$teams
+	 *
+	 * @return $this
+	 */
 	public function addTeam(Team ...$teams) : static {
 		if (!isset($this->teams)) {
 			$this->teams = new TeamCollection();
@@ -33,7 +42,7 @@ trait WithTeams
 	}
 
 	/**
-	 * @return TeamCollection
+	 * @return TeamCollection<T>
 	 */
 	public function getTeamsSorted() : TeamCollection {
 		if (empty($this->teamsSorted)) {
@@ -50,7 +59,7 @@ trait WithTeams
 	}
 
 	/**
-	 * @return TeamCollection
+	 * @return TeamCollection<T>
 	 */
 	public function getTeams() : TeamCollection {
 		if (!isset($this->teams)) {
@@ -62,6 +71,9 @@ trait WithTeams
 		return $this->teams;
 	}
 
+	/**
+	 * @return TeamCollection<T>
+	 */
 	public function loadTeams() : TeamCollection {
 		if (!isset($this->teams)) {
 			$this->teams = new TeamCollection();
@@ -82,7 +94,7 @@ trait WithTeams
 			}
 			try {
 				$this->teams->set($team, $team->color);
-			} catch (\InvalidArgumentException) {
+			} catch (InvalidArgumentException) {
 
 			}
 		}

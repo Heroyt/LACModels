@@ -11,17 +11,18 @@ use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\GameModes\Deathmach;
 use App\GameModels\Game\Evo5\GameModes\TeamDeathmach;
-use App\GameModels\Game\Player;
+use App\GameModels\Game\Player as BasePlayer;
 use Dibi\Row;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
-use App\Models\Arena;
 
 /**
  * LaserMaxx Evo5 game model
+ *
+ * @extends \App\GameModels\Game\Game<Team, Player>
  */
 #[PrimaryKey('id_game')]
 #[Factory(GameFactory::class, ['system' => 'evo5'])] // @phpstan-ignore-line
@@ -40,12 +41,10 @@ class Game extends \App\GameModels\Game\Game
 	/** @var int Respawn time in seconds */
 	public int $respawn = 5;
 
-	/** @var class-string<Player> */
 	#[NoDB]
-	public string $playerClass = \App\GameModels\Game\Evo5\Player::class;
-	/** @var class-string<Team> */
+	public string  $playerClass = Player::class;
 	#[NoDB]
-	public string  $teamClass = Team::class;
+	public string  $teamClass   = Team::class;
 	protected bool $minesOn;
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
@@ -131,7 +130,7 @@ class Game extends \App\GameModels\Game\Game
 	public function isMinesOn() : bool {
 		if (!isset($this->minesOn)) {
 			$this->minesOn = false;
-			/** @var \App\GameModels\Game\Evo5\Player $player */
+			/** @var Player $player */
 			foreach ($this->getPlayers() as $player) {
 				if ($player->minesHits !== 0 || $player->scoreMines !== 0 || $player->bonus->getSum() > 0) {
 					$this->minesOn = true;
@@ -142,7 +141,7 @@ class Game extends \App\GameModels\Game\Game
 		return $this->minesOn;
 	}
 
-	public function getBestPlayer(string $property) : ?Player {
+	public function getBestPlayer(string $property) : ?BasePlayer {
 		if ($property === 'mines' && !$this->isMinesOn()) {
 			return null;
 		}
