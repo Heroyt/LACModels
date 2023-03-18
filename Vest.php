@@ -16,17 +16,9 @@ use Lsr\Core\Models\ModelQuery;
 class Vest extends Model
 {
 
-	public const TABLE      = 'system_vests';
-	public const DEFINITION = [
-		'vestNum' => ['validators' => ['required'],],
-		'system'  => ['validators' => ['required', 'system'],],
-		'gridCol' => [],
-		'gridRow' => [],
-		'status'  => ['class' => VestStatus::class],
-		'info'    => [],
-	];
+	public const TABLE = 'system_vests';
 
-	public int        $vestNum;
+	public string     $vestNum;
 	public string     $system;
 	public ?int       $gridCol = null;
 	public ?int       $gridRow = null;
