@@ -6,7 +6,10 @@
 namespace App\GameModels\Game\Evo5;
 
 use App\GameModels\Factory\PlayerFactory;
+use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Game as BaseGame;
+use App\GameModels\Tools\Evo5\RegressionStatCalculator;
+use App\Services\RegressionCalculator;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
@@ -45,6 +48,8 @@ class Player extends \App\GameModels\Game\Player
 
 	public bool $vip = false;
 
+	private RegressionStatCalculator $calculator;
+
 	public function getMines() : int {
 		return $this->bonus->getSum();
 	}
@@ -54,19 +59,64 @@ class Player extends \App\GameModels\Game\Player
 	}
 
 	/**
-	 * Get an expected number of teammates hit based on the number of teammates and enemies.
+	 * Get an expected number of deaths based on the number of teammates and enemies.
 	 *
-	 * Based on data collected, players hits on average 0.8 teammates per teammate with 0.8 standard deviation.
 	 * We used regression to calculate the best model to describe the best model to predict the average number of hits based on the player's enemy and teammate count.
-	 * We can easily calculate the expected average hit count for each player.
+	 * We can easily calculate the expected average death count for each player.
 	 *
 	 * @return float
 	 * @throws Throwable
 	 */
-	public function getExpectedAverageTeammateHitCount() : float {
+	public function getExpectedAverageDeathCount() : float {
+		$type = $this->getGame()->gameType;
+		$model = $this->getRegressionCalculator()->getDeathsModel($type, $this->getGame()->getMode());
+		return $this->calculateHitDeathModel($type, $model);
+	}
+
+	/**
+	 * @return RegressionStatCalculator
+	 */
+	public function getRegressionCalculator() : RegressionStatCalculator {
+		if (!isset($this->calculator)) {
+			$this->calculator = new RegressionStatCalculator();
+		}
+		return $this->calculator;
+	}
+
+	/**
+	 * @param GameModeType $type
+	 * @param array        $model
+	 *
+	 * @return float
+	 * @throws Throwable
+	 */
+	private function calculateHitDeathModel(GameModeType $type, array $model) : float {
+		$length = $this->getGame()->getRealGameLength();
+		if ($type === GameModeType::TEAM) {
+			$teamPlayerCount = $this->getTeam()?->getPlayerCount() ?? 0;
+			$enemyPlayerCount = $this->getGame()->getPlayerCount() - $teamPlayerCount - 1;
+			return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length], $model);
+		}
+		$enemyPlayerCount = $this->getGame()->getPlayerCount() - 1;
+		return RegressionCalculator::calculateRegressionPrediction([$enemyPlayerCount, $length], $model);
+	}
+
+	/**
+	 * Get an expected number of teammates deaths based on the number of teammates and enemies.
+	 *
+	 * Based on data collected.
+	 * We used regression to calculate the best model to describe the best model to predict the average number of deaths based on the player's enemy and teammate count.
+	 * We can easily calculate the expected average death count for each player.
+	 *
+	 * @return float
+	 * @throws Throwable
+	 */
+	public function getExpectedAverageTeammateDeathCount() : float {
+		$model = $this->getRegressionCalculator()->getDeathsOwnModel($this->getGame()->getMode());
+		$length = $this->getGame()->getRealGameLength();
 		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
 		$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
-		return ($enemyPlayerCount * 0.21216) + ($teamPlayerCount * 0.42801) + 1.34791;
+		return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length], $model);
 	}
 
 	/**
@@ -96,12 +146,6 @@ class Player extends \App\GameModels\Game\Player
 		$this->skill = (int) round($skill + $newSkill);
 
 		return $this->skill;
-	}
-
-	public function getKd() : float {
-		return $this->game->mode?->isSolo() ?
-			parent::getKd() :
-			$this->hitsOther / ($this->deathsOther === 0 ? 1 : $this->deathsOther);
 	}
 
 	/**
@@ -134,10 +178,34 @@ class Player extends \App\GameModels\Game\Player
 	}
 
 	/**
+	 * Get an expected number of teammates hit based on the number of teammates and enemies.
+	 *
+	 * Based on data collected, players hits on average 0.8 teammates per teammate with 0.8 standard deviation.
+	 * We used regression to calculate the best model to describe the best model to predict the average number of hits based on the player's enemy and teammate count.
+	 * We can easily calculate the expected average hit count for each player.
+	 *
+	 * @return float
+	 * @throws Throwable
+	 */
+	public function getExpectedAverageTeammateHitCount() : float {
+		$model = $this->getRegressionCalculator()->getHitsOwnModel($this->getGame()->getMode());
+		$length = $this->getGame()->getRealGameLength();
+		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
+		$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
+		return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length], $model);
+	}
+
+	/**
 	 * @return float
 	 */
 	protected function calculateSkillFromBonuses() : float {
 		return $this->bonus->getSum() * 10;
+	}
+
+	public function getKd() : float {
+		return $this->game->mode?->isSolo() ?
+			parent::getKd() :
+			$this->hitsOther / ($this->deathsOther === 0 ? 1 : $this->deathsOther);
 	}
 
 	public function getSkillParts() : array {
@@ -145,6 +213,23 @@ class Player extends \App\GameModels\Game\Player
 		$parts['teamHits'] = $this->calculateSkillFromTeamHits();
 		$parts['bonuses'] = $this->calculateSkillFromBonuses();
 		return $parts;
+	}
+
+	protected function calculateSkillForHits() : float {
+		$expectedAverageHits = $this->getExpectedAverageHitCount();
+		$hitsDiff = $this->hits - $expectedAverageHits;
+
+		// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
+		$hitsDiffPercent = 1 + ($hitsDiff / $expectedAverageHits);
+
+		// Completely average game should acquire at least 200 points
+		return $hitsDiffPercent * 200;
+	}
+
+	public function getExpectedAverageHitCount() : float {
+		$type = $this->getGame()->gameType;
+		$model = $this->getRegressionCalculator()->getHitsModel($type, $this->getGame()->getMode());
+		return $this->calculateHitDeathModel($type, $model);
 	}
 
 }

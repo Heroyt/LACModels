@@ -64,11 +64,12 @@ abstract class Player extends Model
 
 	/** @var T|null */
 	#[ManyToOne(foreignKey: 'id_team')]
-	public ?Team  $team         = null;
+	public ?Team  $team           = null;
 	#[ManyToOne]
-	public ?User  $user         = null;
-	public ?float $relativeHits = null;
-	protected int $color        = 0;
+	public ?User  $user           = null;
+	public ?float $relativeHits   = null;
+	public ?float $relativeDeaths = null;
+	protected int $color          = 0;
 	/** @var Player<G,T>|null */
 	protected ?Player $favouriteTarget = null;
 	/** @var Player<G,T>|null */
@@ -95,6 +96,9 @@ abstract class Player extends Model
 			if (!isset($this->relativeHits)) {
 				$this->getRelativeHits();
 			}
+			if (!isset($this->relativeDeaths)) {
+				$this->getRelativeDeaths();
+			}
 		} catch (Throwable) {
 		}
 
@@ -116,6 +120,19 @@ abstract class Player extends Model
 	}
 
 	/**
+	 * @return float
+	 * @throws Throwable
+	 */
+	public function getRelativeDeaths() : float {
+		if (!isset($this->relativeDeaths)) {
+			$expected = $this->getExpectedAverageDeathCount();
+			$diff = $this->deaths - $expected;
+			$this->relativeDeaths = 1 + ($diff / $expected);
+		}
+		return $this->relativeDeaths;
+	}
+
+	/**
 	 * Get the expected number of hits based on enemy and teammate count for this player.
 	 *
 	 * Based on data collected, players hits on average 12.5 enemies per enemy with 6.15 standard deviation.
@@ -132,6 +149,24 @@ abstract class Player extends Model
 			return (2.5771 * $enemyPlayerCount) + (2.48007 * $teamPlayerCount) + 36.76356;
 		}
 		return (2.05869 * $enemyPlayerCount) + 44.8715;
+	}
+
+	/**
+	 * Get the expected number of deaths based on enemy and teammate count for this player.
+	 *
+	 * We used regression to calculate the best model to describe the best model to predict the average number of hits based on the player's enemy and teammate count.
+	 * We can easily calculate the expected average deaths count for each player based on our findings.
+	 *
+	 * @return float
+	 * @throws Throwable
+	 */
+	public function getExpectedAverageDeathCount() : float {
+		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->mode?->isSolo() ? 1 : $this->getTeam()?->getPlayerCount());
+		$teamPlayerCount = ($this->getTeam()?->getPlayerCount() ?? 1) - 1;
+		if ($this->getGame()->mode?->isTeam()) {
+			return (2.730673 * $enemyPlayerCount) + (-0.0566788 * $teamPlayerCount) + 43.203734389;
+		}
+		return (4.01628957539 * $enemyPlayerCount) - 15.0000175286;
 	}
 
 	/**
@@ -179,8 +214,7 @@ abstract class Player extends Model
 	 * @return float
 	 * @throws Throwable
 	 */
-	protected
-	function calculateBaseSkill() : float {
+	protected function calculateBaseSkill() : float {
 		$skill = 0.0;
 
 		$skill += $this->calculateSkillForHits();
@@ -198,8 +232,7 @@ abstract class Player extends Model
 	 * @return float
 	 * @throws Throwable
 	 */
-	protected
-	function calculateSkillForHits() : float {
+	protected function calculateSkillForHits() : float {
 		$expectedAverageHits = $this->getExpectedAverageHitCount();
 		$hitsDiff = $this->hits - $expectedAverageHits;
 
@@ -214,6 +247,7 @@ abstract class Player extends Model
 		if ($gameLength !== 0.0) {
 			$hitsSkill *= 15 / $gameLength;
 		}
+
 		return $hitsSkill;
 	}
 
@@ -221,8 +255,7 @@ abstract class Player extends Model
 	 * @return float
 	 * @throws Throwable
 	 */
-	protected
-	function calculateSkillFromKD() : float {
+	protected function calculateSkillFromKD() : float {
 		$kd = $this->getKd();
 		$skill = 0.0;
 		if ($kd >= 1) {
@@ -250,8 +283,7 @@ abstract class Player extends Model
 	/**
 	 * @return float
 	 */
-	protected
-	function calculateSkillFromAccuracy() : float {
+	protected function calculateSkillFromAccuracy() : float {
 		return 500 * ($this->accuracy / 100);
 	}
 
