@@ -63,85 +63,15 @@ class PlayerFactory implements FactoryInterface
 	}
 
 	/**
-	 * @param array<int|string, string> $gameFields
-	 * @param array<int|string, string> $playerFields
-	 * @param array<int|string, string> $modeFields
+	 * Prepare a SQL query for all players (from all systems)
 	 *
-	 * @return string[]
+	 * @param int[][] $gameIds
+	 *
+	 * @return Fluent
 	 */
-	public static function getPlayersWithGamesUnionQueries(array $gameFields = [], array $playerFields = [], array $modeFields = []) : array {
-		$defaultPlayerFields = ['id_player', 'id_user', 'id_team', 'system', 'name', 'score', 'accuracy', 'skill', 'position'];
-		$defaultGameFields = ['id_game', 'system', 'code', 'start', 'end', 'id_arena'];
-		$defaultModeFields = ['id_mode', 'name'];
-		$queries = [];
-		foreach (GameFactory::getSupportedSystems() as $key => $system) {
-			$addFields = '';
-			if (!empty($playerFields)) {
-				foreach ($playerFields as $name => $field) {
-					// Prevent duplicate fields
-					if (in_array($name, $defaultPlayerFields, true) || in_array($field, $defaultPlayerFields, true)) {
-						continue;
-					}
-					if (is_string($name)) {
-						// Allows setting alias
-						$addFields .= ', [p'.$key.'].['.$name.'] as ['.$field.']';
-					}
-					else {
-						// No alias
-						$addFields .= ', [p'.$key.'].['.$field.']';
-					}
-				}
-			}
-			if (!empty($gameFields)) {
-				foreach ($gameFields as $name => $field) {
-					// Prevent duplicate fields
-					if (in_array($name, $defaultGameFields, true) || in_array($field, $defaultGameFields, true)) {
-						continue;
-					}
-					if (is_string($name)) {
-						// Allows setting alias
-						$addFields .= ', [g'.$key.'].['.$name.'] as ['.$field.']';
-					}
-					else {
-						// No alias
-						$addFields .= ', [g'.$key.'].['.$field.']';
-					}
-				}
-			}
-			if (!empty($modeFields)) {
-				foreach ($modeFields as $name => $field) {
-					// Prevent duplicate fields
-					if (in_array($name, $defaultModeFields, true) || in_array($field, $defaultModeFields, true)) {
-						continue;
-					}
-					if (is_string($name)) {
-						// Allows setting alias
-						$addFields .= ', [m'.$key.'].['.$name.'] as ['.$field.']';
-					}
-					else {
-						// No alias
-						$addFields .= ', [m'.$key.'].['.$field.']';
-					}
-				}
-			}
-			$q = DB::select(
-				["[{$system}_players]", "[p$key]"],
-				"[p$key].[id_player], [p$key].[id_user], [p$key].[id_team], %s as [system], [p$key].[name], [p$key].[score], [p$key].[accuracy], [p$key].[skill], [p$key].[position], ".
-				"[g$key].[id_game], [g$key].[id_arena], [g$key].[code], [g$key].[start], [g$key].[end], ".
-				"[m$key].[id_mode], [m$key].[name] as [modeName]".
-				$addFields,
-				$system
-			)
-						 ->join("[{$system}_games]", "[g$key]")->on("[p$key].[id_game] = [g$key].[id_game]")
-						 ->leftJoin("[game_modes]", "[m$key]")->on("[g$key].[id_mode] = [m$key].[id_mode]");
-			$queries[] = (string) $q;
-		}
-		return $queries;
-	}
-
-	public static function queryPlayersWithGames(array $gameFields = [], array $playerFields = [], array $modeFields = []) : Fluent {
+	public static function queryPlayers(array $gameIds = []) : Fluent {
 		$query = DB::getConnection()->select('*');
-		$queries = self::getPlayersWithGamesUnionQueries($gameFields, $playerFields, $modeFields);
+		$queries = self::getPlayersUnionQueries($gameIds);
 		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
 		return (new Fluent($query))->cacheTags('players');
 	}
@@ -161,20 +91,6 @@ class PlayerFactory implements FactoryInterface
 			$queries[] = (string) $q;
 		}
 		return $queries;
-	}
-
-	/**
-	 * Prepare a SQL query for all players (from all systems)
-	 *
-	 * @param int[][] $gameIds
-	 *
-	 * @return Fluent
-	 */
-	public static function queryPlayers(array $gameIds = []) : Fluent {
-		$query = DB::getConnection()->select('*');
-		$queries = self::getPlayersUnionQueries($gameIds);
-		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
-		return (new Fluent($query))->cacheTags('players');
 	}
 
 	/**
@@ -205,5 +121,125 @@ class PlayerFactory implements FactoryInterface
 		}
 		Timer::stop('factory.player');
 		return $player;
+	}
+
+	public static function queryPlayersWithGames(array $gameFields = [], array $playerFields = [], array $modeFields = []) : Fluent {
+		$query = DB::getConnection()->select('*');
+		$queries = self::getPlayersWithGamesUnionQueries($gameFields, $playerFields, $modeFields);
+		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
+		return (new Fluent($query))->cacheTags('players');
+	}
+
+	/**
+	 * @param array<int|string, string|array{first:string,second:string,operation:string}> $gameFields
+	 * @param array<int|string, string|array{first:string,second:string,operation:string}> $playerFields
+	 * @param array<int|string, string|array{first:string,second:string,operation:string}> $modeFields
+	 *
+	 * @return string[]
+	 */
+	public static function getPlayersWithGamesUnionQueries(array $gameFields = [], array $playerFields = [], array $modeFields = []) : array {
+		$defaultPlayerFields = ['id_player', 'id_user', 'id_team', 'system', 'name', 'score', 'accuracy', 'skill', 'position'];
+		$defaultGameFields = ['id_game', 'system', 'code', 'start', 'end', 'id_arena'];
+		$defaultModeFields = ['id_mode', 'name'];
+		$queries = [];
+		foreach (GameFactory::getSupportedSystems() as $key => $system) {
+			$addFields = '';
+			if (!empty($playerFields)) {
+				foreach ($playerFields as $name => $field) {
+					// Prevent duplicate fields
+					if (in_array($name, $defaultPlayerFields, true) || in_array($field, $defaultPlayerFields, true)) {
+						continue;
+					}
+					if (is_array($field)) {
+						if (is_string($name)) {
+							// Allows setting alias
+							$addFields .= ', [p'.$key.'].['.$field['first'].']'.$field['operation'].'[p'.$key.'].['.$field['second'].'] as ['.$name.']';
+						}
+						else {
+							// No alias
+							$addFields .= ', [p'.$key.'].['.$field['first'].']'.$field['operation'].'[p'.$key.'].['.$field['second'].']';
+						}
+					}
+					else {
+						if (is_string($name)) {
+							// Allows setting alias
+							$addFields .= ', [p'.$key.'].['.$name.'] as ['.$field.']';
+						}
+						else {
+							// No alias
+							$addFields .= ', [p'.$key.'].['.$field.']';
+						}
+					}
+				}
+			}
+			if (!empty($gameFields)) {
+				foreach ($gameFields as $name => $field) {
+					// Prevent duplicate fields
+					if (in_array($name, $defaultGameFields, true) || in_array($field, $defaultGameFields, true)) {
+						continue;
+					}
+					if (is_array($field)) {
+						if (is_string($name)) {
+							// Allows setting alias
+							$addFields .= ', [g'.$key.'].['.$field['first'].']'.$field['operation'].'[g'.$key.'].['.$field['second'].'] as ['.$name.']';
+						}
+						else {
+							// No alias
+							$addFields .= ', [g'.$key.'].['.$field['first'].']'.$field['operation'].'[g'.$key.'].['.$field['second'].']';
+						}
+					}
+					else {
+						if (is_string($name)) {
+							// Allows setting alias
+							$addFields .= ', [g'.$key.'].['.$name.'] as ['.$field.']';
+						}
+						else {
+							// No alias
+							$addFields .= ', [g'.$key.'].['.$field.']';
+						}
+					}
+				}
+			}
+			if (!empty($modeFields)) {
+				foreach ($modeFields as $name => $field) {
+					// Prevent duplicate fields
+					if (in_array($name, $defaultModeFields, true) || in_array($field, $defaultModeFields, true)) {
+						continue;
+					}
+					if (is_array($field)) {
+						if (is_string($name)) {
+							// Allows setting alias
+							$addFields .= ', [m'.$key.'].['.$field['first'].']'.$field['operation'].'[m'.$key.'].['.$field['second'].'] as ['.$name.']';
+						}
+						else {
+							// No alias
+							$addFields .= ', [m'.$key.'].['.$field['first'].']'.$field['operation'].'[m'.$key.'].['.$field['second'].']';
+						}
+					}
+					else {
+						if (is_string($name)) {
+							// Allows setting alias
+							$addFields .= ', [m'.$key.'].['.$name.'] as ['.$field.']';
+						}
+						else {
+							// No alias
+							$addFields .= ', [m'.$key.'].['.$field.']';
+						}
+					}
+				}
+			}
+			$q = DB::select(
+				["[{$system}_players]", "[p$key]"],
+				"[p$key].[id_player], [p$key].[id_user], [p$key].[id_team], %s as [system], [p$key].[name], [p$key].[score], [p$key].[accuracy], [p$key].[skill], [p$key].[position], ".
+				"[g$key].[id_game], [g$key].[id_arena], [g$key].[code], [g$key].[start], [g$key].[end], ".
+				"[m$key].[id_mode], [m$key].[name] as [modeName]".
+				$addFields,
+				$system
+			)
+						 ->join("[{$system}_games]", "[g$key]")->on("[p$key].[id_game] = [g$key].[id_game]")
+						 ->leftJoin("[game_modes]", "[m$key]")->on("[g$key].[id_mode] = [m$key].[id_mode]");
+			$queries[] = (string) $q;
+		}
+		return $queries;
 	}
 }
