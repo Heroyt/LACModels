@@ -64,11 +64,11 @@ abstract class Player extends Model
 
 	/** @var T|null */
 	#[ManyToOne(foreignKey: 'id_team')]
-	public ?Team  $team  = null;
+	public ?Team  $team         = null;
 	#[ManyToOne]
-	public ?User  $user  = null;
+	public ?User  $user         = null;
 	public ?float $relativeHits = null;
-	protected int $color = 0;
+	protected int $color        = 0;
 	/** @var Player<G,T>|null */
 	protected ?Player $favouriteTarget = null;
 	/** @var Player<G,T>|null */
@@ -88,42 +88,32 @@ abstract class Player extends Model
 	public function save() : bool {
 		try {
 			/** @var int|null $test */
-			$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s && vest = '.(is_string($this->vest) ? '%s' : '%i'), $this->game?->id, $this->name, $this->vest)->fetchSingle(cache: false);
+			$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s && vest = '.(is_string($this->vest) ? '%s' : '%i'), $this->getGame()->id, $this->name, $this->vest)->fetchSingle(cache: false);
 			if (isset($test)) {
 				$this->id = $test;
 			}
+			if (!isset($this->relativeHits)) {
+				$this->getRelativeHits();
+			}
+		} catch (Throwable) {
 		}
-		if (!isset($this->relativeHits)) {
-			$this->getRelativeHits();
-		}
-		} catch (Throwable)
-		{
+
+		//$this->calculateSkill();
+		return parent::save();
 	}
 
-//$this->calculateSkill();
-return parent::save();
-}
-
-/**
- * Calculate a skill level based on the player's results
- *
- * The skill value aims to better evaluate the player's play style than the regular score value.
- * It should take multiple metrics into account.
- * Other LG system implementations should modify this function to calculate the value based on its specific metrics.
- * The value must be normalized based on the game's length.
- *
- * @pre  The player's results should be set.
- * @post The Player::$skill property is set to the calculated value
- *
- * @return int A whole number evaluation on an arbitrary scale (no max or min value).
- * @throws Throwable
- */
-public
-function calculateSkill() : int {
-	$this->skill = (int) round($this->calculateBaseSkill());
-
-	return $this->skill;
-}
+	/**
+	 * @return float
+	 * @throws Throwable
+	 */
+	public function getRelativeHits() : float {
+		if (!isset($this->relativeHits)) {
+			$expected = $this->getExpectedAverageHitCount();
+			$diff = $this->hits - $expected;
+			$this->relativeHits = 1 + ($diff / $expected);
+		}
+		return $this->relativeHits;
+	}
 
 	/**
 	 * Get the expected number of hits based on enemy and teammate count for this player.
@@ -144,331 +134,72 @@ function calculateSkill() : int {
 		return (2.05869 * $enemyPlayerCount) + 44.8715;
 	}
 
-/**
- * Calculate the base, not rounded skill level
- *
- * @return float
- * @throws Throwable
- */
-protected
-function calculateBaseSkill() : float {
-	$skill = 0.0;
+	/**
+	 * @return T|null
+	 */
+	public function getTeam() : ?Team {
+		return $this->team;
+	}
+
+	/**
+	 * @param T $team
+	 *
+	 * @return $this
+	 */
+	public function setTeam(Team $team) : static {
+		$this->team = $team;
+		$this->color = $this->team->color;
+		//$team->getPlayers()->add($this);
+		return $this;
+	}
+
+	/**
+	 * Calculate a skill level based on the player's results
+	 *
+	 * The skill value aims to better evaluate the player's play style than the regular score value.
+	 * It should take multiple metrics into account.
+	 * Other LG system implementations should modify this function to calculate the value based on its specific metrics.
+	 * The value must be normalized based on the game's length.
+	 *
+	 * @pre  The player's results should be set.
+	 * @post The Player::$skill property is set to the calculated value
+	 *
+	 * @return int A whole number evaluation on an arbitrary scale (no max or min value).
+	 * @throws Throwable
+	 */
+	public function calculateSkill() : int {
+		$this->skill = (int) round($this->calculateBaseSkill());
+
+		return $this->skill;
+	}
+
+	/**
+	 * Calculate the base, not rounded skill level
+	 *
+	 * @return float
+	 * @throws Throwable
+	 */
+	protected
+	function calculateBaseSkill() : float {
+		$skill = 0.0;
 
 		$skill += $this->calculateSkillForHits();
 
-	// Add points for K:D
+		// Add points for K:D
 		$skill += $this->calculateSkillFromKD();
 
 		// Add points for accuracy - 100% accuracy <=> 500 points
 		$skill += $this->calculateSkillFromAccuracy();
 
-	return $skill;
-}
-
-public
-function getKd() : float {
-	return $this->hits / ($this->deaths === 0 ? 1 : $this->deaths);
-}
-
-/**
- * @return void
- * @throws Throwable
- */
-public
-function instantiateProperties() : void {
-	parent::instantiateProperties();
-
-	// Set the teamNum and color property
-	$this->teamNum = $this->getTeamColor();
-}
-
-/**
- * @return int
- * @throws Throwable
- */
-public
-function getTeamColor() : int {
-	if (empty($this->color)) {
-		$this->color = (isset($this->game) && $this->getGame()->mode?->isSolo() ? 2 : $this->getTeam()?->color) ?? 2;
-	}
-	return $this->color;
-}
-
-/**
-	 * @return T|null
- */
-public
-function getTeam() : ?Team {
-	return $this->team;
-}
-
-/**
-	 * @param T $team
- *
-	 * @return $this
- */
-	public function setTeam(Team $team) : static {
-	$this->team = $team;
-	$this->color = $this->team->color;
-	//$team->getPlayers()->add($this);
-	return $this;
-}
-
-/**
- * @return bool
- */
-public
-function saveHits() : bool {
-	if (empty($this->hitPlayers)) {
-		return true;
-	}
-		$table = '';
-	$values = [];
-	foreach ($this->hitPlayers as $hits) {
-			$table = $hits::TABLE;
-		$values[] = $hits->getQueryData();
-	}
-	try {
-		/** @phpstan-ignore-next-line */
-		return DB::replace($table, $values) > 0;
-	} catch (Exception) {
-		return false;
-	}
-}
-
-/**
- * Get a players position in today's leaderboard
- *
- * @param string $property
- *
- * @return int
- */
-public
-function getTodayPosition(string $property) : int {
-	return 0; // TODO: Implement
-}
-
-/**
- * Get missed shots
- *
- * @return int
- */
-public
-function getMiss() : int {
-	return $this->shots - $this->hits;
-}
-
-/**
- * Get one trophy
- *
- * @return array{name:string,icon:string}
- * @throws ModelNotFoundException
- * @throws ValidationException
- */
-public
-function getBestAt() : array {
-	if (!isset($this->trophy)) {
-		$this->trophy = new PlayerTrophy($this);
-	}
-	return $this->trophy->getOne();
-}
-
-/**
- * Get all trophies
- *
- * @return array{name:string,icon:string}[]
- * @throws ModelNotFoundException
- * @throws ValidationException
- */
-public
-function getAllBestAt() : array {
-	if (!isset($this->trophy)) {
-		$this->trophy = new PlayerTrophy($this);
-	}
-	return $this->trophy->getAll();
-}
-
-/**
- * Get a player that this player hit the most
- *
-	 * @return Player<G,T>|null
- * @throws DirectoryCreationException
- * @throws ModelNotFoundException
- * @throws ValidationException
- */
-public
-function getFavouriteTarget() : ?Player {
-	if (!isset($this->favouriteTarget)) {
-		$max = 0;
-		foreach ($this->getHitsPlayers() as $hits) {
-			if ($hits->count > $max) {
-				$this->favouriteTarget = $hits->playerTarget;
-				$max = $hits->count;
-			}
-		}
-	}
-	return $this->favouriteTarget;
-}
-
-/**
- * @return PlayerHit[]
- * @throws DirectoryCreationException
- * @throws ModelNotFoundException
- * @throws ValidationException
- */
-public
-function getHitsPlayers() : array {
-	if (empty($this->hitPlayers)) {
-		return $this->loadHits();
-	}
-	return $this->hitPlayers;
-}
-
-/**
- * @return PlayerHit[]
- * @throws ModelNotFoundException
- * @throws ValidationException
- * @throws DirectoryCreationException
- */
-public
-function loadHits() : array {
-	/** @var PlayerHit $className */
-	$className = str_replace('Player', 'PlayerHit', get_class($this));
-	$hits = DB::select($className::TABLE, 'id_target, count')->where('id_player = %i', $this->id)->fetchAll();
-	foreach ($hits as $row) {
-			$this->addHits($this::get($row->id_target), $row->count);
-	}
-	return $this->hitPlayers;
-}
-
-/**
-	 * @param Player<G,T> $player
-	 * @param int         $count
- *
- * @return $this
- */
-	public function addHits(Player $player, int $count = 1) : static {
-	/** @var PlayerHit $className */
-	$className = str_replace('Player', 'PlayerHit', get_class($this));
-		if (isset($this->hitPlayers[$player->vest])) {
-			$this->hitPlayers[$player->vest]->count += $count;
-			return $this;
-		}
-	$this->hitPlayers[$player->vest] = new $className($this, $player, $count);
-	return $this;
-}
-
-/**
- * Get a player that hit this player the most
- *
-	 * @return Player<G,T>|null
- * @throws DirectoryCreationException
- * @throws ModelNotFoundException
-	 * @throws Throwable
- * @throws ValidationException
- */
-public
-function getFavouriteTargetOf() : ?Player {
-	if (!isset($this->favouriteTargetOf)) {
-		$max = 0;
-		/** @var static $player */
-		foreach ($this->getGame()->getPlayers() as $player) {
-			if ($player->id === $this->id) {
-				continue;
-			}
-			$hits = $player->getHitsPlayer($this);
-			if ($hits > $max) {
-				$max = $hits;
-				$this->favouriteTargetOf = $player;
-			}
-		}
-	}
-	return $this->favouriteTargetOf;
-}
-
-/**
-	 * @param Player<G,T> $player
- *
- * @return int
- * @throws DirectoryCreationException
- * @throws ModelNotFoundException
- * @throws ValidationException
- */
-public
-function getHitsPlayer(Player $player) : int {
-	return $this->getHitsPlayers()[$player->vest]->count ?? 0;
-}
-
-/**
- * @return array<string, mixed>
- * @throws ModelNotFoundException
- * @throws ValidationException
-	 * @throws DirectoryCreationException
- */
-public
-function jsonSerialize() : array {
-	$data = parent::jsonSerialize();
-	$data['user'] = $this->user?->id;
-	if (isset($this->user)) {
-		$data['code'] = $this->user->getCode();
-			$data['rank'] = $this->user->rank;
-	}
-		$data['team'] = $this->getTeam()?->id;
-	if (isset($data['game'])) {
-		unset($data['game']);
-	}
-	$data['hitPlayers'] = $this->getHitsPlayers();
-	$data['avgSkill'] = $this->getSkill();
-	return $data;
-}
-
-/**
- * Get the player's skill value. If the player is a part of a group, returns the average group value.
- *
- * @return int
- */
-public
-function getSkill() : int {
-	if (!isset($this->getGame()->group)) {
-		return $this->skill;
-	}
-	try {
-		$players = $this->getGame()->group->getPlayers();
-		$name = Strings::toAscii($this->name);
-		if (isset($players[$name])) {
-			return $players[$name]->getSkill();
-		}
-	} catch (Throwable) {
-	}
-	return $this->skill;
-}
-
-/**
- * @return int
- */
-public
-function getColor() : int {
-	return $this->color;
-}
-
-	/**
-	 * @return float
-	 * @throws Throwable
-	 */
-	public function getRelativeHits() : float {
-		if (!isset($this->relativeHits)) {
-			$expected = $this->getExpectedAverageHitCount();
-			$diff = $this->hits - $expected;
-			$this->relativeHits = 1 + ($diff / $expected);
-		}
-		return $this->relativeHits;
+		return $skill;
 	}
 
 	/**
 	 * @return float
 	 * @throws Throwable
 	 */
-	protected function calculateSkillForHits() : float {
+	protected
+	function calculateSkillForHits() : float {
 		$expectedAverageHits = $this->getExpectedAverageHitCount();
 		$hitsDiff = $this->hits - $expectedAverageHits;
 
@@ -490,7 +221,8 @@ function getColor() : int {
 	 * @return float
 	 * @throws Throwable
 	 */
-	protected function calculateSkillFromKD() : float {
+	protected
+	function calculateSkillFromKD() : float {
 		$kd = $this->getKd();
 		$skill = 0.0;
 		if ($kd >= 1) {
@@ -511,11 +243,262 @@ function getColor() : int {
 		return $skill;
 	}
 
+	public function getKd() : float {
+		return $this->hits / ($this->deaths === 0 ? 1 : $this->deaths);
+	}
+
 	/**
 	 * @return float
 	 */
-	protected function calculateSkillFromAccuracy() : float {
+	protected
+	function calculateSkillFromAccuracy() : float {
 		return 500 * ($this->accuracy / 100);
+	}
+
+	/**
+	 * @return void
+	 * @throws Throwable
+	 */
+	public function instantiateProperties() : void {
+		parent::instantiateProperties();
+
+		// Set the teamNum and color property
+		$this->teamNum = $this->getTeamColor();
+	}
+
+	/**
+	 * @return int
+	 * @throws Throwable
+	 */
+	public function getTeamColor() : int {
+		if (empty($this->color)) {
+			$this->color = (isset($this->game) && $this->getGame()->mode?->isSolo() ? 2 : $this->getTeam()?->color) ?? 2;
+		}
+		return $this->color;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function saveHits() : bool {
+		if (empty($this->hitPlayers)) {
+			return true;
+		}
+		$table = '';
+		$values = [];
+		foreach ($this->hitPlayers as $hits) {
+			$table = $hits::TABLE;
+			$values[] = $hits->getQueryData();
+		}
+		try {
+			/** @phpstan-ignore-next-line */
+			return DB::replace($table, $values) > 0;
+		} catch (Exception) {
+			return false;
+		}
+	}
+
+	/**
+	 * Get a players position in today's leaderboard
+	 *
+	 * @param string $property
+	 *
+	 * @return int
+	 */
+	public function getTodayPosition(string $property) : int {
+		return 0; // TODO: Implement
+	}
+
+	/**
+	 * Get missed shots
+	 *
+	 * @return int
+	 */
+	public function getMiss() : int {
+		return $this->shots - $this->hits;
+	}
+
+	/**
+	 * Get one trophy
+	 *
+	 * @return array{name:string,icon:string}
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
+	public function getBestAt() : array {
+		if (!isset($this->trophy)) {
+			$this->trophy = new PlayerTrophy($this);
+		}
+		return $this->trophy->getOne();
+	}
+
+	/**
+	 * Get all trophies
+	 *
+	 * @return array{name:string,icon:string}[]
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
+	public function getAllBestAt() : array {
+		if (!isset($this->trophy)) {
+			$this->trophy = new PlayerTrophy($this);
+		}
+		return $this->trophy->getAll();
+	}
+
+	/**
+	 * Get a player that this player hit the most
+	 *
+	 * @return Player<G,T>|null
+	 * @throws DirectoryCreationException
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
+	public function getFavouriteTarget() : ?Player {
+		if (!isset($this->favouriteTarget)) {
+			$max = 0;
+			foreach ($this->getHitsPlayers() as $hits) {
+				if ($hits->count > $max) {
+					$this->favouriteTarget = $hits->playerTarget;
+					$max = $hits->count;
+				}
+			}
+		}
+		return $this->favouriteTarget;
+	}
+
+	/**
+	 * @return PlayerHit[]
+	 * @throws DirectoryCreationException
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
+	public function getHitsPlayers() : array {
+		if (empty($this->hitPlayers)) {
+			return $this->loadHits();
+		}
+		return $this->hitPlayers;
+	}
+
+	/**
+	 * @return PlayerHit[]
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 * @throws DirectoryCreationException
+	 */
+	public function loadHits() : array {
+		/** @var PlayerHit $className */
+		$className = str_replace('Player', 'PlayerHit', get_class($this));
+		$hits = DB::select($className::TABLE, 'id_target, count')->where('id_player = %i', $this->id)->fetchAll();
+		foreach ($hits as $row) {
+			$this->addHits($this::get($row->id_target), $row->count);
+		}
+		return $this->hitPlayers;
+	}
+
+	/**
+	 * @param Player<G,T> $player
+	 * @param int         $count
+	 *
+	 * @return $this
+	 */
+	public function addHits(Player $player, int $count = 1) : static {
+		/** @var PlayerHit $className */
+		$className = str_replace('Player', 'PlayerHit', get_class($this));
+		if (isset($this->hitPlayers[$player->vest])) {
+			$this->hitPlayers[$player->vest]->count += $count;
+			return $this;
+		}
+		$this->hitPlayers[$player->vest] = new $className($this, $player, $count);
+		return $this;
+	}
+
+	/**
+	 * Get a player that hit this player the most
+	 *
+	 * @return Player<G,T>|null
+	 * @throws DirectoryCreationException
+	 * @throws ModelNotFoundException
+	 * @throws Throwable
+	 * @throws ValidationException
+	 */
+	public function getFavouriteTargetOf() : ?Player {
+		if (!isset($this->favouriteTargetOf)) {
+			$max = 0;
+			/** @var static $player */
+			foreach ($this->getGame()->getPlayers() as $player) {
+				if ($player->id === $this->id) {
+					continue;
+				}
+				$hits = $player->getHitsPlayer($this);
+				if ($hits > $max) {
+					$max = $hits;
+					$this->favouriteTargetOf = $player;
+				}
+			}
+		}
+		return $this->favouriteTargetOf;
+	}
+
+	/**
+	 * @param Player<G,T> $player
+	 *
+	 * @return int
+	 * @throws DirectoryCreationException
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 */
+	public function getHitsPlayer(Player $player) : int {
+		return $this->getHitsPlayers()[$player->vest]->count ?? 0;
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 * @throws ModelNotFoundException
+	 * @throws ValidationException
+	 * @throws DirectoryCreationException
+	 */
+	public function jsonSerialize() : array {
+		$data = parent::jsonSerialize();
+		$data['user'] = $this->user?->id;
+		if (isset($this->user)) {
+			$data['code'] = $this->user->getCode();
+			$data['rank'] = $this->user->rank;
+		}
+		$data['team'] = $this->getTeam()?->id;
+		if (isset($data['game'])) {
+			unset($data['game']);
+		}
+		$data['hitPlayers'] = $this->getHitsPlayers();
+		$data['avgSkill'] = $this->getSkill();
+		return $data;
+	}
+
+	/**
+	 * Get the player's skill value. If the player is a part of a group, returns the average group value.
+	 *
+	 * @return int
+	 */
+	public function getSkill() : int {
+		if (!isset($this->getGame()->group)) {
+			return $this->skill;
+		}
+		try {
+			$players = $this->getGame()->group->getPlayers();
+			$name = Strings::toAscii($this->name);
+			if (isset($players[$name])) {
+				return $players[$name]->getSkill();
+			}
+		} catch (Throwable) {
+		}
+		return $this->skill;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getColor() : int {
+		return $this->color;
 	}
 
 	/**
