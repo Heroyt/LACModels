@@ -52,6 +52,22 @@ class Player extends \App\GameModels\Game\Player
 	}
 
 	/**
+	 * Get an expected number of teammates hit based on the number of teammates and enemies.
+	 *
+	 * Based on data collected, players hits on average 0.8 teammates per teammate with 0.8 standard deviation.
+	 * We used regression to calculate the best model to describe the best model to predict the average number of hits based on the player's enemy and teammate count.
+	 * We can easily calculate the expected average hit count for each player.
+	 *
+	 * @return float
+	 * @throws Throwable
+	 */
+	public function getExpectedAverageTeammateHitCount() : float {
+		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
+		$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
+		return ($enemyPlayerCount * 0.21216) + ($teamPlayerCount * 0.42801) + 1.34791;
+	}
+
+	/**
 	 * Calculate a skill level based on the player's results
 	 *
 	 * The skill value aims to better evaluate the player's play style than the regular score value.
@@ -70,13 +86,29 @@ class Player extends \App\GameModels\Game\Player
 
 		$newSkill = 0;
 
+		$newSkill += $this->calculateSkillFromTeamHits();
+
+		// Add points for bonuses
+		$newSkill += $this->calculateSkillFromBonuses();
+
+		$this->skill = (int) round($skill + $newSkill);
+
+		return $this->skill;
+	}
+
+	public function getKd() : float {
+		return $this->game->mode?->isSolo() ?
+			parent::getKd() :
+			$this->hitsOther / ($this->deathsOther === 0 ? 1 : $this->deathsOther);
+	}
+
+	/**
+	 * @return float
+	 * @throws Throwable
+	 */
+	protected function calculateSkillFromTeamHits() : float {
 		if ($this->game->mode?->isTeam() ?? true) {
-			// Based on data collected, players hits on average 0.8 teammates per teammate with 0.8 standard deviation.
-			// We used regression to calculate the best model to describe the best model to predict the average number of hits based on the player's enemy and teammate count;
-			// We can easily calculate the expected average hit count for each player.
-			$enemyPlayerCount = $this->game->getPlayerCount() - ($this->team?->getPlayerCount() ?? 1);
-			$teamPlayerCount = $this->team?->getPlayerCount() - 1;
-			$expectedAverageHits = ($enemyPlayerCount * 0.21216) + ($teamPlayerCount * 0.42801) + 1.34791;
+			$expectedAverageHits = $this->getExpectedAverageTeammateHitCount();
 			$hitsDiff = $this->hitsOwn - $expectedAverageHits;
 
 			// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
@@ -88,7 +120,7 @@ class Player extends \App\GameModels\Game\Player
 		}
 		else {
 			// In solo game, no teammates can be hit. Adds 100 points as a base.
-			$hitsSkill = 100;
+			$hitsSkill = 0;
 		}
 
 		// Normalize based on the game's length
@@ -96,19 +128,21 @@ class Player extends \App\GameModels\Game\Player
 		if ($gameLength !== 0.0) {
 			$hitsSkill *= 15 / $gameLength;
 		}
-
-		$newSkill -= $hitsSkill;
-
-		// Add points for bonuses
-		$newSkill += $this->bonus->getSum() * 10;
-
-		$this->skill = (int) round($skill + $newSkill);
-
-		return $this->skill;
+		return -$hitsSkill;
 	}
 
-	public function getKd() : float {
-		return $this->hitsOther / ($this->deathsOther === 0 ? 1 : $this->deathsOther);
+	/**
+	 * @return float
+	 */
+	protected function calculateSkillFromBonuses() : float {
+		return $this->bonus->getSum() * 10;
+	}
+
+	public function getSkillParts() : array {
+		$parts = parent::getSkillParts();
+		$parts['teamHits'] = $this->calculateSkillFromTeamHits();
+		$parts['bonuses'] = $this->calculateSkillFromBonuses();
+		return $parts;
 	}
 
 }

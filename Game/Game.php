@@ -76,13 +76,30 @@ abstract class Game extends Model
 	public bool     $started  = false;
 	#[NoDB]
 	public bool     $finished = false;
-	protected float $realGameLength;
 	public bool     $visited  = false;
+	protected float $realGameLength;
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		$this->cacheTags[] = 'games/'.$this::SYSTEM;
 		parent::__construct($id, $dbRow);
 		$this->playerCount = $this->getPlayers()->count();
+		if (isset($this->id) && !isset($this->mode)) {
+			try {
+				$this->getMode();
+			} catch (GameModeNotFoundException) {
+			}
+		}
+	}
+
+	/**
+	 * @return AbstractMode|null
+	 * @throws GameModeNotFoundException
+	 */
+	public function getMode() : ?AbstractMode {
+		if (!isset($this->mode) && isset($this->modeName)) {
+			$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
+		}
+		return $this->mode;
 	}
 
 	/**
@@ -282,6 +299,10 @@ abstract class Game extends Model
 			}
 		}
 
+		if (!isset($game->mode)) {
+			$game->mode = GameModeFactory::find($game->modeName, $game->gameType, $game::SYSTEM);
+		}
+
 		// Assign hits and teams
 		foreach (($data['players'] ?? []) as $playerData) {
 			$id = $playerData['id'] ?? $playerData['id_player'] ?? 0;
@@ -397,7 +418,13 @@ abstract class Game extends Model
 	public function save() : bool {
 		$pk = $this::getPrimaryKey();
 		/** @var Row|null $test */
-		$test = DB::select($this::TABLE, $pk.', code')->where('start = %dt', $this->start)->fetch(cache: false);
+		$test = DB::select($this::TABLE, $pk.', code')
+							->where(
+								'start = %dt OR start = %dt',
+								$this->start,
+								$this->start->getTimestamp() + ($this->timing?->before ?? 20)
+							)
+							->fetch(cache: false);
 		if (isset($test)) {
 			/** @noinspection PhpFieldAssignmentTypeMismatchInspection */
 			$this->id = $test->$pk;
@@ -495,7 +522,7 @@ abstract class Game extends Model
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
 		$cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
-		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d'), 'games/'.$this->code]]);
+		$cache->clean([CacheParent::Tags => ['games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this->start?->format('Y-m-d'), 'games/'.$this->code, 'arena/'.$this->arena?->id.'/games/'.$this->start?->format('Y-m-d')]]);
 
 		if (isset($this->group)) {
 			$this->group->clearCache();
