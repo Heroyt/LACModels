@@ -6,6 +6,7 @@ use App\Core\Info;
 use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\GameModes\AbstractMode;
+use App\Models\Arena;
 use App\Services\RegressionCalculator;
 use Dibi\Exception;
 use Dibi\Row;
@@ -19,7 +20,9 @@ class RegressionStatCalculator
 {
 	private RegressionCalculator $regressionCalculator;
 
-	public function __construct() {
+	public function __construct(
+		private readonly ?Arena $arena = null
+	) {
 		$this->regressionCalculator = new RegressionCalculator();
 	}
 
@@ -34,7 +37,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function getDeathsModel(GameModeType $type, ?AbstractMode $mode = null) : array {
-		$infoKey = 'deathModel'.$type->value.(isset($mode) && !$mode->rankable ? $mode->id : '');
+		$infoKey = ($this->arena?->id ?? '').'deathModel'.$type->value.(isset($mode) && !$mode->rankable ? $mode->id : '');
 
 		/** @var numeric[]|null $model */
 		$model = Info::get($infoKey);
@@ -65,7 +68,6 @@ class RegressionStatCalculator
 
 		$data = $query->fetchAll();
 
-		echo 'DataPoints: '.count($data).PHP_EOL;
 		if (count($data) < 10) {
 			throw new InsuficientRegressionDataException();
 		}
@@ -102,6 +104,9 @@ class RegressionStatCalculator
 		}
 		else {
 			$query->where('rankable = 1');
+		}
+		if (isset($this->arena)) {
+			$query->where('id_arena = %i', $this->arena->id);
 		}
 	}
 
@@ -182,19 +187,13 @@ class RegressionStatCalculator
 		$predictions = $this->regressionCalculator->calculatePredictions($inputsLinear, $linearModel);
 		$r2Linear = $this->regressionCalculator->calculateRSquared($predictions, $actual);
 
-		echo 'Linear model: '.json_encode($linearModel).PHP_EOL.'R2: '.$r2Linear.PHP_EOL;
-
 		$multiplicationModel = $this->regressionCalculator->regression($inputsMultiplication, $matY);
 		$predictions = $this->regressionCalculator->calculatePredictions($inputsMultiplication, $multiplicationModel);
 		$r2Multiplication = $this->regressionCalculator->calculateRSquared($predictions, $actual);
 
-		echo 'Multiplication model: '.json_encode($multiplicationModel).PHP_EOL.'R2: '.$r2Multiplication.PHP_EOL;
-
 		$combinedModel = $this->regressionCalculator->regression($inputsSquared, $matY);
 		$predictions = $this->regressionCalculator->calculatePredictions($inputsSquared, $combinedModel);
 		$r2Combined = $this->regressionCalculator->calculateRSquared($predictions, $actual);
-
-		echo 'Combined model: '.json_encode($combinedModel).PHP_EOL.'R2: '.$r2Combined.PHP_EOL;
 
 		// Return the best model
 		$maxR2 = max($r2Linear, $r2Combined, $r2Multiplication);
@@ -216,7 +215,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function updateDeathsModel(GameModeType $type, ?AbstractMode $mode = null) : array {
-		$infoKey = 'deathModel'.$type->value.(isset($mode) && !$mode->rankable ? $mode->id : '');
+		$infoKey = ($this->arena?->id ?? '').'deathModel'.$type->value.(isset($mode) && !$mode->rankable ? $mode->id : '');
 		$model = $this->calculateDeathRegression($type, $mode);
 		try {
 			Info::set($infoKey, $model);
@@ -237,7 +236,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function getHitsModel(GameModeType $type, ?AbstractMode $mode = null) : array {
-		$infoKey = 'hitModel'.$type->value.(isset($mode) && !$mode->rankable ? $mode->id : '');
+		$infoKey = ($this->arena?->id ?? '').'hitModel'.$type->value.(isset($mode) && !$mode->rankable ? $mode->id : '');
 
 		/** @var numeric[]|null $model */
 		$model = Info::get($infoKey);
@@ -268,7 +267,6 @@ class RegressionStatCalculator
 
 		$data = $query->fetchAll();
 
-		echo 'DataPoints: '.count($data).PHP_EOL;
 		if (count($data) < 10) {
 			throw new InsuficientRegressionDataException();
 		}
@@ -301,7 +299,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function updateDeathsOwnModel(?AbstractMode $mode = null) : array {
-		$infoKey = 'deathsOwnModel'.(isset($mode) && !$mode->rankable ? $mode->id : '');
+		$infoKey = ($this->arena?->id ?? '').'deathsOwnModel'.(isset($mode) && !$mode->rankable ? $mode->id : '');
 		$model = $this->calculateDeathOwnRegression($mode);
 		try {
 			Info::set($infoKey, $model);
@@ -324,7 +322,6 @@ class RegressionStatCalculator
 
 		$data = $query->fetchAll();
 
-		echo 'DataPoints: '.count($data).PHP_EOL;
 		if (count($data) < 10) {
 			throw new InsuficientRegressionDataException();
 		}
@@ -349,7 +346,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function updateHitsOwnModel(?AbstractMode $mode = null) : array {
-		$infoKey = 'hitsOwnModel'.(isset($mode) && !$mode->rankable ? $mode->id : '');
+		$infoKey = ($this->arena?->id ?? '').'hitsOwnModel'.(isset($mode) && !$mode->rankable ? $mode->id : '');
 		$model = $this->calculateHitOwnRegression($mode);
 		try {
 			Info::set($infoKey, $model);
@@ -372,7 +369,6 @@ class RegressionStatCalculator
 
 		$data = $query->fetchAll();
 
-		echo 'DataPoints: '.count($data).PHP_EOL;
 		if (count($data) < 10) {
 			throw new InsuficientRegressionDataException();
 		}
@@ -401,7 +397,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function updateHitsModel(GameModeType $type, ?AbstractMode $mode = null) : array {
-		$infoKey = 'hitModel'.$type->value.(isset($mode) && !$mode->rankable ? $mode->id : '');
+		$infoKey = ($this->arena?->id ?? '').'hitModel'.$type->value.(isset($mode) && !$mode->rankable ? $mode->id : '');
 		$model = $this->calculateHitRegression($type, $mode);
 		try {
 			Info::set($infoKey, $model);
@@ -419,7 +415,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function getHitsOwnModel(?AbstractMode $mode = null) : array {
-		$infoKey = 'hitsOwnModel'.(isset($mode) && !$mode->rankable ? $mode->id : '');
+		$infoKey = ($this->arena?->id ?? '').'hitsOwnModel'.(isset($mode) && !$mode->rankable ? $mode->id : '');
 
 		/** @var numeric[]|null $model */
 		$model = Info::get($infoKey);
@@ -442,7 +438,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function getDeathsOwnModel(?AbstractMode $mode = null) : array {
-		$infoKey = 'deathsOwnModel'.(isset($mode) && !$mode->rankable ? $mode->id : '');
+		$infoKey = ($this->arena?->id ?? '').'deathsOwnModel'.(isset($mode) && !$mode->rankable ? $mode->id : '');
 
 		/** @var numeric[]|null $model */
 		$model = Info::get($infoKey);

@@ -78,7 +78,7 @@ class Player extends \App\GameModels\Game\Player
 	 */
 	public function getRegressionCalculator() : RegressionStatCalculator {
 		if (!isset($this->calculator)) {
-			$this->calculator = new RegressionStatCalculator();
+			$this->calculator = new RegressionStatCalculator($this->getGame()->arena);
 		}
 		return $this->calculator;
 	}
