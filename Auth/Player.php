@@ -5,14 +5,17 @@ namespace App\GameModels\Auth;
 use App\Core\Info;
 use App\GameModels\Auth\Validators\PlayerCode;
 use App\GameModels\Factory\PlayerFactory;
+use App\Models\Arena;
 use App\Models\DataObjects\PlayerStats;
 use Dibi\Row;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
+use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Attributes\Validation\Email;
 use Lsr\Core\Models\Model;
+use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Utils\Random;
 
 #[PrimaryKey('id_user')]
@@ -49,8 +52,36 @@ class Player extends Model
 		return static::query()->where('[id_arena] = %i AND [code] = %s', $matches[1], $matches[2])->first();
 	}
 
+	public function queryPlayedArenas() : Fluent {
+		$queries = PlayerFactory::getPlayersWithGamesUnionQueries(gameFields: ['id_arena']);
+		$query = new Fluent(
+			DB::getConnection()
+				->select('%SQL [id_arena]', 'DISTINCT')
+				->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]')
+				->where('[id_user] = %i', $this->id)
+		);
+		$query->cacheTags('user/games', 'user/'.$this->id.'/games', 'user/'.$this->id.'/arenas', 'user/'.$this->id);
+		return $query;
+	}
+
+	/**
+	 * @return Arena[]
+	 * @throws ValidationException
+	 * @throws ModelNotFoundException
+	 * @throws DirectoryCreationException
+	 */
+	public function getPlayedArenas() : array {
+		$arenas = [];
+		/** @var int[] $rows */
+		$rows = $this->queryPlayedArenas()->fetchPairs();
+		foreach ($rows as $id) {
+			$arenas[$id] = Arena::get($id);
+		}
+		return $arenas;
+	}
+
 	public function queryGames(?\DateTimeInterface $date = null) : Fluent {
-		$query = PlayerFactory::queryPlayersWithGames()
+		$query = PlayerFactory::queryPlayersWithGames(playerFields: ['vest'])
 													->where('[id_user] = %i', $this->id);
 		if (isset($date)) {
 			$query->where('DATE([start]) = %d', $date);
