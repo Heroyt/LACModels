@@ -139,7 +139,7 @@ class PlayerFactory implements FactoryInterface
 	 */
 	public static function getPlayersWithGamesUnionQueries(array $gameFields = [], array $playerFields = [], array $modeFields = []) : array {
 		$defaultPlayerFields = ['id_player', 'id_user', 'id_team', 'system', 'name', 'score', 'accuracy', 'skill', 'position'];
-		$defaultGameFields = ['id_game', 'system', 'code', 'start', 'end', 'id_arena'];
+		$defaultGameFields = ['id_game', 'system', 'code', 'start', 'end'];
 		$defaultModeFields = ['id_mode', 'name'];
 		$queries = [];
 		foreach (GameFactory::getSupportedSystems() as $key => $system) {
@@ -231,7 +231,7 @@ class PlayerFactory implements FactoryInterface
 			$q = DB::select(
 				["[{$system}_players]", "[p$key]"],
 				"[p$key].[id_player], [p$key].[id_user], [p$key].[id_team], %s as [system], [p$key].[name], [p$key].[score], [p$key].[accuracy], [p$key].[skill], [p$key].[position], ".
-				"[g$key].[id_game], [g$key].[id_arena], [g$key].[code], [g$key].[start], [g$key].[end], ".
+				"[g$key].[id_game], [g$key].[code], [g$key].[start], [g$key].[end], ".
 				"[m$key].[id_mode], [m$key].[name] as [modeName]".
 				$addFields,
 				$system

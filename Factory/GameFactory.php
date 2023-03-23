@@ -90,7 +90,7 @@ class GameFactory implements FactoryInterface
 					}
 				}
 			}
-			$q = DB::select(["[{$system}_games]", "[g$key]"], "[g$key].[id_game], [g$key].[id_arena], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end]".$addFields, $system);
+			$q = DB::select(["[{$system}_games]", "[g$key]"], "[g$key].[id_game], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end]".$addFields, $system);
 			if ($excludeNotFinished) {
 				$q->where("[g$key].[end] IS NOT NULL");
 			}
