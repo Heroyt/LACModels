@@ -22,7 +22,7 @@ class GameModeFactory implements FactoryInterface
 {
 
 	/**
-	 * @param array{system?:string} $options
+	 * @param array{system?:string,rankable?:bool} $options
 	 *
 	 * @return AbstractMode[]
 	 * @throws GameModeNotFoundException
@@ -31,6 +31,9 @@ class GameModeFactory implements FactoryInterface
 		$ids = DB::select('game_modes', 'id_mode, name, system, type');
 		if (isset($options['system'])) {
 			$ids->where('system = %s', $options['system']);
+		}
+		if (isset($options['rankable'])) {
+			$ids->where('rankable = %i', $options['rankable'] ? 1 : 0);
 		}
 		$ids = $ids->fetchAssoc('id_mode');
 		$modes = [];
