@@ -18,6 +18,7 @@ use App\GameModels\Traits\WithTeams;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
 use App\Models\Table;
+use App\Models\Tournament\Game as TournamentGame;
 use App\Services\LigaApi;
 use DateTime;
 use DateTimeInterface;
@@ -84,16 +85,19 @@ abstract class Game extends Model
 	#[ManyToOne]
 	public ?GameGroup $group = null;
 	#[ManyToOne]
-	public ?Table     $table = null;
+	public ?Table $table = null;
 
 	#[NoDB]
-	public bool     $started  = false;
+	public bool $started = false;
 	#[NoDB]
-	public bool     $finished = false;
+	public bool $finished = false;
 	protected float $realGameLength;
 
+	#[NoDB]
+	public ?TournamentGame $tournamentGame = null;
+
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
-		$this->cacheTags[] = 'games/'.$this::SYSTEM;
+		$this->cacheTags[] = 'games/' . $this::SYSTEM;
 		parent::__construct($id, $dbRow);
 		$this->playerCount = $this->getPlayers()->count();
 		if (isset($this->id) && !isset($this->mode)) {
@@ -505,6 +509,11 @@ abstract class Game extends Model
 			$success = $success && $this->group->save();
 		}
 
+		if ($this->getTournamentGame() !== null) {
+			$this->tournamentGame->code = $this->code;
+			$this->tournamentGame->save();
+		}
+
 		/* @phpstan-ignore-next-line */
 		return $success;
 	}
@@ -640,7 +649,40 @@ abstract class Game extends Model
 	public function reorder() : void {
 		if (isset($this->mode)) {
 			$this->mode->reorderGame($this);
+			if ($this->getTournamentGame() !== null) {
+				$win = $this->mode->getWin($this);
+				/** @var Team $team */
+				foreach ($this->getTeams() as $team) {
+					foreach ($this->getTournamentGame()->teams as $tournamentTeam) {
+						if ($team->tournamentTeam->id !== $tournamentTeam->team->id) {
+							continue;
+						}
+						$tournamentTeam->team->points -= $tournamentTeam->points;
+						$tournamentTeam->score = $team->getScore();
+						$tournamentTeam->position = $team->position;
+						if (!isset($win)) {
+							$tournamentTeam->points = $team->tournamentTeam->tournament->points->draw;
+						} else if ($win === $team) {
+							$tournamentTeam->points = $team->tournamentTeam->tournament->points->win;
+						} else {
+							$tournamentTeam->points = $team->tournamentTeam->tournament->points->loss;
+						}
+						$tournamentTeam->team->points += $tournamentTeam->points;
+						break;
+					}
+				}
+			}
 		}
+	}
+
+	/**
+	 * @return TournamentGame|null
+	 */
+	public function getTournamentGame(): ?TournamentGame {
+		if (!isset($this->tournamentGame)) {
+			$this->tournamentGame = TournamentGame::query()->where('[code] = %s', $this->code)->first();
+		}
+		return $this->tournamentGame;
 	}
 
 }

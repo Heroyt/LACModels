@@ -65,7 +65,6 @@ class RegressionStatCalculator
 
 		$data = $query->fetchAll();
 
-		echo 'DataPoints: '.count($data).PHP_EOL;
 		if (count($data) < 10) {
 			throw new InsuficientRegressionDataException();
 		}
@@ -182,19 +181,13 @@ class RegressionStatCalculator
 		$predictions = $this->regressionCalculator->calculatePredictions($inputsLinear, $linearModel);
 		$r2Linear = $this->regressionCalculator->calculateRSquared($predictions, $actual);
 
-		echo 'Linear model: '.json_encode($linearModel).PHP_EOL.'R2: '.$r2Linear.PHP_EOL;
-
 		$multiplicationModel = $this->regressionCalculator->regression($inputsMultiplication, $matY);
 		$predictions = $this->regressionCalculator->calculatePredictions($inputsMultiplication, $multiplicationModel);
 		$r2Multiplication = $this->regressionCalculator->calculateRSquared($predictions, $actual);
 
-		echo 'Multiplication model: '.json_encode($multiplicationModel).PHP_EOL.'R2: '.$r2Multiplication.PHP_EOL;
-
 		$combinedModel = $this->regressionCalculator->regression($inputsSquared, $matY);
 		$predictions = $this->regressionCalculator->calculatePredictions($inputsSquared, $combinedModel);
 		$r2Combined = $this->regressionCalculator->calculateRSquared($predictions, $actual);
-
-		echo 'Combined model: '.json_encode($combinedModel).PHP_EOL.'R2: '.$r2Combined.PHP_EOL;
 
 		// Return the best model
 		$maxR2 = max($r2Linear, $r2Combined, $r2Multiplication);
@@ -268,7 +261,6 @@ class RegressionStatCalculator
 
 		$data = $query->fetchAll();
 
-		echo 'DataPoints: '.count($data).PHP_EOL;
 		if (count($data) < 10) {
 			throw new InsuficientRegressionDataException();
 		}
@@ -324,7 +316,6 @@ class RegressionStatCalculator
 
 		$data = $query->fetchAll();
 
-		echo 'DataPoints: '.count($data).PHP_EOL;
 		if (count($data) < 10) {
 			throw new InsuficientRegressionDataException();
 		}
@@ -372,7 +363,6 @@ class RegressionStatCalculator
 
 		$data = $query->fetchAll();
 
-		echo 'DataPoints: '.count($data).PHP_EOL;
 		if (count($data) < 10) {
 			throw new InsuficientRegressionDataException();
 		}
