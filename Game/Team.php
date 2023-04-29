@@ -170,6 +170,9 @@ abstract class Team extends Model
 		if (isset($data['game'])) {
 			unset($data['game']);
 		}
+		if (isset($this->tournamentTeam)) {
+			$data['tournamentTeam'] = $this->tournamentTeam->idPublic;
+		}
 		return $data;
 	}
 

@@ -510,6 +510,9 @@ abstract class Player extends Model
 		}
 		$data['hitPlayers'] = $this->getHitsPlayers();
 		$data['avgSkill'] = $this->getSkill();
+		if (isset($this->tournamentPlayer)) {
+			$data['tournamentPlayer'] = $this->tournamentPlayer->idPublic;
+		}
 		return $data;
 	}
 
