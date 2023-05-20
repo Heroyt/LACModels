@@ -38,6 +38,7 @@ use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Caching\Cache as CacheParent;
 use Throwable;
+use App\Models\Tournament\Game as TournamentGame;
 
 /**
  * Base class for game models
@@ -84,14 +85,17 @@ abstract class Game extends Model
 	public ?GameGroup $group = null;
 
 	#[NoDB]
-	public bool     $started  = false;
+	public bool $started = false;
 	#[NoDB]
-	public bool     $finished = false;
-	public bool     $visited  = false;
+	public bool $finished = false;
+	public bool $visited = false;
 	protected float $realGameLength;
 
+	#[NoDB]
+	public ?TournamentGame $tournamentGame = null;
+
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
-		$this->cacheTags[] = 'games/'.$this::SYSTEM;
+		$this->cacheTags[] = 'games/' . $this::SYSTEM;
 		parent::__construct($id, $dbRow);
 		$this->playerCount = $this->getPlayers()->count();
 		if (isset($this->id) && !isset($this->mode)) {
@@ -275,6 +279,11 @@ abstract class Game extends Model
 								case 'code':
 									$player->user = LigaPlayer::getByCode($valuePlayer);
 									break;
+								case 'tournamentPlayer':
+									if (((int)$valuePlayer) > 0) {
+										$player->tournamentPlayer = \App\Models\Tournament\Player::get((int)$valuePlayer);
+									}
+									break;
 							}
 							$game->getPlayers()->add($player);
 							$players[$id] = $player;
@@ -300,9 +309,15 @@ abstract class Game extends Model
 									break;
 								case 'name':
 								case 'score':
+								case 'bonus':
 								case 'color':
 								case 'position':
 									$team->{$keyTeam} = $valueTeam;
+									break;
+								case 'tournamentTeam':
+									if (((int)$valueTeam) > 0) {
+										$team->tournamentTeam = \App\Models\Tournament\Team::get((int)$valueTeam);
+									}
 									break;
 							}
 							$game->addTeam($team);
@@ -419,6 +434,9 @@ abstract class Game extends Model
 		$data['players'] = $this->getPlayers()->getAll();
 		$data['teams'] = $this->getTeams()->getAll();
 		$data['group'] = $this->group;
+		if (isset($data['tournamentGame'])) {
+			unset($data['tournamentGame']);
+		}
 		if (!isset($data['mode'])) {
 			$data['mode'] = GameModeFactory::findByName(
 				$this->gameType === GameModeType::TEAM ? 'Team deathmach' : 'Deathmach',
@@ -478,6 +496,11 @@ abstract class Game extends Model
 
 		if (isset($this->group)) {
 			$success = $success && $this->group->save();
+		}
+
+		if ($this->getTournamentGame() !== null) {
+			$this->tournamentGame->code = $this->code;
+			$this->tournamentGame->save();
 		}
 
 		/* @phpstan-ignore-next-line */
@@ -607,10 +630,28 @@ abstract class Game extends Model
 		}
 	}
 
-	public function reorder() : void {
+	public function reorder(): void {
 		if (isset($this->mode)) {
 			$this->mode->reorderGame($this);
 		}
+	}
+
+	/**
+	 * @return TournamentGame|null
+	 */
+	public function getTournamentGame(): ?TournamentGame {
+		if (!isset($this->tournamentGame)) {
+			$this->tournamentGame = TournamentGame::query()->where('[code] = %s', $this->code)->first();
+		}
+		return $this->tournamentGame;
+	}
+
+	public function codeToNum(): int {
+		$num = 0;
+		foreach (str_split($this->code) as $char) {
+			$num += ord($char);
+		}
+		return $num;
 	}
 
 }

@@ -131,8 +131,8 @@ class PlayerFactory implements FactoryInterface
 	}
 
 	/**
-	 * @param array<int|string, string|array{first:string,second:string,operation:string}> $gameFields
-	 * @param array<int|string, string|array{first:string,second:string,operation:string}> $playerFields
+	 * @param array<int|string, string|array{first:string,second:string,operation:string}|array{first:string,aggregate:string}> $gameFields
+	 * @param array<int|string, string|array{first:string,second:string,operation:string}|array{first:string,aggregate:string}> $playerFields
 	 * @param array<int|string, string|array{first:string,second:string,operation:string}> $modeFields
 	 *
 	 * @return string[]
@@ -151,13 +151,33 @@ class PlayerFactory implements FactoryInterface
 						continue;
 					}
 					if (is_array($field)) {
-						if (is_string($name)) {
-							// Allows setting alias
-							$addFields .= ', [p'.$key.'].['.$field['first'].']'.$field['operation'].'[p'.$key.'].['.$field['second'].'] as ['.$name.']';
+						if (isset($field['operation'])) {
+							if (is_string($name)) {
+								// Allows setting alias
+								$addFields .= ', [p' . $key . '].[' . $field['first'] . ']' . $field['operation'] . '[p' . $key . '].[' . $field['second'] . '] as [' . $name . ']';
+							}
+							else {
+								// No alias
+								$addFields .= ', [p' . $key . '].[' . $field['first'] . ']' . $field['operation'] . '[p' . $key . '].[' . $field['second'] . ']';
+							}
 						}
 						else {
-							// No alias
-							$addFields .= ', [p'.$key.'].['.$field['first'].']'.$field['operation'].'[p'.$key.'].['.$field['second'].']';
+							if (isset($field['aggregate']) && is_string($name)) {
+								switch (strtolower($field['aggregate'])) {
+									case 'sum':
+										$addFields .= ', SUM([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+										break;
+									case 'avg':
+										$addFields .= ', AVG([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+										break;
+									case 'max':
+										$addFields .= ', MAX([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+										break;
+									case 'min':
+										$addFields .= ', MIN([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+										break;
+								}
+							}
 						}
 					}
 					else {
@@ -179,13 +199,33 @@ class PlayerFactory implements FactoryInterface
 						continue;
 					}
 					if (is_array($field)) {
-						if (is_string($name)) {
-							// Allows setting alias
-							$addFields .= ', [g'.$key.'].['.$field['first'].']'.$field['operation'].'[g'.$key.'].['.$field['second'].'] as ['.$name.']';
+						if (isset($field['operation'])) {
+							if (is_string($name)) {
+								// Allows setting alias
+								$addFields .= ', [g' . $key . '].[' . $field['first'] . ']' . $field['operation'] . '[g' . $key . '].[' . $field['second'] . '] as [' . $name . ']';
+							}
+							else {
+								// No alias
+								$addFields .= ', [g' . $key . '].[' . $field['first'] . ']' . $field['operation'] . '[g' . $key . '].[' . $field['second'] . ']';
+							}
 						}
 						else {
-							// No alias
-							$addFields .= ', [g'.$key.'].['.$field['first'].']'.$field['operation'].'[g'.$key.'].['.$field['second'].']';
+							if (isset($field['aggregate']) && is_string($name)) {
+								switch (strtolower($field['aggregate'])) {
+									case 'sum':
+										$addFields .= ', SUM([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+										break;
+									case 'avg':
+										$addFields .= ', AVG([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+										break;
+									case 'max':
+										$addFields .= ', MAX([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+										break;
+									case 'min':
+										$addFields .= ', MIN([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+										break;
+								}
+							}
 						}
 					}
 					else {

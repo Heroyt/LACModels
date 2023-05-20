@@ -23,6 +23,7 @@ use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Throwable;
+use App\Models\Tournament\Player as TournamentPlayer;
 
 /**
  * Base class for player models
@@ -64,16 +65,18 @@ abstract class Player extends Model
 
 	/** @var T|null */
 	#[ManyToOne(foreignKey: 'id_team')]
-	public ?Team  $team           = null;
+	public ?Team $team = null;
 	#[ManyToOne]
-	public ?User  $user           = null;
-	public ?float $relativeHits   = null;
+	public ?User $user = null;
+	#[ManyToOne('id_player', 'id_tournament_player')]
+	public ?TournamentPlayer $tournamentPlayer = null;
+	public ?float $relativeHits = null;
 	public ?float $relativeDeaths = null;
-	protected int $color          = 0;
+	protected int $color = 0;
 	/** @var Player<G,T>|null */
 	protected ?Player $favouriteTarget = null;
 	/** @var Player<G,T>|null */
-	protected ?Player      $favouriteTargetOf = null;
+	protected ?Player $favouriteTargetOf = null;
 	protected PlayerTrophy $trophy;
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
@@ -100,6 +103,10 @@ abstract class Player extends Model
 				$this->getRelativeDeaths();
 			}
 		} catch (Throwable) {
+		}
+
+		if (isset($this->tournamentPlayer)) {
+			$this->tournamentPlayer->save();
 		}
 
 		//$this->calculateSkill();

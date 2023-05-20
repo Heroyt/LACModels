@@ -67,7 +67,7 @@ abstract class AbstractMode extends Model
 			$teams = $game->getTeamsSorted();
 			/** @var Team $team */
 			$team = $teams->first();
-			if (count($teams) === 2 && $team->score === $teams->last()?->score) {
+			if (count($teams) === 2 && $team->getScore() === $teams->last()?->getScore()) {
 				return null;
 			}
 			return $team;
