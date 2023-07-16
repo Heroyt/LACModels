@@ -17,7 +17,6 @@ use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
-use App\Models\Table;
 use App\Models\Tournament\Game as TournamentGame;
 use App\Services\LigaApi;
 use DateTime;
@@ -25,6 +24,7 @@ use DateTimeInterface;
 use DateTimeZone;
 use Dibi\Row;
 use JsonException;
+use LAC\Modules\Core\GameDataExtensionInterface;
 use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
@@ -44,6 +44,7 @@ use Throwable;
 /**
  * Base class for game models
  *
+ * @property LAC\Modules\Tables\Models\Table|null $table
  * @phpstan-consistent-constructor
  * @template T of Team
  * @template P of Player
@@ -63,7 +64,8 @@ abstract class Game extends Model
 
 	public const SYSTEM = '';
 	public const CACHE_TAGS = ['games'];
-
+	/** @var GameDataExtensionInterface[] */
+	protected static array $extensions;
 	public ?DateTimeInterface $fileTime = null;
 	public ?DateTimeInterface $start = null;
 	public ?DateTimeInterface $importTime = null;
@@ -71,7 +73,6 @@ abstract class Game extends Model
 	#[Instantiate]
 	public ?Timing $timing = null;
 	public string $code;
-
 	#[ManyToOne]
 	public ?AbstractMode $mode = null;
 	public GameModeType $gameType = GameModeType::TEAM;
@@ -79,14 +80,10 @@ abstract class Game extends Model
 	public ?Scoring $scoring = null;
 	/** @var bool Indicates if the game is synchronized to public API */
 	public bool $sync = false;
-
 	#[ManyToOne]
 	public ?MusicMode $music = null;
 	#[ManyToOne]
 	public ?GameGroup $group = null;
-	#[ManyToOne]
-	public ?Table $table = null;
-
 	#[NoDB]
 	public bool $started = false;
 	#[NoDB]
@@ -94,6 +91,8 @@ abstract class Game extends Model
 	#[NoDB]
 	public ?TournamentGame $tournamentGame = null;
 	protected float $realGameLength;
+	/** @var array<string, Model> */
+	protected array $data = [];
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		$this->cacheTags[] = 'games/' . $this::SYSTEM;
@@ -348,6 +347,64 @@ abstract class Game extends Model
 		return $game;
 	}
 
+	public function getQueryData(): array {
+		$data = parent::getQueryData();
+		foreach (self::getExtensions() as $extension) {
+			$extension->addQueryData($data, $this);
+		}
+		return $data;
+	}
+
+	/**
+	 * @return GameDataExtensionInterface[]
+	 */
+	public static function getExtensions(): array {
+		if (!isset(self::$extensions)) {
+			self::$extensions = [];
+			$names = App::getContainer()->findByType(GameDataExtensionInterface::class);
+			foreach ($names as $name) {
+				// @phpstan-ignore-next-line
+				self::$extensions[] = App::getService($name);
+			}
+		}
+		return self::$extensions;
+	}
+
+	public function fillFromRow(): void {
+		if (!isset($this->row)) {
+			return;
+		}
+		parent::fillFromRow();
+		foreach (self::getExtensions() as $extension) {
+			$extension->parseRow($this->row, $this);
+		}
+	}
+
+	/**
+	 * @param string $name
+	 * @return Model|null
+	 */
+	public function __get($name): ?Model {
+		return $this->data[$name] ?? null;
+	}
+
+	/**
+	 * @param string $name
+	 * @param Model $value
+	 * @return void
+	 */
+	public function __set($name, ?Model $value): void {
+		$this->data[$name] = $value;
+	}
+
+	/**
+	 * @param string $name
+	 * @return bool
+	 */
+	public function __isset($name): bool {
+		return isset($this->data[$name]);
+	}
+
 	public function isStarted(): bool {
 		return $this->start !== null;
 	}
@@ -436,6 +493,9 @@ abstract class Game extends Model
 				$this::SYSTEM
 			);
 			$this->mode = $data['mode'];
+		}
+		foreach (self::getExtensions() as $extension) {
+			$extension->addJsonData($data, $this);
 		}
 		return $data;
 	}
@@ -559,7 +619,8 @@ abstract class Game extends Model
 			$newDiff = (int)abs(round($player->skill * $percent));
 			if ($diff < 0) {
 				$player->skill -= $newDiff;
-			} else {
+			}
+			else {
 				$player->skill += $newDiff;
 			}
 		}
@@ -673,9 +734,11 @@ abstract class Game extends Model
 						$tournamentTeam->position = $team->position;
 						if (!isset($win)) {
 							$tournamentTeam->points = $team->tournamentTeam->tournament->points->draw;
-						} else if ($win === $team) {
+						}
+						else if ($win === $team) {
 							$tournamentTeam->points = $team->tournamentTeam->tournament->points->win;
-						} else {
+						}
+						else {
 							$tournamentTeam->points = $team->tournamentTeam->tournament->points->loss;
 						}
 						$tournamentTeam->team->points += $tournamentTeam->points;
