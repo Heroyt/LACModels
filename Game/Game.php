@@ -13,18 +13,17 @@ use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\BonusCounts;
 use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Traits\Expandable;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
-use App\Models\Tournament\Game as TournamentGame;
 use App\Services\LigaApi;
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
 use Dibi\Row;
 use JsonException;
-use LAC\Modules\Core\GameDataExtensionInterface;
 use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
@@ -45,6 +44,7 @@ use Throwable;
  * Base class for game models
  *
  * @property LAC\Modules\Tables\Models\Table|null $table
+ * @property LAC\Modules\Tournament\Models\Game|null $tournamentGame
  * @phpstan-consistent-constructor
  * @template T of Team
  * @template P of Player
@@ -61,11 +61,13 @@ abstract class Game extends Model
 
 	/** @phpstan-use WithTeams<T> */
 	use WithTeams;
+	use Expandable;
 
 	public const SYSTEM = '';
 	public const CACHE_TAGS = ['games'];
-	/** @var GameDataExtensionInterface[] */
-	protected static array $extensions;
+
+	public const DI_TAG = 'gameDataExtension';
+
 	public ?DateTimeInterface $fileTime = null;
 	public ?DateTimeInterface $start = null;
 	public ?DateTimeInterface $importTime = null;
@@ -88,11 +90,7 @@ abstract class Game extends Model
 	public bool $started = false;
 	#[NoDB]
 	public bool $finished = false;
-	#[NoDB]
-	public ?TournamentGame $tournamentGame = null;
 	protected float $realGameLength;
-	/** @var array<string, Model> */
-	protected array $data = [];
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		$this->cacheTags[] = 'games/' . $this::SYSTEM;
@@ -104,6 +102,8 @@ abstract class Game extends Model
 			} catch (GameModeNotFoundException) {
 			}
 		}
+
+		$this->initExtensions();
 	}
 
 	/**
@@ -349,25 +349,8 @@ abstract class Game extends Model
 
 	public function getQueryData(): array {
 		$data = parent::getQueryData();
-		foreach (self::getExtensions() as $extension) {
-			$extension->addQueryData($data, $this);
-		}
+		$this->extensionAddQueryData($data);
 		return $data;
-	}
-
-	/**
-	 * @return GameDataExtensionInterface[]
-	 */
-	public static function getExtensions(): array {
-		if (!isset(self::$extensions)) {
-			self::$extensions = [];
-			$names = App::getContainer()->findByType(GameDataExtensionInterface::class);
-			foreach ($names as $name) {
-				// @phpstan-ignore-next-line
-				self::$extensions[] = App::getService($name);
-			}
-		}
-		return self::$extensions;
 	}
 
 	public function fillFromRow(): void {
@@ -375,34 +358,7 @@ abstract class Game extends Model
 			return;
 		}
 		parent::fillFromRow();
-		foreach (self::getExtensions() as $extension) {
-			$extension->parseRow($this->row, $this);
-		}
-	}
-
-	/**
-	 * @param string $name
-	 * @return Model|null
-	 */
-	public function __get($name): ?Model {
-		return $this->data[$name] ?? null;
-	}
-
-	/**
-	 * @param string $name
-	 * @param Model $value
-	 * @return void
-	 */
-	public function __set($name, ?Model $value): void {
-		$this->data[$name] = $value;
-	}
-
-	/**
-	 * @param string $name
-	 * @return bool
-	 */
-	public function __isset($name): bool {
-		return isset($this->data[$name]);
+		$this->extensionFillFromRow();
 	}
 
 	public function isStarted(): bool {
@@ -483,9 +439,6 @@ abstract class Game extends Model
 		$data['players'] = $this->getPlayers()->getAll();
 		$data['teams'] = $this->getTeams()->getAll();
 		$data['group'] = $this->group;
-		if (isset($data['tournamentGame'])) {
-			unset($data['tournamentGame']);
-		}
 		if (!isset($data['mode'])) {
 			$data['mode'] = GameModeFactory::findByName(
 				$this->gameType === GameModeType::TEAM ? 'Team deathmach' : 'Deathmach',
@@ -494,9 +447,7 @@ abstract class Game extends Model
 			);
 			$this->mode = $data['mode'];
 		}
-		foreach (self::getExtensions() as $extension) {
-			$extension->addJsonData($data, $this);
-		}
+		$this->extensionJson($data);
 		return $data;
 	}
 
@@ -571,13 +522,7 @@ abstract class Game extends Model
 			$success = $success && $this->group->save();
 		}
 
-		if ($this->getTournamentGame() !== null) {
-			$this->tournamentGame->code = $this->code;
-			$this->tournamentGame->save();
-		}
-
-		/* @phpstan-ignore-next-line */
-		return $success;
+		return $success && $this->extensionSave();
 	}
 
 	/**
@@ -624,16 +569,6 @@ abstract class Game extends Model
 				$player->skill += $newDiff;
 			}
 		}
-	}
-
-	/**
-	 * @return TournamentGame|null
-	 */
-	public function getTournamentGame(): ?TournamentGame {
-		if (!isset($this->tournamentGame)) {
-			$this->tournamentGame = TournamentGame::query()->where('[code] = %s', $this->code)->first();
-		}
-		return $this->tournamentGame;
 	}
 
 	public function insert(): bool {
@@ -721,32 +656,8 @@ abstract class Game extends Model
 	public function reorder(): void {
 		if (isset($this->mode)) {
 			$this->mode->reorderGame($this);
-			if ($this->getTournamentGame() !== null) {
-				$win = $this->mode->getWin($this);
-				/** @var Team $team */
-				foreach ($this->getTeams() as $team) {
-					foreach ($this->getTournamentGame()->teams as $tournamentTeam) {
-						if ($team->tournamentTeam->id !== $tournamentTeam->team->id) {
-							continue;
-						}
-						$tournamentTeam->team->points -= $tournamentTeam->points;
-						$tournamentTeam->score = $team->getScore();
-						$tournamentTeam->position = $team->position;
-						if (!isset($win)) {
-							$tournamentTeam->points = $team->tournamentTeam->tournament->points->draw;
-						}
-						else if ($win === $team) {
-							$tournamentTeam->points = $team->tournamentTeam->tournament->points->win;
-						}
-						else {
-							$tournamentTeam->points = $team->tournamentTeam->tournament->points->loss;
-						}
-						$tournamentTeam->team->points += $tournamentTeam->points;
-						break;
-					}
-				}
-			}
 		}
+		$this->runHook('reorder');
 	}
 
 }

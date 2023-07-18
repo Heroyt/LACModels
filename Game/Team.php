@@ -6,6 +6,7 @@
 namespace App\GameModels\Game;
 
 use App\GameModels\Factory\TeamFactory;
+use App\GameModels\Traits\Expandable;
 use App\GameModels\Traits\WithGame;
 use App\GameModels\Traits\WithPlayers;
 use Dibi\Row;
@@ -13,7 +14,6 @@ use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Attributes\Validation\Required;
 use Lsr\Core\Models\Attributes\Validation\StringLength;
@@ -23,6 +23,8 @@ use Throwable;
 
 /**
  * Base class for Team models
+ *
+ * @property \LAC\Modules\Tournament\Models\Team|null $tournamentTeam
  *
  * @template P of Player
  * @template G of Game
@@ -39,9 +41,12 @@ abstract class Team extends Model
 
 	/** @phpstan-use WithGame<G> */
 	use WithGame;
+	use Expandable;
 
 	public const PRIMARY_KEY = 'id_team';
 	public const SYSTEM = '';
+
+	public const DI_TAG = 'teamDataExtension';
 
 	#[Required]
 	public int $color;
@@ -54,15 +59,13 @@ abstract class Team extends Model
 	#[StringLength(1, 99)]
 	public string $name;
 
-	#[ManyToOne('id_team', 'id_tournament_team')]
-	public ?\App\Models\Tournament\Team $tournamentTeam = null;
-
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		$this->cacheTags[] = 'games/' . $this::SYSTEM;
 		$this->cacheTags[] = 'teams/' . $this::SYSTEM;
 		parent::__construct($id, $dbRow);
 		$this->playerCount = $this->getPlayers()->count();
+		$this->initExtensions();
 	}
 
 	public function save(): bool {
@@ -75,11 +78,7 @@ abstract class Team extends Model
 		} catch (Throwable) {
 		}
 
-		if (isset($this->tournamentTeam)) {
-			$this->tournamentTeam->save();
-		}
-
-		return parent::save();
+		return parent::save() && $this->extensionSave();
 	}
 
 	/**
@@ -170,10 +169,18 @@ abstract class Team extends Model
 		if (isset($data['game'])) {
 			unset($data['game']);
 		}
-		if (isset($this->tournamentTeam)) {
-			$data['tournamentTeam'] = $this->tournamentTeam->idPublic;
-		}
+		$this->extensionJson($data);
 		return $data;
+	}
+
+	/**
+	 * @param int $bonus
+	 * @return static
+	 */
+	public function setBonus(int $bonus): static {
+		$this->bonus = $bonus;
+		$this->runHook('setBonus', $bonus);
+		return $this;
 	}
 
 	/**
@@ -187,21 +194,18 @@ abstract class Team extends Model
 		return $score;
 	}
 
-	/**
-	 * @param int $bonus
-	 * @return static
-	 */
-	public function setBonus(int $bonus): static {
-		$this->bonus = $bonus;
-		if (isset($this->game->tournamentGame, $this->tournamentTeam)) {
-			foreach ($this->game->tournamentGame->teams as $tournamentTeam) {
-				if ($tournamentTeam->team->id !== $this->tournamentTeam->id) {
-					continue;
-				}
-				$tournamentTeam->score = $this->getScore();
-			}
+	public function fillFromRow(): void {
+		if (!isset($this->row)) {
+			return;
 		}
-		return $this;
+		parent::fillFromRow();
+		$this->extensionFillFromRow();
+	}
+
+	public function getQueryData(): array {
+		$data = parent::getQueryData();
+		$this->extensionAddQueryData($data);
+		return $data;
 	}
 
 }
