@@ -436,6 +436,12 @@ abstract class Game extends Model
 		$this->getTeams();
 		$this->getPlayers();
 		$data = parent::jsonSerialize();
+		if (isset($data['data'])) {
+			unset($data['data']);
+		}
+		if (isset($data['hooks'])) {
+			unset($data['hooks']);
+		}
 		$data['players'] = $this->getPlayers()->getAll();
 		$data['teams'] = $this->getTeams()->getAll();
 		$data['group'] = $this->group;

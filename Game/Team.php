@@ -163,6 +163,12 @@ abstract class Team extends Model
 	 */
 	public function jsonSerialize(): array {
 		$data = parent::jsonSerialize();
+		if (isset($data['data'])) {
+			unset($data['data']);
+		}
+		if (isset($data['hooks'])) {
+			unset($data['hooks']);
+		}
 		if (isset($data['players'])) {
 			unset($data['players']);
 		}
