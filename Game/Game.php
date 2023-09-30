@@ -69,27 +69,27 @@ abstract class Game extends Model
 	public const DI_TAG = 'gameDataExtension';
 
 	public ?DateTimeInterface $fileTime = null;
-	public ?DateTimeInterface $start = null;
+	public ?DateTimeInterface $start    = null;
 	public ?DateTimeInterface $importTime = null;
-	public ?DateTimeInterface $end = null;
+	public ?DateTimeInterface $end      = null;
 	#[Instantiate]
-	public ?Timing $timing = null;
-	public string $code;
+  public ?Timing              $timing   = null;
+	public string             $code;
 	#[ManyToOne]
-	public ?AbstractMode $mode = null;
-	public GameModeType $gameType = GameModeType::TEAM;
+  public ?AbstractMode        $mode     = null;
+	public GameModeType       $gameType = GameModeType::TEAM;
 	#[Instantiate]
-	public ?Scoring $scoring = null;
+  public ?Scoring             $scoring  = null;
 	/** @var bool Indicates if the game is synchronized to public API */
-	public bool $sync = false;
+	public bool     $sync     = false;
 	#[ManyToOne]
-	public ?MusicMode $music = null;
+  public ?MusicMode $music    = null;
 	#[ManyToOne]
-	public ?GameGroup $group = null;
+  public ?GameGroup $group    = null;
 	#[NoDB]
-	public bool $started = false;
+  public bool       $started  = false;
 	#[NoDB]
-	public bool $finished = false;
+  public bool       $finished = false;
 	protected float $realGameLength;
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
@@ -231,7 +231,11 @@ abstract class Game extends Model
 					if (!isset($value['type'])) {
 						$value['type'] = GameModeType::TEAM->value;
 					}
-					$game->mode = GameModeFactory::findByName($value['name'], GameModeType::tryFrom($value['type']) ?? GameModeType::TEAM, static::SYSTEM);
+			$game->mode = GameModeFactory::findByName(
+				$value['name'],
+				GameModeType::tryFrom($value['type']) ?? GameModeType::TEAM,
+				static::SYSTEM
+			);
 					break;
 				case 'players':
 				{
@@ -398,12 +402,12 @@ abstract class Game extends Model
 	 */
 	public function getBestsFields(): array {
 		$fields = [
-			'hits' => lang('Největší terminátor', context: 'results.bests'),
-			'deaths' => lang('Objekt největšího zájmu', context: 'results.bests'),
-			'score' => lang('Absolutní vítěz', context: 'results.bests'),
+		'hits'   => lang('Největší terminátor', context: 'results.bests'),
+		'deaths' => lang('Objekt největšího zájmu', context: 'results.bests'),
+		'score'  => lang('Absolutní vítěz', context: 'results.bests'),
 			'accuracy' => lang('Hráč s nejlepší muškou', context: 'results.bests'),
-			'shots' => lang('Nejúspornější střelec', context: 'results.bests'),
-			'miss' => lang('Největší mimoň', context: 'results.bests'),
+		'shots'  => lang('Nejúspornější střelec', context: 'results.bests'),
+		'miss'   => lang('Největší mimoň', context: 'results.bests'),
 		];
 		foreach ($fields as $key => $value) {
 			$settingName = Strings::toCamelCase('best_' . $key);
@@ -490,12 +494,12 @@ abstract class Game extends Model
 		$pk = $this::getPrimaryKey();
 		/** @var Row|null $test */
 		$test = DB::select($this::TABLE, $pk . ', code')
-			->where(
-				'start = %dt OR start = %dt',
-				$this->start,
-				$this->start->getTimestamp() + ($this->timing?->before ?? 20)
-			)
-			->fetch(cache: false);
+	          ->where(
+		          'start = %dt OR start = %dt',
+		          $this->start,
+		          $this->start->getTimestamp() + ($this->timing?->before ?? 20)
+	          )
+	          ->fetch(cache: false);
 		if (isset($test)) {
 			/** @noinspection PhpFieldAssignmentTypeMismatchInspection */
 			$this->id = $test->$pk;
@@ -594,7 +598,15 @@ abstract class Game extends Model
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
 		$cache->remove('games/' . $this::SYSTEM . '/' . $this->id);
-		$cache->clean([CacheParent::Tags => ['games/' . $this::SYSTEM . '/' . $this->id, 'games/' . $this->start?->format('Y-m-d'), 'games/' . $this->code]]);
+	  $cache->clean(
+		  [
+			  CacheParent::Tags => [
+				  'games/' . $this::SYSTEM . '/' . $this->id,
+				  'games/' . $this->start?->format('Y-m-d'),
+				  'games/' . $this->code,
+			  ],
+		  ]
+	  );
 
 		if (isset($this->group)) {
 			$this->group->clearCache();

@@ -49,15 +49,15 @@ abstract class Team extends Model
 	public const DI_TAG = 'teamDataExtension';
 
 	#[Required]
-	public int $color;
+	public int    $color    = 0;
 	#[Required]
-	public int $score;
+	public int    $score    = 0;
 	public ?int $bonus = null;
 	#[Required]
-	public int $position;
+	public int    $position = 0;
 	#[Required]
 	#[StringLength(1, 99)]
-	public string $name;
+	public string $name     = '';
 
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {

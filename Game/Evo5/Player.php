@@ -155,6 +155,9 @@ class Player extends \App\GameModels\Game\Player
 	protected function calculateSkillFromTeamHits() : float {
 		if ($this->game->mode?->isTeam() ?? true) {
 			$expectedAverageHits = $this->getExpectedAverageTeammateHitCount();
+			if ($expectedAverageHits === 0.0) {
+				$expectedAverageHits = 0.1;
+			}
 			$hitsDiff = $this->hitsOwn - $expectedAverageHits;
 
 			// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
