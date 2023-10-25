@@ -65,9 +65,9 @@ class Game extends \App\GameModels\Game\Game
 	 */
 	public static function getTeamColors() : array {
 		return [
-			0 => '#f00',
-			1 => '#0c0',
-			2 => '#00f',
+			0 => '#c92626',
+			1 => '#009e2c',
+			2 => '#0064ff',
 			3 => '#f081da',
 			4 => '#f5bc00',
 			5 => '#28d1f0',

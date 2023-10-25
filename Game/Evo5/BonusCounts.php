@@ -14,6 +14,13 @@ use Lsr\Core\Models\Interfaces\InsertExtendInterface;
 class BonusCounts implements InsertExtendInterface
 {
 
+	public const NAMES = [
+		'agent'        => 'Agent',
+		'invisibility' => 'Neviditelnost',
+		'machine_gun'  => 'Samopal',
+		'shield'       => 'Štít',
+	];
+
 	public function __construct(
 		public int $agent = 0,
 		public int $invisibility = 0,

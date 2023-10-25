@@ -37,10 +37,6 @@ class Player extends \App\GameModels\Game\Player
 	public int                        $minesHits   = 0;
 	#[Instantiate]
 	public BonusCounts                $bonus;
-	public int                        $hitsOther   = 0;
-	public int                        $hitsOwn     = 0;
-	public int                        $deathsOwn   = 0;
-	public int                        $deathsOther = 0;
 	#[ManyToOne(class: Game::class)]
 	public BaseGame                   $game;
 	#[ManyToOne(foreignKey: 'id_team', class: Team::class)]
@@ -69,7 +65,13 @@ class Player extends \App\GameModels\Game\Player
 	 */
 	public function getExpectedAverageDeathCount() : float {
 		$type = $this->getGame()->gameType;
-		$model = $this->getRegressionCalculator()->getDeathsModel($type, $this->getGame()->getMode());
+		$model = $this->getRegressionCalculator()->getDeathsModel(
+			$type,
+			$this->getGame()->getMode(),
+			$type === GameModeType::TEAM ? $this->getGame()
+			                                    ->getTeams()
+			                                    ->count() : 2
+		);
 		return $this->calculateHitDeathModel($type, $model);
 	}
 
@@ -112,7 +114,10 @@ class Player extends \App\GameModels\Game\Player
 	 * @throws Throwable
 	 */
 	public function getExpectedAverageTeammateDeathCount() : float {
-		$model = $this->getRegressionCalculator()->getDeathsOwnModel($this->getGame()->getMode());
+		$model = $this->getRegressionCalculator()->getDeathsOwnModel(
+			$this->getGame()->getMode(),
+			$this->getGame()->getTeams()->count()
+		);
 		$length = $this->getGame()->getRealGameLength();
 		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
 		$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
@@ -138,10 +143,10 @@ class Player extends \App\GameModels\Game\Player
 
 		$newSkill = 0;
 
-		$newSkill += $this->calculateSkillFromTeamHits();
+		$newSkill += ($teamHitsSkill = $this->calculateSkillFromTeamHits());
 
 		// Add points for bonuses
-		$newSkill += $this->calculateSkillFromBonuses();
+		$newSkill += ($bonusesSkill = $this->calculateSkillFromBonuses());
 
 		$this->skill = (int) round($skill + $newSkill);
 
@@ -155,8 +160,8 @@ class Player extends \App\GameModels\Game\Player
 	protected function calculateSkillFromTeamHits() : float {
 		if ($this->game->mode?->isTeam() ?? true) {
 			$expectedAverageHits = $this->getExpectedAverageTeammateHitCount();
-			if ($expectedAverageHits === 0.0) {
-				$expectedAverageHits = 0.1;
+			if ($expectedAverageHits < 1.0) {
+				$expectedAverageHits = 1.0;
 			}
 			$hitsDiff = $this->hitsOwn - $expectedAverageHits;
 
@@ -172,11 +177,6 @@ class Player extends \App\GameModels\Game\Player
 			$hitsSkill = 0;
 		}
 
-		// Normalize based on the game's length
-		$gameLength = $this->getGame()->getRealGameLength();
-		if ($gameLength !== 0.0) {
-			$hitsSkill *= 15 / $gameLength;
-		}
 		return -$hitsSkill;
 	}
 
@@ -191,7 +191,10 @@ class Player extends \App\GameModels\Game\Player
 	 * @throws Throwable
 	 */
 	public function getExpectedAverageTeammateHitCount() : float {
-		$model = $this->getRegressionCalculator()->getHitsOwnModel($this->getGame()->getMode());
+		$model = $this->getRegressionCalculator()->getHitsOwnModel(
+			$this->getGame()->getMode(),
+			$this->getGame()->getTeams()->count()
+		);
 		$length = $this->getGame()->getRealGameLength();
 		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
 		$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
@@ -218,20 +221,15 @@ class Player extends \App\GameModels\Game\Player
 		return $parts;
 	}
 
-	protected function calculateSkillForHits() : float {
-		$expectedAverageHits = $this->getExpectedAverageHitCount();
-		$hitsDiff = $this->hits - $expectedAverageHits;
-
-		// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
-		$hitsDiffPercent = 1 + ($hitsDiff / $expectedAverageHits);
-
-		// Completely average game should acquire at least 200 points
-		return $hitsDiffPercent * 200;
-	}
-
 	public function getExpectedAverageHitCount() : float {
-		$type = $this->getGame()->gameType;
-		$model = $this->getRegressionCalculator()->getHitsModel($type, $this->getGame()->getMode());
+		$type = $this->getTeam()?->getPlayerCount() === 1 ? GameModeType::SOLO : $this->getGame()->gameType;
+		$model = $this->getRegressionCalculator()->getHitsModel(
+			$type,
+			$this->getGame()->getMode(),
+			$type === GameModeType::TEAM ? $this->getGame()
+			                                    ->getTeams()
+			                                    ->count() : 2
+		);
 		return $this->calculateHitDeathModel($type, $model);
 	}
 

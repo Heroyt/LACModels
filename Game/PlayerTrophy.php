@@ -14,12 +14,37 @@ use Lsr\Logging\Exceptions\DirectoryCreationException;
  */
 class PlayerTrophy
 {
+	public const SPECIAL_TROPHIES = [
+		'100-percent',
+		'zero-deaths',
+		'devil',
+		'not-found',
+		'not-found-shots',
+	];
+	public const OTHER_TROPHIES   = [
+		'kd-1',
+		'kd-2',
+		'50-percent',
+		'5-percent',
+		'kd-0-5',
+		'fair',
+	];
+
+	public const RARE_TROPHIES = [
+		'zero',
+		'team-50',
+		'favouriteTarget',
+		'favouriteTargetOf',
+	];
 
 	/**
 	 * @var array{name:string,description:string,icon:string}[] Best names
 	 */
 	public static array $fields;
 	public bool         $solo;
+
+	/** @var array<string,bool> */
+	private array $checked = [];
 
 	public function __construct(
 		private readonly Player $player
@@ -178,7 +203,13 @@ class PlayerTrophy
 	 */
 	public function getOne() : array {
 		// Special
-		foreach (['100-percent', 'zero-deaths', 'devil', 'not-found', 'not-found-shots'] as $name) {
+		foreach (self::SPECIAL_TROPHIES as $name) {
+			if ($this->check($name)) {
+				return $this::getFields()[$name];
+			}
+		}
+		// Rare
+		foreach (self::RARE_TROPHIES as $name) {
 			if ($this->check($name)) {
 				return $this::getFields()[$name];
 			}
@@ -190,18 +221,7 @@ class PlayerTrophy
 			}
 		}
 		// Other
-		foreach ([
-							 'team-50',
-							 'kd-1',
-							 'kd-2',
-							 '50-percent',
-							 'zero',
-							 '5-percent',
-							 'kd-0-5',
-							 'favouriteTarget',
-							 'favouriteTargetOf',
-							 'fair',
-						 ] as $name) {
+		foreach (self::OTHER_TROPHIES as $name) {
 			if ($this->check($name)) {
 				return $this::getFields()[$name];
 			}
@@ -219,44 +239,71 @@ class PlayerTrophy
 	 * @throws ValidationException
 	 * @throws DirectoryCreationException
 	 */
-	private function check(string $name) : bool {
+	public function check(string $name): bool {
+		if (isset($this->checked[$name])) {
+			return $this->checked[$name];
+		}
+
 		// Classic
 		if (in_array($name, $this->player::CLASSIC_BESTS, true)) {
 			$best = $this->player->getGame()->getBestPlayer($name);
-			return isset($best) && $best->id === $this->player->id;
+			$this->checked[$name] = isset($best) && $best->id === $this->player->id;
+			return $this->checked[$name];
 		}
 		// Special
 		switch ($name) {
 			case '100-percent':
-				return $this->player->accuracy >= 95;
+				$this->checked[$name] = $this->player->accuracy >= 95;
+				return $this->checked[$name];
 			case 'zero-deaths':
-				return $this->player->deaths < 10;
+				$this->checked[$name] = $this->player->deaths < 10;
+				return $this->checked[$name];
 			case 'devil':
-				return $this->player->score === 666 || $this->player->score === 6666 || $this->player->shots === 666;
+				$this->checked[$name] = $this->player->score === 666 || $this->player->score === 6666 || $this->player->shots === 666;
+				return $this->checked[$name];
 			case 'not-found':
-				return $this->player->score === 404 || $this->player->score === 4040 || $this->player->score === 40400;
+				$this->checked[$name] = $this->player->score === 404 || $this->player->score === 4040 || $this->player->score === 40400;
+				return $this->checked[$name];
 			case 'not-found-shots':
-				return $this->player->shots === 404;
+				$this->checked[$name] = $this->player->shots === 404;
+				return $this->checked[$name];
 			case 'team-50':
-				return !$this->solo && $this->player->getTeam()?->score !== 0 && $this->player->getTeam()?->playerCount > 1 && ($this->player->score / $this->player->getTeam()->score) > 0.45;
+				$this->checked[$name] = !$this->solo && $this->player->getTeam(
+					)?->score !== 0 && $this->player->getTeam(
+					)?->playerCount > 1 && ($this->player->score / $this->player->getTeam()->score) > 0.45;
+				return $this->checked[$name];
 			case 'kd-1':
-				return $this->player->deaths !== 0 && abs(($this->player->hits / $this->player->deaths) - 1) < 0.1;
+				$this->checked[$name] = $this->player->deaths !== 0 && abs(
+						($this->player->hits / $this->player->deaths) - 1
+					) < 0.1;
+				return $this->checked[$name];
 			case 'kd-2':
-				return $this->player->deaths !== 0 && ($this->player->hits / $this->player->deaths) > 1.9;
+				$this->checked[$name] = $this->player->deaths !== 0 && ($this->player->hits / $this->player->deaths) > 1.9;
+				return $this->checked[$name];
 			case 'kd-0-5':
-				return $this->player->deaths !== 0 && ($this->player->hits / $this->player->deaths) <= 0.65;
+				$this->checked[$name] = $this->player->deaths !== 0 && ($this->player->hits / $this->player->deaths) <= 0.65;
+				return $this->checked[$name];
 			case '50-percent':
-				return $this->player->accuracy >= 50;
+				$this->checked[$name] = $this->player->accuracy >= 50;
+				return $this->checked[$name];
 			case 'zero':
-				return $this->player->score === 0;
+				$this->checked[$name] = $this->player->score === 0;
+				return $this->checked[$name];
 			case '5-percent':
-				return $this->player->accuracy < 6;
+				$this->checked[$name] = $this->player->accuracy < 6;
+				return $this->checked[$name];
 			case 'favouriteTarget':
 				$favouriteTarget = $this->player->getFavouriteTarget();
-				return isset($favouriteTarget) && $this->player->hits !== 0 && $this->player->getHitsPlayer($favouriteTarget) / $this->player->hits > 0.45;
+				$this->checked[$name] = isset($favouriteTarget) && $this->player->hits !== 0 && $this->player->getHitsPlayer(
+						$favouriteTarget
+					) / $this->player->hits > 0.45;
+				return $this->checked[$name];
 			case 'favouriteTargetOf':
 				$favouriteTarget = $this->player->getFavouriteTargetOf();
-				return isset($favouriteTarget) && $this->player->deaths !== 0 && $favouriteTarget->getHitsPlayer($this->player) / $this->player->deaths > 0.45;
+				$this->checked[$name] = isset($favouriteTarget) && $this->player->deaths !== 0 && $favouriteTarget->getHitsPlayer(
+						$this->player
+					) / $this->player->deaths > 0.45;
+				return $this->checked[$name];
 			case 'fair':
 				$maxDelta = 0;
 				$hits = [];
@@ -271,15 +318,18 @@ class PlayerTrophy
 					$count++;
 				}
 				if ($count === 0) {
-					return false;
+					$this->checked[$name] = false;
+					return $this->checked[$name];
 				}
 				$average = $sum / $count;
 				foreach ($hits as $hit) {
 					$delta = abs($hit - $average);
 					$maxDelta = max($delta, $maxDelta);
 				}
-				return $maxDelta < 4;
+				$this->checked[$name] = $maxDelta < 4;
+				return $this->checked[$name];
 		}
+		$this->checked[$name] = false;
 		return false;
 	}
 
