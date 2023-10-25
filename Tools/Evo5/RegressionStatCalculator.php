@@ -7,7 +7,7 @@ use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Arena;
-use App\Services\RegressionCalculator;
+use App\Services\Maths\RegressionCalculator;
 use Dibi\Exception;
 use Dibi\Row;
 use Lsr\Core\DB;

@@ -9,7 +9,7 @@ use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Game as BaseGame;
 use App\GameModels\Tools\Evo5\RegressionStatCalculator;
-use App\Services\RegressionCalculator;
+use App\Services\Maths\RegressionCalculator;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
