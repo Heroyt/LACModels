@@ -153,7 +153,7 @@ trait WithPlayers
 	}
 
 	/**
-	 * @return PlayerCollection<P>
+	 * @return PlayerCollection<P>|Player[]
 	 */
 	public function getPlayersSorted() : PlayerCollection {
 		if (!isset($this->playersSorted)) {
