@@ -446,6 +446,7 @@ abstract class Game extends Model
 		if (isset($data['hooks'])) {
 			unset($data['hooks']);
 		}
+		$data['system'] = $this::SYSTEM;
 		$data['players'] = $this->getPlayers()->getAll();
 		$data['teams'] = $this->getTeams()->getAll();
 		$data['group'] = $this->group;
