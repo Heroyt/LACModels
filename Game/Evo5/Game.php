@@ -67,10 +67,10 @@ class Game extends \App\GameModels\Game\Game
 		return [
 			0 => '#c92626',
 			1 => '#009e2c',
-			2 => '#0064ff',
+			2 => '#286cd6',
 			3 => '#f081da',
 			4 => '#f5bc00',
-			5 => '#28d1f0',
+			5 => '#5ac1d4',
 		];
 	}
 

@@ -94,6 +94,30 @@ abstract class Team extends Model
 	}
 
 	/**
+	 * @return int
+	 */
+	public function getDeathsOwn(): int {
+		$sum = 0;
+		foreach ($this->getPlayers() as $player) {
+			$sum += $player->deathsOwn;
+		}
+		return $sum;
+	}
+
+	/**
+	 * Get the average skill of the players in the team.
+	 *
+	 * @return float The average skill of the team.
+	 */
+	public function getSkill(): float {
+		$sum = 0;
+		foreach ($this->getPlayers() as $player) {
+			$sum += $player->getSkill();
+		}
+		return $sum / $this->getPlayerCount();
+	}
+
+	/**
 	 * @return float
 	 */
 	public function getAccuracy() : float {
@@ -118,6 +142,17 @@ abstract class Team extends Model
 		$sum = 0;
 		foreach ($this->getPlayers() as $player) {
 			$sum += $player->hits;
+		}
+		return $sum;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getHitsOwn(): int {
+		$sum = 0;
+		foreach ($this->getPlayers() as $player) {
+			$sum += $player->hitsOwn;
 		}
 		return $sum;
 	}
