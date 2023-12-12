@@ -6,6 +6,7 @@ namespace App\GameModels\Game;
 
 use Dibi\Row;
 use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * Structure containing game's scoring settings
@@ -14,19 +15,30 @@ use Lsr\Core\Models\Interfaces\InsertExtendInterface;
  *
  * @phpstan-consistent-constructor
  */
+#[OA\Schema]
 class Scoring implements InsertExtendInterface
 {
 
 	public function __construct(
+		#[OA\Property]
 		public int $deathOther = 0,
+		#[OA\Property]
 		public int $hitOther = 0,
+		#[OA\Property]
 		public int $deathOwn = 0,
+		#[OA\Property]
 		public int $hitOwn = 0,
+		#[OA\Property]
 		public int $hitPod = 0,
+		#[OA\Property]
 		public int $shot = 0,
+		#[OA\Property]
 		public int $machineGun = 0,
+		#[OA\Property]
 		public int $invisibility = 0,
+		#[OA\Property]
 		public int $agent = 0,
+		#[OA\Property]
 		public int $shield = 0,
 	) {
 	}

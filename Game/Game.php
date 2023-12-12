@@ -39,6 +39,7 @@ use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Caching\Cache as CacheParent;
 use Throwable;
+use OpenApi\Attributes as OA;
 
 if (!class_exists(Game::class)) {
 
@@ -54,6 +55,7 @@ if (!class_exists(Game::class)) {
 	 */
 	#[PrimaryKey('id_game')]
 	#[Factory(GameFactory::class)] // @phpstan-ignore-line
+	#[OA\Schema(schema: 'Game')]
 	abstract class Game extends Model
 	{
 		/** @phpstan-use WithPlayers<P> */
@@ -65,25 +67,37 @@ if (!class_exists(Game::class)) {
 		public const SYSTEM     = '';
 		public const CACHE_TAGS = ['games'];
 
+		#[OA\Property]
 		public ?DateTimeInterface $fileTime   = null;
+		#[OA\Property]
 		public ?DateTimeInterface $start      = null;
+		#[OA\Property]
 		public ?DateTimeInterface $importTime = null;
+		#[OA\Property]
 		public ?DateTimeInterface $end        = null;
 		#[Instantiate]
+		#[OA\Property]
 		public ?Timing            $timing     = null;
+		#[OA\Property]
 		public string             $code;
 
 		#[ManyToOne]
+		#[OA\Property]
 		public ?AbstractMode $mode     = null;
+		#[OA\Property]
 		public GameModeType  $gameType = GameModeType::TEAM;
 		#[Instantiate]
+		#[OA\Property]
 		public ?Scoring      $scoring  = null;
 		#[ManyToOne]
+		#[OA\Property]
 		public ?Arena        $arena    = null;
 
 		#[ManyToOne]
+		#[OA\Property]
 		public ?MusicMode $music = null;
 		#[ManyToOne]
+		#[OA\Property]
 		public ?GameGroup $group = null;
 
 		#[NoDB]

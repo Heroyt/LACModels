@@ -21,12 +21,14 @@ use Lsr\Core\Models\Attributes\Validation\Required;
 use Lsr\Core\Models\Attributes\Validation\StringLength;
 use Lsr\Core\Models\Model;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use OpenApi\Attributes as OA;
 
 /**
  * Base class for all game mode models
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
+#[OA\Schema]
 abstract class AbstractMode extends Model
 {
 
@@ -34,16 +36,23 @@ abstract class AbstractMode extends Model
 
 	#[Required]
 	#[StringLength(1, 20)]
+	#[OA\Property]
 	public string       $name        = '';
+	#[OA\Property]
 	public ?string      $description = '';
+	#[OA\Property]
 	public GameModeType $type        = GameModeType::TEAM;
+	#[OA\Property]
 	public ?string      $loadName    = '';
+	#[OA\Property]
 	public string       $teams       = '';
 	#[Instantiate]
+	#[OA\Property]
 	public ModeSettings $settings;
 	/** @var GameModeVariationValue[][] */
 	private array $variations = [];
 
+	#[OA\Property]
 	public bool $rankable = true;
 
 	public function isSolo() : bool {

@@ -6,12 +6,14 @@ namespace App\GameModels\Game;
 
 use Dibi\Row;
 use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * Game's timing settings
  *
  * @phpstan-consistent-constructor
  */
+#[OA\Schema]
 class Timing implements InsertExtendInterface
 {
 
@@ -21,8 +23,11 @@ class Timing implements InsertExtendInterface
 	 * @param int $after      Seconds after game
 	 */
 	public function __construct(
+		#[OA\Property]
 		public int $before = 0,
+		#[OA\Property]
 		public int $gameLength = 0,
+		#[OA\Property]
 		public int $after = 0,
 	) {
 	}
