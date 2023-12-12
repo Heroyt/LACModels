@@ -22,27 +22,18 @@ class GameModeFactory implements FactoryInterface
 {
 
 	/**
-	 * @param array{system?:string,rankable?:bool} $options
+	 * @param int                   $id
+	 * @param array{system?:string} $options
 	 *
-	 * @return AbstractMode[]
+	 * @return AbstractMode|null
 	 * @throws GameModeNotFoundException
 	 */
-	public static function getAll(array $options = []) : array {
-		$ids = DB::select('game_modes', 'id_mode, name, system, type');
-		if (isset($options['system'])) {
-			$ids->where('system = %s', $options['system']);
-		}
-		if (isset($options['rankable'])) {
-			$ids->where('rankable = %i', $options['rankable'] ? 1 : 0);
-		}
-		$ids = $ids->fetchAssoc('id_mode');
-		$modes = [];
-		foreach ($ids as $mode) {
-			$system = $mode->system ?? '';
-			$modeType = GameModeType::tryFrom($mode->type ?? 'TEAM') ?? GameModeType::TEAM;
-			$modes[] = self::findModeObject($system, $mode, $modeType);
-		}
-		return $modes;
+	public static function getById(int $id, array $options = []): ?AbstractMode {
+		/** @var Row|null $mode */
+		$mode = DB::select('game_modes', 'id_mode, name, system, type')->where('id_mode = %i', $id)->fetch();
+		$system = (string)($mode->system ?? '');
+		$modeType = GameModeType::tryFrom((string)($mode->type ?? 'TEAM')) ?? GameModeType::TEAM;
+		return self::findModeObject($system, $mode, $modeType);
 	}
 
 	/**
@@ -54,27 +45,27 @@ class GameModeFactory implements FactoryInterface
 	 * @throws GameModeNotFoundException
 	 * @noinspection PhpUndefinedFieldInspection
 	 */
-	protected static function findModeObject(string $system, ?Row $mode, GameModeType $modeType) : AbstractMode {
+	protected static function findModeObject(string $system, ?Row $mode, GameModeType $modeType): AbstractMode {
 		Timer::startIncrementing('factory.gamemode');
 		$args = [];
 		$classBase = 'App\\GameModels\\Game\\';
 		$classSystem = '';
 		if (!empty($system)) {
-			$classSystem = Strings::firstUpper($system).'\\';
+			$classSystem = Strings::firstUpper($system) . '\\';
 		}
 		$classNamespace = 'GameModes\\';
 		$className = '';
 		if (isset($mode)) {
 			if (is_numeric($mode->name[0])) {
-				$mode->name = 'M'.$mode->name;
+				$mode->name = 'M' . $mode->name;
 			}
 			$dbName = str_replace([' ', '.', '_', '-'], '', Strings::toAscii(Strings::capitalize($mode->name)));
-			$class = $classBase.$classSystem.$classNamespace.$dbName;
+			$class = $classBase . $classSystem . $classNamespace . $dbName;
 			$args[] = $mode->id_mode;
 			if (class_exists($class)) {
 				$className = $dbName;
 			}
-			else if (class_exists($classBase.$classSystem.$classNamespace.strtoupper($dbName))) {
+			else if (class_exists($classBase . $classSystem . $classNamespace . strtoupper($dbName))) {
 				$className = strtoupper($dbName);
 			}
 			else if ($modeType === GameModeType::TEAM) {
@@ -95,32 +86,19 @@ class GameModeFactory implements FactoryInterface
 				$className = 'Deathmach';
 			}
 		}
-		$class = $classBase.$classSystem.$classNamespace.$className;
+		$class = $classBase . $classSystem . $classNamespace . $className;
 		if (!class_exists($class)) {
-			$class = $classBase.$classNamespace.$className;
+			$class = $classBase . $classNamespace . $className;
 		}
 		if (!class_exists($class)) {
-			throw new GameModeNotFoundException('Cannot find game mode class: '.(isset($dbName) ? $classBase.$classSystem.$classNamespace.$dbName.'|' : '').$classBase.$classSystem.$classNamespace.$className.'|'.$classBase.$classNamespace.$className);
+			throw new GameModeNotFoundException(
+				'Cannot find game mode class: ' . (isset($dbName) ? $classBase . $classSystem . $classNamespace . $dbName . '|' : '') . $classBase . $classSystem . $classNamespace . $className . '|' . $classBase . $classNamespace . $className
+			);
 		}
 		/** @var AbstractMode $mode */
 		$mode = new $class(...$args);
 		Timer::stop('factory.gamemode');
 		return $mode;
-	}
-
-	/**
-	 * @param int                   $id
-	 * @param array{system?:string} $options
-	 *
-	 * @return AbstractMode|null
-	 * @throws GameModeNotFoundException
-	 */
-	public static function getById(int $id, array $options = []) : ?AbstractMode {
-		/** @var Row|null $mode */
-		$mode = DB::select('game_modes', 'id_mode, name, system, type')->where('id_mode = %i', $id)->fetch();
-		$system = (string) ($mode->system ?? '');
-		$modeType = GameModeType::tryFrom((string) ($mode->type ?? 'TEAM')) ?? GameModeType::TEAM;
-		return self::findModeObject($system, $mode, $modeType);
 	}
 
 	/**
@@ -131,9 +109,12 @@ class GameModeFactory implements FactoryInterface
 	 * @return AbstractMode
 	 * @throws GameModeNotFoundException
 	 */
-	public static function find(string $modeName, GameModeType $modeType = GameModeType::TEAM, string $system = '') : AbstractMode {
+	public static function find(string $modeName, GameModeType $modeType = GameModeType::TEAM, string $system = ''): AbstractMode {
 		/** @var Row|null $mode */
-		$mode = DB::select('vModesNames', 'id_mode, name, system')->where('%s LIKE CONCAT(\'%\', [sysName], \'%\')', $modeName)->fetch();
+		$mode = DB::select('vModesNames', 'id_mode, name, system')->where(
+			'%s LIKE CONCAT(\'%\', [sysName], \'%\')',
+			$modeName
+		)->fetch();
 		if (isset($mode->system)) {
 			/** @noinspection CallableParameterUseCaseInTypeContextInspection */
 			$system = $mode->system;
@@ -149,7 +130,7 @@ class GameModeFactory implements FactoryInterface
 	 * @return AbstractMode
 	 * @throws GameModeNotFoundException
 	 */
-	public static function findByName(string $modeName, GameModeType $modeType = GameModeType::TEAM, string $system = '') : AbstractMode {
+	public static function findByName(string $modeName, GameModeType $modeType = GameModeType::TEAM, string $system = ''): AbstractMode {
 		/** @var Row|null $mode */
 		$mode = DB::select('vModesNames', 'id_mode, name, system')->where('[name] = %s', $modeName)->fetch();
 		if (isset($mode->system)) {
@@ -165,7 +146,7 @@ class GameModeFactory implements FactoryInterface
 	 * @return int
 	 * @throws GameModeNotFoundException
 	 */
-	public static function getIdByObject(string|object $object) : int {
+	public static function getIdByObject(string|object $object): int {
 		$modes = self::getAll();
 		foreach ($modes as $mode) {
 			if ($mode instanceof $object && isset($mode->id)) {
@@ -173,6 +154,34 @@ class GameModeFactory implements FactoryInterface
 			}
 		}
 		return 0;
+	}
+
+	/**
+	 * @param array{system?:string,rankable?:bool,all?:bool} $options
+	 *
+	 * @return AbstractMode[]
+	 * @throws GameModeNotFoundException
+	 */
+	public static function getAll(array $options = []): array {
+		$ids = DB::select('game_modes', 'id_mode, name, system, type')
+		         ->cacheTags(AbstractMode::TABLE . '/query');
+		if (isset($options['system'])) {
+			$ids->where('system = %s', $options['system']);
+		}
+		if (isset($options['rankable'])) {
+			$ids->where('rankable = %i', $options['rankable'] ? 1 : 0);
+		}
+		if (!isset($options['all']) || !((bool)$options['all'])) {
+			$ids->where('active = 1');
+		}
+		$ids = $ids->fetchAssoc('id_mode');
+		$modes = [];
+		foreach ($ids as $mode) {
+			$system = $mode->system ?? '';
+			$modeType = GameModeType::tryFrom($mode->type ?? 'TEAM') ?? GameModeType::TEAM;
+			$modes[] = self::findModeObject($system, $mode, $modeType);
+		}
+		return $modes;
 	}
 
 
