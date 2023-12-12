@@ -38,8 +38,8 @@ use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Caching\Cache as CacheParent;
-use Throwable;
 use OpenApi\Attributes as OA;
+use Throwable;
 
 if (!class_exists(Game::class)) {
 
@@ -222,7 +222,6 @@ if (!class_exists(Game::class)) {
 						break;
 					case 'lives':
 					case 'ammo':
-					case 'modeName':
 					case 'fileNumber':
 					case 'code':
 					case 'respawn':
@@ -243,11 +242,24 @@ if (!class_exists(Game::class)) {
 					case 'scoring':
 						$game->scoring = new Scoring(...$value);
 						break;
+					case 'modeName':
+						$game->modeName = $value;
+						$mode = GameModeFactory::find(
+							$value,
+							GameModeType::tryFrom(
+								$data['gameType'] ?? ''
+							) ?? GameModeType::TEAM,
+							static::SYSTEM
+						);
+						if (isset($mode)) {
+							$game->mode = $mode;
+						}
+						break;
 					case 'mode':
 						if (!isset($value['type'])) {
 							$value['type'] = GameModeType::TEAM->value;
 						}
-						$game->mode = GameModeFactory::findByName(
+						$game->mode ??= GameModeFactory::findByName(
 							$value['name'],
 							GameModeType::tryFrom(
 								$value['type']
