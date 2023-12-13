@@ -161,7 +161,7 @@ class Player extends \App\GameModels\Game\Player
 			$hitsDiff = $this->hitsOwn - $expectedAverageHits;
 
 			// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
-			$hitsDiffPercent = 1 + ($hitsDiff / $expectedAverageHits);
+			$hitsDiffPercent = 1 + ($hitsDiff / (((int)$expectedAverageHits) !== 0 ? $expectedAverageHits : 1));
 
 			// Completely average game should lose at least 100 points
 			// On the other hand -> hitting no teammates will grant 100 points
@@ -223,7 +223,7 @@ class Player extends \App\GameModels\Game\Player
 		$hitsDiff = $this->hits - $expectedAverageHits;
 
 		// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
-		$hitsDiffPercent = 1 + ($hitsDiff / $expectedAverageHits);
+		$hitsDiffPercent = 1 + ($hitsDiff / (((int)$expectedAverageHits) !== 0 ? $expectedAverageHits : 1));
 
 		// Completely average game should acquire at least 200 points
 		return $hitsDiffPercent * 200;
