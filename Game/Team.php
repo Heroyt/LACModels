@@ -71,7 +71,11 @@ abstract class Team extends Model
 	public function save(): bool {
 		try {
 			/** @var int|null $test */
-			$test = DB::select($this::TABLE, $this::getPrimaryKey())->where('id_game = %i && name = %s', $this->getGame()->id, $this->name)->fetchSingle(cache: false);
+			$test = DB::select($this::TABLE, $this::getPrimaryKey())->where(
+				'id_game = %i && name = %s',
+				$this->getGame()->id,
+				$this->name
+			)->fetchSingle(cache: false);
 			if (isset($test)) {
 				$this->id = $test;
 			}
@@ -181,6 +185,7 @@ abstract class Team extends Model
 
 	/**
 	 * @param int $bonus
+	 *
 	 * @return static
 	 */
 	public function setBonus(int $bonus): static {
