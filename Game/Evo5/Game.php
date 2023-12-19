@@ -66,7 +66,7 @@ class Game extends \App\GameModels\Game\Game
 	public static function getTeamColors() : array {
 		return [
 			0 => '#c92626',
-			1 => '#009e2c',
+			1 => '#0c762a',
 			2 => '#286cd6',
 			3 => '#f081da',
 			4 => '#f5bc00',
@@ -146,5 +146,21 @@ class Game extends \App\GameModels\Game\Game
 			return null;
 		}
 		return parent::getBestPlayer($property);
+	}
+
+	public function getAverageTeammateDeaths(): float {
+		$sum = 0;
+		foreach ($this->getPlayers() as $player) {
+			$sum += $player->deathsOwn;
+		}
+		return $sum / $this->getPlayerCount();
+	}
+
+	public function getAverageTeammateHits(): float {
+		$sum = 0;
+		foreach ($this->getPlayers() as $player) {
+			$sum += $player->hitsOwn;
+		}
+		return $sum / $this->getPlayerCount();
 	}
 }

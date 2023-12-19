@@ -5,6 +5,7 @@
 
 namespace App\GameModels\Game\Evo5;
 
+use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Game as BaseGame;
@@ -28,7 +29,17 @@ class Player extends \App\GameModels\Game\Player
 
 	public const TABLE         = 'evo5_players';
 	public const SYSTEM        = 'evo5';
-	public const CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss', 'hitsOwn', 'deathsOwn', 'mines'];
+	public const CLASSIC_BESTS = [
+		'score',
+		'hits',
+		'score',
+		'accuracy',
+		'shots',
+		'miss',
+		'hitsOwn',
+		'deathsOwn',
+		'mines',
+	];
 	public int                        $shotPoints  = 0;
 	public int                        $scoreBonus  = 0;
 	public int                        $scorePowers = 0;
@@ -46,11 +57,11 @@ class Player extends \App\GameModels\Game\Player
 
 	private RegressionStatCalculator $calculator;
 
-	public function getMines() : int {
+	public function getMines(): int {
 		return $this->bonus->getSum();
 	}
 
-	public function getRemainingLives() : int {
+	public function getRemainingLives(): int {
 		return ($this->getGame()->lives ?? 9999) - $this->deaths;
 	}
 
@@ -63,22 +74,26 @@ class Player extends \App\GameModels\Game\Player
 	 * @return float
 	 * @throws Throwable
 	 */
-	public function getExpectedAverageDeathCount() : float {
-		$type = $this->getGame()->gameType;
-		$model = $this->getRegressionCalculator()->getDeathsModel(
-			$type,
-			$this->getGame()->getMode(),
-			$type === GameModeType::TEAM ? $this->getGame()
-			                                    ->getTeams()
-			                                    ->count() : 2
-		);
-		return $this->calculateHitDeathModel($type, $model);
+	public function getExpectedAverageDeathCount(): float {
+		try {
+			$type = $this->getGame()->gameType;
+			$model = $this->getRegressionCalculator()->getDeathsModel(
+				$type,
+				$this->getGame()->getMode(),
+				$type === GameModeType::TEAM ? $this->getGame()
+				                                    ->getTeams()
+				                                    ->count() : 2
+			);
+			return $this->calculateHitDeathModel($type, $model);
+		} catch (InsuficientRegressionDataException) {
+			return $this->getGame()->getAverageDeaths();
+		}
 	}
 
 	/**
 	 * @return RegressionStatCalculator
 	 */
-	public function getRegressionCalculator() : RegressionStatCalculator {
+	public function getRegressionCalculator(): RegressionStatCalculator {
 		if (!isset($this->calculator)) {
 			$this->calculator = new RegressionStatCalculator($this->getGame()->arena);
 		}
@@ -92,12 +107,13 @@ class Player extends \App\GameModels\Game\Player
 	 * @return float
 	 * @throws Throwable
 	 */
-	private function calculateHitDeathModel(GameModeType $type, array $model) : float {
+	private function calculateHitDeathModel(GameModeType $type, array $model): float {
 		$length = $this->getGame()->getRealGameLength();
 		if ($type === GameModeType::TEAM) {
 			$teamPlayerCount = $this->getTeam()?->getPlayerCount() ?? 0;
 			$enemyPlayerCount = $this->getGame()->getPlayerCount() - $teamPlayerCount - 1;
-			return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length], $model);
+			return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length],
+			                                                           $model);
 		}
 		$enemyPlayerCount = $this->getGame()->getPlayerCount() - 1;
 		return RegressionCalculator::calculateRegressionPrediction([$enemyPlayerCount, $length], $model);
@@ -113,15 +129,20 @@ class Player extends \App\GameModels\Game\Player
 	 * @return float
 	 * @throws Throwable
 	 */
-	public function getExpectedAverageTeammateDeathCount() : float {
-		$model = $this->getRegressionCalculator()->getDeathsOwnModel(
-			$this->getGame()->getMode(),
-			$this->getGame()->getTeams()->count()
-		);
-		$length = $this->getGame()->getRealGameLength();
-		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
-		$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
-		return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length], $model);
+	public function getExpectedAverageTeammateDeathCount(): float {
+		try {
+			$model = $this->getRegressionCalculator()->getDeathsOwnModel(
+				$this->getGame()->getMode(),
+				$this->getGame()->getTeams()->count()
+			);
+			$length = $this->getGame()->getRealGameLength();
+			$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
+			$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
+			return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length],
+			                                                           $model);
+		} catch (InsuficientRegressionDataException) {
+			return $this->getGame()->getAverageTeammateDeaths();
+		}
 	}
 
 	/**
@@ -137,7 +158,7 @@ class Player extends \App\GameModels\Game\Player
 	 * @return int A whole number evaluation on an arbitrary scale (no max or min value).
 	 * @throws Throwable
 	 */
-	public function calculateSkill() : int {
+	public function calculateSkill(): int {
 		// Base skill value - hits, K:D, K:D deviation, accuracy - already normalized
 		$skill = $this->calculateBaseSkill();
 
@@ -148,7 +169,7 @@ class Player extends \App\GameModels\Game\Player
 		// Add points for bonuses
 		$newSkill += ($bonusesSkill = $this->calculateSkillFromBonuses());
 
-		$this->skill = (int) round($skill + $newSkill);
+		$this->skill = (int)round($skill + $newSkill);
 
 		return $this->skill;
 	}
@@ -157,7 +178,7 @@ class Player extends \App\GameModels\Game\Player
 	 * @return float
 	 * @throws Throwable
 	 */
-	protected function calculateSkillFromTeamHits() : float {
+	protected function calculateSkillFromTeamHits(): float {
 		if ($this->game->mode?->isTeam() ?? true) {
 			$expectedAverageHits = $this->getExpectedAverageTeammateHitCount();
 			if ($expectedAverageHits < 1.0) {
@@ -190,47 +211,56 @@ class Player extends \App\GameModels\Game\Player
 	 * @return float
 	 * @throws Throwable
 	 */
-	public function getExpectedAverageTeammateHitCount() : float {
-		$model = $this->getRegressionCalculator()->getHitsOwnModel(
-			$this->getGame()->getMode(),
-			$this->getGame()->getTeams()->count()
-		);
-		$length = $this->getGame()->getRealGameLength();
-		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
-		$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
-		return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length], $model);
+	public function getExpectedAverageTeammateHitCount(): float {
+		try {
+			$model = $this->getRegressionCalculator()->getHitsOwnModel(
+				$this->getGame()->getMode(),
+				$this->getGame()->getTeams()->count()
+			);
+			$length = $this->getGame()->getRealGameLength();
+			$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
+			$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
+			return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length],
+			                                                           $model);
+		} catch (InsuficientRegressionDataException) {
+			return $this->getGame()->getAverageTeammateHits();
+		}
 	}
 
 	/**
 	 * @return float
 	 */
-	protected function calculateSkillFromBonuses() : float {
+	protected function calculateSkillFromBonuses(): float {
 		return $this->bonus->getSum() * 10;
 	}
 
-	public function getKd() : float {
+	public function getKd(): float {
 		return $this->game->mode?->isSolo() ?
 			parent::getKd() :
 			$this->hitsOther / ($this->deathsOther === 0 ? 1 : $this->deathsOther);
 	}
 
-	public function getSkillParts() : array {
+	public function getSkillParts(): array {
 		$parts = parent::getSkillParts();
 		$parts['teamHits'] = $this->calculateSkillFromTeamHits();
 		$parts['bonuses'] = $this->calculateSkillFromBonuses();
 		return $parts;
 	}
 
-	public function getExpectedAverageHitCount() : float {
-		$type = $this->getTeam()?->getPlayerCount() === 1 ? GameModeType::SOLO : $this->getGame()->gameType;
-		$model = $this->getRegressionCalculator()->getHitsModel(
-			$type,
-			$this->getGame()->getMode(),
-			$type === GameModeType::TEAM ? $this->getGame()
-			                                    ->getTeams()
-			                                    ->count() : 2
-		);
-		return $this->calculateHitDeathModel($type, $model);
+	public function getExpectedAverageHitCount(): float {
+		try {
+			$type = $this->getTeam()?->getPlayerCount() === 1 ? GameModeType::SOLO : $this->getGame()->gameType;
+			$model = $this->getRegressionCalculator()->getHitsModel(
+				$type,
+				$this->getGame()->getMode(),
+				$type === GameModeType::TEAM ? $this->getGame()
+				                                    ->getTeams()
+				                                    ->count() : 2
+			);
+			return $this->calculateHitDeathModel($type, $model);
+		} catch (InsuficientRegressionDataException) {
+			return $this->getGame()->getAverageHits();
+		}
 	}
 
 }

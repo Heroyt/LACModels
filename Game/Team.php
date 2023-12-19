@@ -114,7 +114,7 @@ abstract class Team extends Model
 		foreach ($this->getPlayers() as $player) {
 			$sum += $player->getSkill();
 		}
-		return $sum / $this->getPlayerCount();
+		return $this->getPlayerCount() === 0 ? $sum : $sum / $this->getPlayerCount();
 	}
 
 	/**

@@ -244,28 +244,30 @@ if (!class_exists(Game::class)) {
 						break;
 					case 'modeName':
 						$game->modeName = $value;
-						$mode = GameModeFactory::find(
-							$value,
-							GameModeType::tryFrom(
-								$data['gameType'] ?? ''
-							) ?? GameModeType::TEAM,
-							static::SYSTEM
-						);
-						if (isset($mode)) {
-							$game->mode = $mode;
-						}
 						break;
 					case 'mode':
 						if (!isset($value['type'])) {
 							$value['type'] = GameModeType::TEAM->value;
 						}
-						$game->mode ??= GameModeFactory::findByName(
+						$game->mode = GameModeFactory::findByName(
 							$value['name'],
 							GameModeType::tryFrom(
 								$value['type']
 							) ?? GameModeType::TEAM,
 							static::SYSTEM
 						);
+						if (!empty($data['modeName'])) {
+							$mode = GameModeFactory::find(
+								$data['modeName'],
+								GameModeType::tryFrom(
+									$data['gameType'] ?? ''
+								) ?? GameModeType::TEAM,
+								static::SYSTEM
+							);
+							if (isset($mode)) {
+								$game->mode = $mode;
+							}
+						}
 						break;
 					case 'players':
 					{
@@ -697,6 +699,22 @@ if (!class_exists(Game::class)) {
 				$num += ord($char);
 			}
 			return $num;
+		}
+
+		public function getAverageDeaths(): float {
+			$sum = 0;
+			foreach ($this->getPlayers() as $player) {
+				$sum += $player->deaths;
+			}
+			return $sum / $this->getPlayerCount();
+		}
+
+		public function getAverageHits(): float {
+			$sum = 0;
+			foreach ($this->getPlayers() as $player) {
+				$sum += $player->hits;
+			}
+			return $sum / $this->getPlayerCount();
 		}
 
 	}
