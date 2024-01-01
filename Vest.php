@@ -6,6 +6,8 @@
 namespace App\GameModels;
 
 use App\GameModels\Game\Enums\VestStatus;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\PrimaryKey;
@@ -23,7 +25,8 @@ class Vest extends Model
 	public ?int       $gridCol = null;
 	public ?int       $gridRow = null;
 	public VestStatus $status  = VestStatus::OK;
-	public ?string    $info    = null;
+	public ?string            $info      = null;
+	public ?DateTimeInterface $updatedAt = null;
 
 	/**
 	 * @param string $system
@@ -72,6 +75,11 @@ class Vest extends Model
 	public static function getGridDimensions(string $system) : ?object {
 		/* @phpstan-ignore-next-line */
 		return DB::select(self::TABLE, 'MAX([grid_col]) as [cols], MAX([grid_row]) as [rows]')->where('[system] = %s', $system)->fetch();
+	}
+
+	public function update(): bool {
+		$this->updatedAt = new DateTimeImmutable();
+		return parent::update();
 	}
 
 }
