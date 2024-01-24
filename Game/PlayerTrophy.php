@@ -24,7 +24,7 @@ class PlayerTrophy
 	public function __construct(
 		private readonly Player $player
 	) {
-		$this->solo = $player->getGame()->mode?->isSolo() ?? false;
+		$this->solo = $player->getGame()->getMode()?->isSolo() ?? false;
 		self::getFields(); // Initialize fields array
 	}
 
@@ -238,7 +238,10 @@ class PlayerTrophy
 			case 'not-found-shots':
 				return $this->player->shots === 404;
 			case 'team-50':
-				return !$this->solo && $this->player->getTeam()?->score !== 0 && $this->player->getTeam()?->playerCount > 1 && ($this->player->score / $this->player->getTeam()->score) > 0.45;
+				return !$this->solo && $this->player->getTeam()?->score !== 0 && $this->player->getTeam()
+				                                                                              ?->getPlayerCount(
+				                                                                              ) > 1 && ($this->player->score / $this->player->getTeam(
+						)->score) > 0.45;
 			case 'kd-1':
 				return $this->player->deaths !== 0 && abs(($this->player->hits / $this->player->deaths) - 1) < 0.1;
 			case 'kd-2':

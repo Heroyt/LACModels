@@ -141,10 +141,10 @@ abstract class Player extends Model
 	 * @throws Throwable
 	 */
 	public function getExpectedAverageHitCount(): float {
-		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->mode?->isSolo(
+		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->getMode()?->isSolo(
 			) ? 1 : $this->getTeam()?->getPlayerCount());
 		$teamPlayerCount = ($this->getTeam()?->getPlayerCount() ?? 1) - 1;
-		if ($this->getGame()->mode?->isTeam()) {
+		if ($this->getGame()->getMode()?->isTeam()) {
 			return (2.5771 * $enemyPlayerCount) + (2.48007 * $teamPlayerCount) + 36.76356;
 		}
 		return (2.05869 * $enemyPlayerCount) + 44.8715;
@@ -192,10 +192,10 @@ abstract class Player extends Model
 	 * @throws Throwable
 	 */
 	public function getExpectedAverageDeathCount(): float {
-		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->mode?->isSolo(
+		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->getMode()?->isSolo(
 			) ? 1 : $this->getTeam()?->getPlayerCount());
 		$teamPlayerCount = ($this->getTeam()?->getPlayerCount() ?? 1) - 1;
-		if ($this->getGame()->mode?->isTeam()) {
+		if ($this->getGame()->getMode()?->isTeam()) {
 			return (2.730673 * $enemyPlayerCount) + (-0.0566788 * $teamPlayerCount) + 43.203734389;
 		}
 		return (4.01628957539 * $enemyPlayerCount) - 15.0000175286;
@@ -317,24 +317,14 @@ abstract class Player extends Model
 	}
 
 	/**
-	 * @return void
-	 * @throws Throwable
-	 */
-	public function instantiateProperties(): void {
-		parent::instantiateProperties();
-
-		// Set the teamNum and color property
-		$this->teamNum = $this->getTeamColor();
-	}
-
-	/**
 	 * @return int
 	 * @throws Throwable
 	 */
 	public function getTeamColor(): int {
 		if (empty($this->color)) {
-			$this->color = (isset($this->game) && $this->getGame()->mode?->isSolo() ? 2 : $this->getTeam(
-			)?->color) ?? 2;
+			$this->color = ($this->getGame() !== null && $this->getGame()->getMode()?->isSolo() ?
+				2 :
+				$this->getTeam()?->color) ?? 2;
 		}
 		return $this->color;
 	}
@@ -555,11 +545,11 @@ abstract class Player extends Model
 	 * @return int
 	 */
 	public function getSkill(): int {
-		if (!isset($this->getGame()->group)) {
+		if ($this->getGame()->getGroup() === null) {
 			return $this->skill;
 		}
 		try {
-			$players = $this->getGame()->group->getPlayers();
+			$players = $this->getGame()->getGroup()->getPlayers();
 			$name = Strings::toAscii($this->name);
 			if (isset($players[$name])) {
 				return $players[$name]->getSkill();

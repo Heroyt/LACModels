@@ -18,6 +18,8 @@ use Lsr\Helpers\Tools\Timer;
 trait WithTeams
 {
 
+	private int $teamCount;
+
 	/** @var class-string<T> */
 	#[NoDB]
 	public string $teamClass;
@@ -121,5 +123,12 @@ trait WithTeams
 		}
 		Timer::stop('game.save.teams');
 		return true;
+	}
+
+	public function getTeamCount(): int {
+		if (!isset($this->teamCount) || $this->teamCount < 1) {
+			$this->teamCount = $this->getTeams()->count();
+		}
+		return $this->teamCount;
 	}
 }

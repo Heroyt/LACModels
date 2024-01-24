@@ -178,8 +178,8 @@ class Event extends Model
 			case EventType::MODE_ACTION_8:
 			case EventType::MODE_ACTION_9:
 			case EventType::MODE_ACTION_10:
-				if ($this->game->mode instanceof CustomEventsInterface) {
-					$this->game->mode->processEvent($this);
+			if ($this->getGame()->getMode() instanceof CustomEventsInterface) {
+				$this->getGame()->getMode()->processEvent($this);
 				}
 				break;
 			case EventType::BEACON:

@@ -2,12 +2,12 @@
 
 namespace App\GameModels\Factory;
 
+use App\Core\App;
 use App\GameModels\Game\Game;
 use DateTime;
 use DateTimeInterface;
 use Dibi\Row;
 use InvalidArgumentException;
-use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;

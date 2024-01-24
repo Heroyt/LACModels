@@ -153,7 +153,7 @@ class Player extends \App\GameModels\Game\Player
 	 * @throws Throwable
 	 */
 	protected function calculateSkillFromTeamHits() : float {
-		if ($this->game->mode?->isTeam() ?? true) {
+		if ($this->getGame()->getMode()?->isTeam() ?? true) {
 			$expectedAverageHits = $this->getExpectedAverageTeammateHitCount();
 			if ($expectedAverageHits === 0.0) {
 				$expectedAverageHits = 0.1;
@@ -206,7 +206,7 @@ class Player extends \App\GameModels\Game\Player
 	}
 
 	public function getKd() : float {
-		return $this->game->mode?->isSolo() ?
+		return $this->getGame()->getMode()?->isSolo() ?
 			parent::getKd() :
 			$this->hitsOther / ($this->deathsOther === 0 ? 1 : $this->deathsOther);
 	}

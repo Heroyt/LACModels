@@ -5,6 +5,7 @@
 
 namespace App\GameModels\Game;
 
+use App\Core\App;
 use App\Core\Collections\CollectionCompareFilter;
 use App\Core\Collections\Comparison;
 use App\Exceptions\GameModeNotFoundException;
@@ -24,7 +25,6 @@ use DateTimeInterface;
 use DateTimeZone;
 use Dibi\Row;
 use JsonException;
-use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -34,6 +34,7 @@ use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\LoadingType;
 use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
@@ -73,48 +74,29 @@ abstract class Game extends Model
 	public ?DateTimeInterface $importTime = null;
 	public ?DateTimeInterface $end      = null;
 	#[Instantiate]
-  public ?Timing              $timing   = null;
+	public ?Timing            $timing   = null;
 	public string             $code;
-	#[ManyToOne]
-  public ?AbstractMode        $mode     = null;
+	#[ManyToOne(loadingType: LoadingType::LAZY)]
+	public ?AbstractMode      $mode;
 	public GameModeType       $gameType = GameModeType::TEAM;
 	#[Instantiate]
-  public ?Scoring             $scoring  = null;
+	public Scoring            $scoring;
 	/** @var bool Indicates if the game is synchronized to public API */
-	public bool     $sync     = false;
-	#[ManyToOne]
-  public ?MusicMode $music    = null;
-	#[ManyToOne]
-  public ?GameGroup $group    = null;
+	public bool       $sync     = false;
+	#[ManyToOne(loadingType: LoadingType::LAZY)]
+	public ?MusicMode $music;
+	#[ManyToOne(loadingType: LoadingType::LAZY)]
+	public ?GameGroup $group;
 	#[NoDB]
-  public bool       $started  = false;
+	public bool       $started  = false;
 	#[NoDB]
-  public bool       $finished = false;
-	protected float $realGameLength;
+	public bool       $finished = false;
+	protected float   $realGameLength;
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		$this->cacheTags[] = 'games/' . $this::SYSTEM;
 		parent::__construct($id, $dbRow);
-		$this->playerCount = $this->getPlayers()->count();
-		if (isset($this->id) && !isset($this->mode)) {
-			try {
-				$this->getMode();
-			} catch (GameModeNotFoundException) {
-			}
-		}
-
 		$this->initExtensions();
-	}
-
-	/**
-	 * @return AbstractMode|null
-	 * @throws GameModeNotFoundException
-	 */
-	public function getMode(): ?AbstractMode {
-		if (!isset($this->mode) && isset($this->modeName)) {
-			$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
-		}
-		return $this->mode;
 	}
 
 	/**
@@ -211,8 +193,7 @@ abstract class Game extends Model
 				case 'code':
 				case 'respawn':
 				case 'sync':
-					/* @phpstan-ignore-next-line */
-					$game->{$key} = $value;
+				/* @phpstan-ignore-next-line */ $game->{$key} = $value;
 					break;
 				case 'end':
 				case 'start':
@@ -231,11 +212,11 @@ abstract class Game extends Model
 					if (!isset($value['type'])) {
 						$value['type'] = GameModeType::TEAM->value;
 					}
-			$game->mode = GameModeFactory::findByName(
-				$value['name'],
-				GameModeType::tryFrom($value['type']) ?? GameModeType::TEAM,
-				static::SYSTEM
-			);
+					$game->mode = GameModeFactory::findByName(
+						$value['name'],
+						GameModeType::tryFrom($value['type']) ?? GameModeType::TEAM,
+						static::SYSTEM
+					);
 					break;
 				case 'players':
 				{
@@ -273,12 +254,10 @@ abstract class Game extends Model
 								case 'deathsOther':
 								case 'deathsOwn':
 								case 'teamNum':
-									/* @phpstan-ignore-next-line */
-									$player->{$keyPlayer} = $valuePlayer;
+								/* @phpstan-ignore-next-line */ $player->{$keyPlayer} = $valuePlayer;
 									break;
 								case 'bonus':
-									/* @phpstan-ignore-next-line */
-									$player->bonus = new BonusCounts(...$valuePlayer);
+									/* @phpstan-ignore-next-line */ $player->bonus = new BonusCounts(...$valuePlayer);
 									break;
 								case 'code':
 									$player->user = \App\Models\Auth\Player::getByCode($valuePlayer);
@@ -310,8 +289,7 @@ abstract class Game extends Model
 								case 'score':
 								case 'color':
 								case 'position':
-									/* @phpstan-ignore-next-line */
-									$team->{$keyTeam} = $valueTeam;
+								/* @phpstan-ignore-next-line */ $team->{$keyTeam} = $valueTeam;
 									break;
 							}
 							$game->addTeam($team);
@@ -324,7 +302,7 @@ abstract class Game extends Model
 		}
 
 		if (!isset($game->mode)) {
-			$game->mode = GameModeFactory::find($game->modeName, $game->gameType, $game::SYSTEM);
+			$game->getMode();
 		}
 
 		// Assign hits and teams
@@ -349,6 +327,25 @@ abstract class Game extends Model
 			}
 		}
 		return $game;
+	}
+
+	/**
+	 * @return AbstractMode|null
+	 * @throws GameModeNotFoundException
+	 */
+	public function getMode(): ?AbstractMode {
+		if (!isset($this->mode)) {
+			if (isset($this->relationIds['mode'])) {
+				$this->mode = GameModeFactory::getById($this->relationIds['mode']);
+			}
+			else if (isset($this->modeName)) {
+				$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
+			}
+			else {
+				$this->mode = null;
+			}
+		}
+		return $this->mode;
 	}
 
 	public function getQueryData(): array {
@@ -387,8 +384,9 @@ abstract class Game extends Model
 				break;
 			case 'hitsOwn':
 			case 'deathsOwn':
-				/* @phpstan-ignore-next-line */
-				$query->addFilter(new CollectionCompareFilter($property, Comparison::GREATER, 0));
+			/* @phpstan-ignore-next-line */ $query->addFilter(
+			new CollectionCompareFilter($property, Comparison::GREATER, 0)
+		);
 			default:
 				$query->desc();
 				break;
@@ -402,16 +400,16 @@ abstract class Game extends Model
 	 */
 	public function getBestsFields(): array {
 		$fields = [
-		'hits'   => lang('Největší terminátor', context: 'results.bests'),
-		'deaths' => lang('Objekt největšího zájmu', context: 'results.bests'),
-		'score'  => lang('Absolutní vítěz', context: 'results.bests'),
+			'hits'   => lang('Největší terminátor', context: 'results.bests'),
+			'deaths' => lang('Objekt největšího zájmu', context: 'results.bests'),
+			'score'  => lang('Absolutní vítěz', context: 'results.bests'),
 			'accuracy' => lang('Hráč s nejlepší muškou', context: 'results.bests'),
-		'shots'  => lang('Nejúspornější střelec', context: 'results.bests'),
-		'miss'   => lang('Největší mimoň', context: 'results.bests'),
+			'shots'  => lang('Nejúspornější střelec', context: 'results.bests'),
+			'miss'   => lang('Největší mimoň', context: 'results.bests'),
 		];
 		foreach ($fields as $key => $value) {
 			$settingName = Strings::toCamelCase('best_' . $key);
-			if (!($this->mode->settings->$settingName ?? true)) {
+			if (!($this->getMode()->settings->$settingName ?? true)) {
 				unset($fields[$key]);
 			}
 		}
@@ -447,16 +445,22 @@ abstract class Game extends Model
 			unset($data['hooks']);
 		}
 		$data['system'] = $this::SYSTEM;
-		$data['players'] = $this->getPlayers()->getAll();
 		$data['teams'] = $this->getTeams()->getAll();
-		$data['group'] = $this->group;
+		$data['players'] = $this->getPlayers()->getAll();
+		$data['playerCount'] = $this->getPlayerCount();
+		$data['group'] = null;
+		if ($this->getGroup() !== null) {
+			$data['group'] = [
+				'id'     => $this->getGroup()->id,
+				'name'   => $this->getGroup()->name,
+				'active' => $this->getGroup()->active,
+			];
+		}
+		if (!isset($data['music'])) {
+			$data['music'] = $this->getMusic();
+		}
 		if (!isset($data['mode'])) {
-			$data['mode'] = GameModeFactory::findByName(
-				$this->gameType === GameModeType::TEAM ? 'Team deathmach' : 'Deathmach',
-				$this->gameType,
-				$this::SYSTEM
-			);
-			$this->mode = $data['mode'];
+			$data['mode'] = $this->getMode();
 		}
 		$this->extensionJson($data);
 		return $data;
@@ -494,13 +498,11 @@ abstract class Game extends Model
 	public function save(): bool {
 		$pk = $this::getPrimaryKey();
 		/** @var Row|null $test */
-		$test = DB::select($this::TABLE, $pk . ', code')
-	          ->where(
-		          'start = %dt OR start = %dt',
-		          $this->start,
-		          $this->start->getTimestamp() + ($this->timing?->before ?? 20)
-	          )
-	          ->fetch(cache: false);
+		$test = DB::select($this::TABLE, $pk . ', code')->where(
+			'start = %dt OR start = %dt',
+			$this->start,
+			$this->start->getTimestamp() + ($this->timing?->before ?? 20)
+		)->fetch(cache: false);
 		if (isset($test)) {
 			/** @noinspection PhpFieldAssignmentTypeMismatchInspection */
 			$this->id = $test->$pk;
@@ -529,8 +531,8 @@ abstract class Game extends Model
 			}
 		}
 
-		if (isset($this->group)) {
-			$success = $success && $this->group->save();
+		if ($this->getGroup() !== null) {
+			$success = $success && $this->getGroup()->save();
 		}
 
 		return $success && $this->extensionSave();
@@ -583,8 +585,8 @@ abstract class Game extends Model
 	}
 
 	public function insert(): bool {
-		if (isset($this->group)) {
-			$this->group->clearCache();
+		if ($this->getGroup() !== null) {
+			$this->getGroup()->clearCache();
 		}
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
@@ -599,18 +601,18 @@ abstract class Game extends Model
 		/** @var Cache $cache */
 		$cache = App::getService('cache');
 		$cache->remove('games/' . $this::SYSTEM . '/' . $this->id);
-	  $cache->clean(
-		  [
-			  CacheParent::Tags => [
-				  'games/' . $this::SYSTEM . '/' . $this->id,
-				  'games/' . $this->start?->format('Y-m-d'),
-				  'games/' . $this->code,
-			  ],
-		  ]
-	  );
+		$cache->clean(
+			[
+				CacheParent::Tags => [
+					'games/' . $this::SYSTEM . '/' . $this->id,
+					'games/' . $this->start?->format('Y-m-d'),
+					'games/' . $this->code,
+				],
+			]
+		);
 
-		if (isset($this->group)) {
-			$this->group->clearCache();
+		if ($this->getGroup() !== null) {
+			$this->getGroup()->clearCache();
 		}
 
 		// Invalidate generated results cache
@@ -665,18 +667,28 @@ abstract class Game extends Model
 	}
 
 	public function recalculateScores(): void {
-		if (isset($this->mode)) {
-			$this->mode->recalculateScores($this);
+		if ($this->getMode() !== null) {
+			$this->getMode()->recalculateScores($this);
 			$this->reorder();
 			$this->sync = false;
 		}
 	}
 
 	public function reorder(): void {
-		if (isset($this->mode)) {
-			$this->mode->reorderGame($this);
+		if ($this->getMode() !== null) {
+			$this->getMode()->reorderGame($this);
 		}
 		$this->runHook('reorder');
+	}
+
+	public function getGroup(): ?GameGroup {
+		$this->group ??= isset($this->relationIds['group']) ? GameGroup::get($this->relationIds['group']) : null;
+		return $this->group;
+	}
+
+	public function getMusic(): ?MusicMode {
+		$this->music ??= isset($this->relationIds['music']) ? MusicMode::get($this->relationIds['music']) : null;
+		return $this->music;
 	}
 
 }

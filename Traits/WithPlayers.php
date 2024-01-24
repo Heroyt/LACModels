@@ -9,7 +9,6 @@ use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\PlayerCollection;
 use App\GameModels\Game\Team;
-use Dibi\Row;
 use InvalidArgumentException;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -38,11 +37,6 @@ trait WithPlayers
 	public PlayerCollection $players;
 	/** @var PlayerCollection<P> */
 	protected PlayerCollection $playersSorted;
-
-	public function __construct(?int $id = null, ?Row $dbRow = null) {
-		parent::__construct($id, $dbRow);
-		$this->playerCount = $this->getPlayers()->count();
-	}
 
 	/**
 	 * @return PlayerCollection<P>

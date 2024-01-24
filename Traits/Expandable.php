@@ -2,8 +2,8 @@
 
 namespace App\GameModels\Traits;
 
+use App\Core\App;
 use LAC\Modules\Core\GameDataExtensionInterface;
-use Lsr\Core\App;
 use Lsr\Core\Models\Model;
 
 trait Expandable

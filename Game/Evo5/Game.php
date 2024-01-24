@@ -5,14 +5,12 @@
 
 namespace App\GameModels\Game\Evo5;
 
-use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
-use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\GameModes\Deathmach;
 use App\GameModels\Game\Evo5\GameModes\TeamDeathmach;
+use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player as BasePlayer;
-use Dibi\Row;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
@@ -47,17 +45,8 @@ class Game extends \App\GameModels\Game\Game
 	public string  $teamClass   = Team::class;
 	protected bool $minesOn;
 
-	public function __construct(?int $id = null, ?Row $dbRow = null) {
-		parent::__construct($id, $dbRow);
-		if (!isset($this->mode) && !empty($this->modeName) && !empty($this->gameType)) {
-			try {
-				$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
-				if (!isset($this->mode)) {
-					$this->mode = $this->gameType === GameModeType::TEAM ? new TeamDeathmach() : new Deathmach();
-				}
-			} catch (GameModeNotFoundException) {
-			}
-		}
+	public function getMode(): ?AbstractMode {
+		return parent::getMode() ?? ($this->gameType === GameModeType::SOLO ? new Deathmach() : new TeamDeathmach());
 	}
 
 	/**
@@ -104,15 +93,15 @@ class Game extends \App\GameModels\Game\Game
 	 */
 	public function getBestsFields() : array {
 		$info = parent::getBestsFields();
-		if ($this->mode?->isTeam()) {
-			if ($this->mode->settings->bestHitsOwn) {
+		if ($this->getMode()?->isTeam()) {
+			if ($this->getMode()->settings->bestHitsOwn) {
 				$info['hitsOwn'] = lang('Zabiják vlastního týmu', context: 'results.bests');
 			}
-			if ($this->mode->settings->bestDeathsOwn) {
+			if ($this->getMode()->settings->bestDeathsOwn) {
 				$info['deathsOwn'] = lang('Největší vlastňák', context: 'results.bests');
 			}
 		}
-		if ($this->mode?->settings->bestMines && $this->mode->settings->mines && $this->isMinesOn()) {
+		if ($this->getMode()?->settings->bestMines && $this->getMode()->settings->mines && $this->isMinesOn()) {
 			$info['mines'] = lang('Drtič min', context: 'results.bests');
 		}
 		return $info;
