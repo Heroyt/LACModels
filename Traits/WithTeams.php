@@ -10,6 +10,8 @@ use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
+use Lsr\Core\Models\Attributes\OneToMany;
+use Lsr\Core\Models\LoadingType;
 use Lsr\Helpers\Tools\Timer;
 
 /**
@@ -25,7 +27,7 @@ trait WithTeams
 	public string $teamClass;
 
 	/** @var TeamCollection<T> */
-	#[Instantiate]
+	#[Instantiate, OneToMany(class: Team::class, loadingType: LoadingType::LAZY)]
 	public TeamCollection $teams;
 	/** @var TeamCollection<T> */
 	protected TeamCollection $teamsSorted;
