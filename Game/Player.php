@@ -62,7 +62,7 @@ abstract class Player extends Model
 
 	/** @var PlayerHit[] */
 	#[NoDB]
-	public array $hitPlayers = [];
+	public ?array $hitPlayers = [];
 
 	#[NoDB]
 	public int $teamNum = 0;
@@ -86,6 +86,7 @@ abstract class Player extends Model
 		$this->cacheTags[] = 'players/' . $this::SYSTEM;
 		parent::__construct($id, $dbRow);
 		$this->initExtensions();
+		$this->hitPlayers ??= [];
 	}
 
 	/**
