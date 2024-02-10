@@ -70,7 +70,6 @@ abstract class Game extends Model
 
 	public const DI_TAG = 'gameDataExtension';
 
-	#[NoDB]
 	public ?string $resultsFile = null;
 	public string  $modeName;
 	public ?DateTimeInterface $fileTime = null;
