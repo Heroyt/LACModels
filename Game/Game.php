@@ -13,6 +13,7 @@ use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\BonusCounts;
+use App\GameModels\Game\Evo5\Scoring;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\Expandable;
 use App\GameModels\Traits\WithPlayers;
@@ -69,6 +70,9 @@ abstract class Game extends Model
 
 	public const DI_TAG = 'gameDataExtension';
 
+	#[NoDB]
+	public ?string $resultsFile = null;
+	public string  $modeName;
 	public ?DateTimeInterface $fileTime = null;
 	public ?DateTimeInterface $start    = null;
 	public ?DateTimeInterface $importTime = null;
@@ -79,8 +83,6 @@ abstract class Game extends Model
 	#[ManyToOne(loadingType: LoadingType::LAZY)]
 	public ?AbstractMode      $mode;
 	public GameModeType       $gameType = GameModeType::TEAM;
-	#[Instantiate]
-	public Scoring            $scoring;
 	/** @var bool Indicates if the game is synchronized to public API */
 	public bool       $sync     = false;
 	#[ManyToOne(loadingType: LoadingType::LAZY)]

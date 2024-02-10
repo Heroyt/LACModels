@@ -10,6 +10,8 @@ use App\Core\Interfaces\CollectionQueryInterface;
 use App\GameModels\Game\Query\PlayerQuery;
 
 /**
+ * A collection for player models
+ *
  * @template P of Player
  *
  * @property P[] $data

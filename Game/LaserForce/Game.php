@@ -21,7 +21,6 @@ class Game extends \App\GameModels\Game\Game
 
 	public int $rounds = 0;
 
-	public string $modeName        = '';
 	public int    $normalTeamCount = 0;
 
 	/**

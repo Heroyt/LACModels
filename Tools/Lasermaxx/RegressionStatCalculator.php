@@ -1,6 +1,6 @@
 <?php
 
-namespace App\GameModels\Tools\Evo5;
+namespace App\GameModels\Tools\Lasermaxx;
 
 use App\Core\Info;
 use App\Exceptions\InsuficientRegressionDataException;

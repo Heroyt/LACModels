@@ -5,6 +5,7 @@
 
 namespace App\GameModels\Game;
 
+use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Traits\Expandable;
 use App\GameModels\Traits\WithGame;
@@ -96,20 +97,26 @@ abstract class Player extends Model
 	public function save(): bool {
 		try {
 			/** @var int|null $test */
-			$test = DB::select($this::TABLE, $this::getPrimaryKey())->where(
-				'id_game = %i && name = %s && vest = ' . (is_string($this->vest) ? '%s' : '%i'),
-				$this->getGame()->id,
-				$this->name,
-				$this->vest
-			)->fetchSingle(cache: false);
+			$test = DB::select($this::TABLE, $this::getPrimaryKey())
+			          ->where(
+				          'id_game = %i && name = %s && vest = ' . (is_string($this->vest) ? '%s' : '%i'),
+				          $this->getGame()->id,
+				          $this->name,
+				          $this->vest
+			          )
+			          ->fetchSingle(cache: false);
 			if (isset($test)) {
 				$this->id = $test;
 			}
-			if (!isset($this->relativeHits)) {
-				$this->getRelativeHits();
-			}
-			if (!isset($this->relativeDeaths)) {
-				$this->getRelativeDeaths();
+			try {
+				if (!isset($this->relativeHits)) {
+					$this->getRelativeHits();
+				}
+				if (!isset($this->relativeDeaths)) {
+					$this->getRelativeDeaths();
+				}
+			} catch (InsuficientRegressionDataException) {
+				// Ignore error -> Save
 			}
 		} catch (Throwable) {
 		}
@@ -463,7 +470,7 @@ abstract class Player extends Model
 	 */
 	public function addHits(Player $player, int $count = 1): static {
 		/** @var PlayerHit $className */
-		$className = str_replace('Player', 'PlayerHit', get_class($this));
+		$className = str_replace('Player', 'PlayerHit', $this::class);
 		if (isset($this->hitPlayers[$player->vest])) {
 			$this->hitPlayers[$player->vest]->count += $count;
 			return $this;
