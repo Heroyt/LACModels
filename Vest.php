@@ -6,24 +6,35 @@
 namespace App\GameModels;
 
 use App\GameModels\Game\Enums\VestStatus;
-use Lsr\Core\DB;
+use App\Models\Arena;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Lsr\Core\Exceptions\ValidationException;
+use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 use Lsr\Core\Models\Model;
 use Lsr\Core\Models\ModelQuery;
+use OpenApi\Attributes as OA;
 
-#[PrimaryKey('id_vest')]
+#[PrimaryKey('id_vest'), OA\Schema]
 class Vest extends Model
 {
 
 	public const TABLE = 'system_vests';
 
-	public string     $vestNum;
-	public string     $system;
-	public ?int       $gridCol = null;
-	public ?int       $gridRow = null;
-	public VestStatus $status  = VestStatus::OK;
-	public ?string    $info    = null;
+	#[OA\Property, ManyToOne]
+	public Arena $arena;
+
+	#[OA\Property(example: '1')]
+	public string             $vestNum;
+	#[OA\Property(example: 'evo5')]
+	public string             $system;
+	#[OA\Property]
+	public VestStatus         $status    = VestStatus::OK;
+	#[OA\Property(example: 'Zbraň vynechává')]
+	public ?string            $info      = null;
+	#[OA\Property]
+	public ?DateTimeInterface $updatedAt = null;
 
 	/**
 	 * @param string $system
@@ -31,7 +42,7 @@ class Vest extends Model
 	 * @return Vest[]
 	 * @throws ValidationException
 	 */
-	public static function getForSystem(string $system) : array {
+	public static function getForSystem(string $system): array {
 		return self::querySystem($system)->get();
 	}
 
@@ -40,9 +51,29 @@ class Vest extends Model
 	 *
 	 * @return ModelQuery<Vest>
 	 */
-	public static function querySystem(string $system) : ModelQuery {
+	public static function querySystem(string $system): ModelQuery {
 		/** @phpstan-ignore-next-line */
 		return self::query()->where('system = %s', $system);
+	}
+
+	/**
+	 * @param Arena $arena
+	 *
+	 * @return Vest[]
+	 * @throws ValidationException
+	 */
+	public static function getForArena(Arena $arena): array {
+		return self::queryArena($arena)->get();
+	}
+
+	/**
+	 * @param Arena $arena
+	 *
+	 * @return ModelQuery<Vest>
+	 */
+	public static function queryArena(Arena $arena): ModelQuery {
+		/** @phpstan-ignore-next-line */
+		return self::query()->where('id_arena = %s', $arena->id);
 	}
 
 	/**
@@ -50,28 +81,13 @@ class Vest extends Model
 	 *
 	 * @return int
 	 */
-	public static function getVestCount(string $system) : int {
+	public static function getVestCount(string $system): int {
 		return self::querySystem($system)->count();
 	}
 
-	public static function getGridCols(string $system) : int {
-		/* @phpstan-ignore-next-line */
-		return DB::select(self::TABLE, 'MAX(grid_col)')->where('system = %s', $system)->fetchSingle();
-	}
-
-	public static function getGridRows(string $system) : int {
-		/* @phpstan-ignore-next-line */
-		return DB::select(self::TABLE, 'MAX(grid_row)')->where('system = %s', $system)->fetchSingle();
-	}
-
-	/**
-	 * @param string $system
-	 *
-	 * @return object{cols:int,rows:int}|null
-	 */
-	public static function getGridDimensions(string $system) : ?object {
-		/* @phpstan-ignore-next-line */
-		return DB::select(self::TABLE, 'MAX([grid_col]) as [cols], MAX([grid_row]) as [rows]')->where('[system] = %s', $system)->fetch();
+	public function update(): bool {
+		$this->updatedAt = new DateTimeImmutable();
+		return parent::update();
 	}
 
 }
