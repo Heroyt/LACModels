@@ -9,6 +9,7 @@ use DateTimeInterface;
 use Dibi\Row;
 use InvalidArgumentException;
 use Lsr\Core\Caching\Cache;
+use Lsr\Core\Config;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -27,6 +28,9 @@ use Throwable;
  */
 class GameFactory implements FactoryInterface
 {
+
+	/** @var string[] */
+	private static array $supportedSystems;
 
 	/**
 	 * Get game by its unique code
@@ -109,7 +113,19 @@ class GameFactory implements FactoryInterface
 	 * @return string[]
 	 */
 	public static function getSupportedSystems() : array {
-		return require ROOT.'config/supportedSystems.php';
+		if (!isset(self::$supportedSystems)) {
+			/** @var Config $config */
+			$config = App::getServiceByType(Config::class);
+			/** @var string|null $systems */
+			$systems = $config->getConfig('ENV')['SUPPORTED_SYSTEMS'] ?? null;
+			if (!isset($systems)) {
+				// Default config
+				self::$supportedSystems = require ROOT . 'config/supportedSystems.php';
+				return self::$supportedSystems;
+			}
+			self::$supportedSystems = array_filter(array_map('trim', explode(';', $systems)));
+		}
+		return self::$supportedSystems;
 	}
 
 	/**
