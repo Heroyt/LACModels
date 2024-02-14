@@ -597,7 +597,15 @@ if (!class_exists(Game::class)) {
 			}
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
-			$cache->clean([CacheParent::Tags => ['games/counts']]);
+			$cache->clean(
+				[
+					CacheParent::Tags => [
+						'games/counts',
+						'arena/' . $this->arena?->id . '/games',
+						'arena/' . $this->arena?->id . '/games/' . $this->start?->format('Y-m-d'),
+					],
+				]
+			);
 			return parent::insert();
 		}
 
@@ -614,6 +622,7 @@ if (!class_exists(Game::class)) {
 						'games/' . $this::SYSTEM . '/' . $this->id,
 						'games/' . $this->start?->format('Y-m-d'),
 						'games/' . $this->code,
+						'arena/' . $this->arena?->id . '/games',
 						'arena/' . $this->arena?->id . '/games/' . $this->start?->format('Y-m-d'),
 					],
 				]
@@ -634,9 +643,7 @@ if (!class_exists(Game::class)) {
 		}
 
 		public function delete(): bool {
-			/** @var Cache $cache */
-			$cache = App::getService('cache');
-			$cache->clean([CacheParent::Tags => ['games/counts']]);
+			$this->clearCache();
 			return parent::delete();
 		}
 
