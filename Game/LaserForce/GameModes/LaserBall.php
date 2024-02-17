@@ -74,7 +74,7 @@ class LaserBall extends TeamDeathmach implements CustomEventsInterface
 				}
 				break;
 			case EventType::MODE_ACTION_6:
-				$event->game->rounds++;
+				$event->getGame()->rounds++;
 				break;
 			case EventType::MODE_ACTION_8:
 				$event->actor1->laserBall->ballGot++;

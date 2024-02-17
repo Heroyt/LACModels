@@ -49,7 +49,7 @@ class PlayerTrophy
 	public function __construct(
 		private readonly Player $player
 	) {
-		$this->solo = $player->getGame()->mode?->isSolo() ?? false;
+		$this->solo = $player->getGame()->getMode()?->isSolo() ?? false;
 		self::getFields(); // Initialize fields array
 	}
 
@@ -270,7 +270,10 @@ class PlayerTrophy
 			case 'team-50':
 				$this->checked[$name] = !$this->solo && $this->player->getTeam(
 					)?->score !== 0 && $this->player->getTeam(
-					)?->playerCount > 1 && ($this->player->score / $this->player->getTeam()->score) > 0.45;
+					)
+				                                                                              ?->getPlayerCount(
+				                                                                              ) > 1 && ($this->player->score / $this->player->getTeam(
+						)->score) > 0.45;
 				return $this->checked[$name];
 			case 'kd-1':
 				$this->checked[$name] = $this->player->deaths !== 0 && abs(

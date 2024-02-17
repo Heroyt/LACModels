@@ -9,13 +9,14 @@ use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\PlayerCollection;
 use App\GameModels\Game\Team;
-use Dibi\Row;
 use InvalidArgumentException;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
+use Lsr\Core\Models\Attributes\OneToMany;
+use Lsr\Core\Models\LoadingType;
 use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
@@ -34,15 +35,10 @@ trait WithPlayers
 	#[NoDB]
 	public string $playerClass;
 	/** @var PlayerCollection<P> */
-	#[Instantiate]
+	#[Instantiate, OneToMany(class: Player::class, loadingType: LoadingType::LAZY)]
 	public PlayerCollection $players;
 	/** @var PlayerCollection<P> */
 	protected PlayerCollection $playersSorted;
-
-	public function __construct(?int $id = null, ?Row $dbRow = null) {
-		parent::__construct($id, $dbRow);
-		$this->playerCount = $this->getPlayers()->count();
-	}
 
 	/**
 	 * @return PlayerCollection<P>
@@ -153,7 +149,7 @@ trait WithPlayers
 	}
 
 	/**
-	 * @return PlayerCollection<P>
+	 * @return PlayerCollection<P>|Player[]
 	 */
 	public function getPlayersSorted() : PlayerCollection {
 		if (!isset($this->playersSorted)) {

@@ -38,6 +38,7 @@ abstract class AbstractMode extends Model
 	#[StringLength(1, 20)]
 	#[OA\Property]
 	public string       $name        = '';
+	public string $alias    = '';
 	#[OA\Property]
 	public ?string      $description = '';
 	#[OA\Property]
@@ -49,6 +50,8 @@ abstract class AbstractMode extends Model
 	#[Instantiate]
 	#[OA\Property]
 	public ModeSettings $settings;
+	public bool   $rankable = true;
+	public bool   $active   = true;
 	/** @var GameModeVariationValue[][] */
 	private array $variations = [];
 
@@ -70,7 +73,7 @@ abstract class AbstractMode extends Model
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */
-	public function getWin(Game $game) : Player|Team|null {
+	public function getWin(Game $game): Player|Team|null {
 		if ($this->isTeam()) {
 			/** @var Team[]|TeamCollection $teams */
 			$teams = $game->getTeamsSorted();
@@ -86,16 +89,16 @@ abstract class AbstractMode extends Model
 		return $player;
 	}
 
-	public function isTeam() : bool {
+	public function isTeam(): bool {
 		return $this->type === GameModeType::TEAM;
 	}
 
-	public function recalculateScores(Game $game) : void {
+	public function recalculateScores(Game $game): void {
 		$this->recalculateScoresPlayers($game);
 		$this->recalculateScoresTeams($game);
 	}
 
-	protected function recalculateScoresPlayers(Game $game) : void {
+	protected function recalculateScoresPlayers(Game $game): void {
 		if (!isset($game->scoring)) {
 			return;
 		}
@@ -111,7 +114,7 @@ abstract class AbstractMode extends Model
 		}
 	}
 
-	protected function recalculateScoresTeams(Game $game) : void {
+	protected function recalculateScoresTeams(Game $game): void {
 		try {
 			/** @var Team $team */
 			foreach ($game->getTeams() as $team) {
@@ -125,7 +128,7 @@ abstract class AbstractMode extends Model
 		}
 	}
 
-	public function reorderGame(Game $game) : void {
+	public function reorderGame(Game $game): void {
 		// Reorder players
 		$players = $game->getPlayersSorted();
 		$i = 1;
@@ -144,14 +147,14 @@ abstract class AbstractMode extends Model
 	/**
 	 * @return class-string<AbstractMode>
 	 */
-	public function getSoloAlternative() : string {
+	public function getSoloAlternative(): string {
 		return $this::class;
 	}
 
 	/**
 	 * @return class-string<AbstractMode>
 	 */
-	public function getTeamAlternative() : string {
+	public function getTeamAlternative(): string {
 		return $this::class;
 	}
 
@@ -161,12 +164,12 @@ abstract class AbstractMode extends Model
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
 	 */
-	public function getVariations() : array {
+	public function getVariations(): array {
 		if (empty($this->variations)) {
 			$rows = DB::select(GameModeVariation::TABLE_VALUES, '[id_variation], [value], [suffix], [order]')
-								->where('[id_mode] = %i', $this->id)
-								->orderBy('[id_variation], [order]')
-								->fetchAssoc('id_variation|value');
+				->where('[id_mode] = %i', $this->id)
+				->orderBy('[id_variation], [order]')
+				->fetchAssoc('id_variation|value');
 			foreach ($rows as $variationId => $values) {
 				if (!isset($this->variations[$variationId])) {
 					$this->variations[$variationId] = [];
@@ -183,6 +186,10 @@ abstract class AbstractMode extends Model
 			}
 		}
 		return $this->variations;
+	}
+
+	public function getName(): string {
+		return empty($this->alias) ? $this->name : $this->alias;
 	}
 
 }

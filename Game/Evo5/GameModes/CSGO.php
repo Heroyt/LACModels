@@ -11,6 +11,7 @@ use App\GameModels\Game\Evo5\Team as Evo5Team;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
+use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\GameModels\Game\Team;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -26,7 +27,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class CSGO extends AbstractMode implements CustomResultsMode
 {
 
-	use Evo5Scores;
+	use LaserMaxxScores;
 
 
 	public string $name = 'CSGO';

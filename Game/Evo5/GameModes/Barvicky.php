@@ -8,6 +8,7 @@ namespace App\GameModels\Game\Evo5\GameModes;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomLoadMode;
+use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
@@ -19,7 +20,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class Barvicky extends AbstractMode implements CustomLoadMode
 {
 
-	use Evo5Scores;
+	use LaserMaxxScores;
 
 
 	public string $name = 'Barvičky';

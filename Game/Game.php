@@ -5,6 +5,7 @@
 
 namespace App\GameModels\Game;
 
+use App\Core\App;
 use App\Core\Collections\CollectionCompareFilter;
 use App\Core\Collections\Comparison;
 use App\Exceptions\GameModeNotFoundException;
@@ -12,7 +13,9 @@ use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\BonusCounts;
+use App\GameModels\Game\Evo5\Scoring;
 use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Traits\Expandable;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Models\Arena;
@@ -25,6 +28,7 @@ use DateTimeInterface;
 use DateTimeZone;
 use Dibi\Row;
 use Lsr\Core\App;
+use JsonException;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -34,6 +38,7 @@ use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Core\Models\LoadingType;
 use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
@@ -46,7 +51,9 @@ if (!class_exists(Game::class)) {
 	/**
 	 * Base class for game models
 	 *
-	 * @phpstan-consistent-constructor
+	 * @property LAC\Modules\Tables\Models\Table|null $table
+ * @property LAC\Modules\Tournament\Models\Game|null $tournamentGame
+ * @phpstan-consistent-constructor
 	 * @template T of Team
 	 * @template P of Player
 	 *
@@ -63,9 +70,13 @@ if (!class_exists(Game::class)) {
 
 		/** @phpstan-use WithTeams<T> */
 		use WithTeams;
+	use Expandable;
 
-		public const SYSTEM     = '';
+		public const SYSTEM = '';
 		public const CACHE_TAGS = ['games'];
+
+		public ?string $resultsFile = null;
+		public string  $modeName;
 
 		#[OA\Property]
 		public ?DateTimeInterface $fileTime   = null;
@@ -81,8 +92,8 @@ if (!class_exists(Game::class)) {
 		#[OA\Property]
 		public string             $code;
 
-		#[ManyToOne]
 		#[OA\Property]
+		#[ManyToOne(loadingType: LoadingType::LAZY)]
 		public ?AbstractMode $mode     = null;
 		#[OA\Property]
 		public GameModeType  $gameType = GameModeType::TEAM;
@@ -93,11 +104,11 @@ if (!class_exists(Game::class)) {
 		#[OA\Property]
 		public ?Arena        $arena    = null;
 
-		#[ManyToOne]
 		#[OA\Property]
+		#[ManyToOne(loadingType: LoadingType::LAZY)]
 		public ?MusicMode $music = null;
-		#[ManyToOne]
 		#[OA\Property]
+		#[ManyToOne(loadingType: LoadingType::LAZY)]
 		public ?GameGroup $group = null;
 
 		#[NoDB]
@@ -113,24 +124,7 @@ if (!class_exists(Game::class)) {
 		public function __construct(?int $id = null, ?Row $dbRow = null) {
 			$this->cacheTags[] = 'games/' . $this::SYSTEM;
 			parent::__construct($id, $dbRow);
-			$this->playerCount = $this->getPlayers()->count();
-			if (isset($this->id) && !isset($this->mode)) {
-				try {
-					$this->getMode();
-				} catch (GameModeNotFoundException) {
-				}
-			}
-		}
-
-		/**
-		 * @return AbstractMode|null
-		 * @throws GameModeNotFoundException
-		 */
-		public function getMode(): ?AbstractMode {
-			if (!isset($this->mode) && isset($this->modeName)) {
-				$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
-			}
-			return $this->mode;
+			$this->initExtensions();
 		}
 
 		/**
@@ -368,7 +362,7 @@ if (!class_exists(Game::class)) {
 			}
 
 			if (!isset($game->mode)) {
-				$game->mode = GameModeFactory::find($game->modeName, $game->gameType, $game::SYSTEM);
+				$game->getMode();
 			}
 
 			// Assign hits and teams
@@ -394,7 +388,38 @@ if (!class_exists(Game::class)) {
 			return $game;
 		}
 
-		public function isStarted(): bool {
+		/**
+	 * @return AbstractMode|null
+	 * @throws GameModeNotFoundException
+	 */
+	public function getMode(): ?AbstractMode {
+		if (!isset($this->mode)) {
+			if (isset($this->relationIds['mode'])) {
+				$this->mode = GameModeFactory::getById($this->relationIds['mode']);
+			}
+			else if (isset($this->modeName)) {
+				$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
+			}
+			else {
+				$this->mode = null;
+			}
+		}
+		return $this->mode;
+	}
+
+	public function getQueryData(): array {
+		$data = parent::getQueryData();
+		$this->extensionAddQueryData($data);
+		return $data;
+	}
+
+	public function fillFromRow(): void {
+		if (!isset($this->row)) {
+			return;
+		}
+		parent::fillFromRow();
+		$this->extensionFillFromRow();
+	}public function isStarted(): bool {
 			return $this->start !== null;
 		}
 
@@ -431,16 +456,16 @@ if (!class_exists(Game::class)) {
 		 */
 		public function getBestsFields(): array {
 			$fields = [
-				'hits'     => lang('Největší terminátor', context: 'results.bests'),
-				'deaths'   => lang('Objekt největšího zájmu', context: 'results.bests'),
-				'score'    => lang('Absolutní vítěz', context: 'results.bests'),
+				'hits'   => lang('Největší terminátor', context: 'results.bests'),
+				'deaths' => lang('Objekt největšího zájmu', context: 'results.bests'),
+				'score'  => lang('Absolutní vítěz', context: 'results.bests'),
 				'accuracy' => lang('Hráč s nejlepší muškou', context: 'results.bests'),
-				'shots'    => lang('Nejúspornější střelec', context: 'results.bests'),
-				'miss'     => lang('Největší mimoň', context: 'results.bests'),
+				'shots'  => lang('Nejúspornější střelec', context: 'results.bests'),
+				'miss'   => lang('Největší mimoň', context: 'results.bests'),
 			];
 			foreach ($fields as $key => $value) {
 				$settingName = Strings::toCamelCase('best_' . $key);
-				if (!($this->mode->settings->$settingName ?? true)) {
+				if (!($this->getMode()->settings->$settingName ?? true)) {
 					unset($fields[$key]);
 				}
 			}
@@ -469,11 +494,19 @@ if (!class_exists(Game::class)) {
 			$this->getTeams();
 			$this->getPlayers();
 			$data = parent::jsonSerialize();
+			$data['system'] = $this::SYSTEM;
 			$data['players'] = $this->getPlayers()->getAll();
+			$data['playerCount'] = $this->getPlayerCount();
 			$data['teams'] = $this->getTeams()->getAll();
-			$data['group'] = $this->group;
+			$data['group'] = $this->getGroup();
 			if (isset($data['tournamentGame'])) {
 				unset($data['tournamentGame']);
+			}
+			if (!isset($data['music'])) {
+				$data['music'] = $this->getMusic();
+			}
+			if (!isset($data['mode'])) {
+				$data['mode'] = $this->getMode();
 			}
 			if (!isset($data['mode'])) {
 				$data['mode'] = GameModeFactory::findByName(
@@ -532,8 +565,8 @@ if (!class_exists(Game::class)) {
 				}
 			}
 
-			if (isset($this->group)) {
-				$success = $success && $this->group->save();
+			if ($this->getGroup() !== null) {
+				$success = $success && $this->getGroup()->save();
 			}
 
 			if ($this->getTournamentGame() !== null) {
@@ -592,8 +625,8 @@ if (!class_exists(Game::class)) {
 		}
 
 		public function insert(): bool {
-			if (isset($this->group)) {
-				$this->group->clearCache();
+			if ($this->getGroup() !== null) {
+				$this->getGroup()->clearCache();
 			}
 			/** @var Cache $cache */
 			$cache = App::getService('cache');
@@ -628,8 +661,8 @@ if (!class_exists(Game::class)) {
 				]
 			);
 
-			if (isset($this->group)) {
-				$this->group->clearCache();
+			if ($this->getGroup() !== null) {
+				$this->getGroup()->clearCache();
 			}
 
 			// Invalidate generated results cache
@@ -678,16 +711,27 @@ if (!class_exists(Game::class)) {
 		}
 
 		public function recalculateScores(): void {
-			if (isset($this->mode)) {
-				$this->mode->recalculateScores($this);
+			if ($this->getMode() !== null) {
+				$this->getMode()->recalculateScores($this);
 				$this->reorder();
 			}
 		}
 
 		public function reorder(): void {
-			if (isset($this->mode)) {
-				$this->mode->reorderGame($this);
-			}
+			if ($this->getMode() !== null) {
+			$this->getMode()->reorderGame($this);
+		}
+		$this->runHook('reorder');
+	}
+
+	public function getGroup(): ?GameGroup {
+		$this->group ??= isset($this->relationIds['group']) ? GameGroup::get($this->relationIds['group']) : null;
+				return $this->group;
+	}
+
+	public function getMusic(): ?MusicMode {
+		$this->music ??= isset($this->relationIds['music']) ? MusicMode::get($this->relationIds['music']) : null;
+			return $this->music;
 		}
 
 		/**

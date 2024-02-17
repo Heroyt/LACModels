@@ -10,6 +10,8 @@ use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
+use Lsr\Core\Models\Attributes\OneToMany;
+use Lsr\Core\Models\LoadingType;
 use Lsr\Helpers\Tools\Timer;
 
 /**
@@ -18,12 +20,14 @@ use Lsr\Helpers\Tools\Timer;
 trait WithTeams
 {
 
+	private int $teamCount;
+
 	/** @var class-string<T> */
 	#[NoDB]
 	public string $teamClass;
 
 	/** @var TeamCollection<T> */
-	#[Instantiate]
+	#[Instantiate, OneToMany(class: Team::class, loadingType: LoadingType::LAZY)]
 	public TeamCollection $teams;
 	/** @var TeamCollection<T> */
 	protected TeamCollection $teamsSorted;
@@ -121,5 +125,12 @@ trait WithTeams
 		}
 		Timer::stop('game.save.teams');
 		return true;
+	}
+
+	public function getTeamCount(): int {
+		if (!isset($this->teamCount) || $this->teamCount < 1) {
+			$this->teamCount = $this->getTeams()->count();
+		}
+		return $this->teamCount;
 	}
 }

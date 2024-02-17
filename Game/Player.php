@@ -5,7 +5,9 @@
 
 namespace App\GameModels\Game;
 
+use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Factory\PlayerFactory;
+use App\GameModels\Traits\Expandable;
 use App\GameModels\Traits\WithGame;
 use App\Models\Auth\LigaPlayer as User;
 use App\Models\Tournament\Player as TournamentPlayer;
@@ -28,6 +30,8 @@ use Throwable;
 /**
  * Base class for player models
  *
+ * @property \LAC\Modules\Tournament\Models\Player|null $tournamentPlayer
+ *
  * @template G of Game
  * @template T of Team
  *
@@ -39,10 +43,12 @@ abstract class Player extends Model
 {
 	/** @phpstan-use WithGame<G> */
 	use WithGame;
+	use Expandable;
 
 	public const CACHE_TAGS = ['players'];
 	public const CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
 	public const SYSTEM     = '';
+	public const DI_TAG     = 'playerDataExtension';
 
 	#[Required]
 	#[StringLength(1, 15)]
@@ -62,7 +68,7 @@ abstract class Player extends Model
 
 	/** @var PlayerHit[] */
 	#[NoDB]
-	public array $hitPlayers = [];
+	public ?array $hitPlayers = [];
 
 	#[NoDB]
 	public int $teamNum = 0;
@@ -87,6 +93,8 @@ abstract class Player extends Model
 		$this->cacheTags[] = 'games/' . $this::SYSTEM;
 		$this->cacheTags[] = 'players/' . $this::SYSTEM;
 		parent::__construct($id, $dbRow);
+		$this->initExtensions();
+		$this->hitPlayers ??= [];
 	}
 
 	/**
@@ -105,11 +113,15 @@ abstract class Player extends Model
 			if (isset($test)) {
 				$this->id = $test;
 			}
-			if (!isset($this->relativeHits)) {
-				$this->getRelativeHits();
-			}
-			if (!isset($this->relativeDeaths)) {
-				$this->getRelativeDeaths();
+			try {
+				if (!isset($this->relativeHits)) {
+					$this->getRelativeHits();
+				}
+				if (!isset($this->relativeDeaths)) {
+					$this->getRelativeDeaths();
+				}
+			} catch (InsuficientRegressionDataException) {
+				// Ignore error -> Save
 			}
 		} catch (Throwable) {
 		}
@@ -119,7 +131,7 @@ abstract class Player extends Model
 		}
 
 		//$this->calculateSkill();
-		return parent::save();
+		return parent::save() && $this->extensionSave();
 	}
 
 	/**
@@ -160,9 +172,10 @@ abstract class Player extends Model
 	 * @throws Throwable
 	 */
 	public function getExpectedAverageHitCount(): float {
-		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->mode?->isSolo() ? 1 : $this->getTeam()?->getPlayerCount());
+		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->getMode()?->isSolo(
+			) ? 1 : $this->getTeam()?->getPlayerCount());
 		$teamPlayerCount = ($this->getTeam()?->getPlayerCount() ?? 1) - 1;
-		if ($this->getGame()->mode?->isTeam()) {
+		if ($this->getGame()->getMode()?->isTeam()) {
 			return (2.5771 * $enemyPlayerCount) + (2.48007 * $teamPlayerCount) + 36.76356;
 		}
 		return (2.05869 * $enemyPlayerCount) + 44.8715;
@@ -207,6 +220,38 @@ abstract class Player extends Model
 	}
 
 	/**
+	 * @return float
+	 * @throws Throwable
+	 */
+	public function getRelativeDeaths(): float {
+		if (!isset($this->relativeDeaths)) {
+			$expected = $this->getExpectedAverageDeathCount();
+			$diff = $this->deaths - $expected;
+			$this->relativeDeaths = 1 + ($diff / $expected);
+		}
+		return $this->relativeDeaths;
+	}
+
+	/**
+	 * Get the expected number of deaths based on enemy and teammate count for this player.
+	 *
+	 * We used regression to calculate the best model to describe the best model to predict the average number of hits based on the player's enemy and teammate count.
+	 * We can easily calculate the expected average deaths count for each player based on our findings.
+	 *
+	 * @return float
+	 * @throws Throwable
+	 */
+	public function getExpectedAverageDeathCount(): float {
+		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->getMode()?->isSolo(
+			) ? 1 : $this->getTeam()?->getPlayerCount());
+		$teamPlayerCount = ($this->getTeam()?->getPlayerCount() ?? 1) - 1;
+		if ($this->getGame()->getMode()?->isTeam()) {
+			return (2.730673 * $enemyPlayerCount) + (-0.0566788 * $teamPlayerCount) + 43.203734389;
+		}
+		return (4.01628957539 * $enemyPlayerCount) - 15.0000175286;
+	}
+
+	/**
 	 * Calculate a skill level based on the player's results
 	 *
 	 * The skill value aims to better evaluate the player's play style than the regular score value.
@@ -237,8 +282,8 @@ abstract class Player extends Model
 	public function instantiateProperties(): void {
 		parent::instantiateProperties();
 
-		// Set the teamNum and color property
-		$this->teamNum = $this->getTeamColor();
+		$playerCount = $this->getGame()->getPlayerCount();
+		return 200.0 * ($playerCount - $pos) / $playerCount;
 	}
 
 	/**
@@ -247,7 +292,9 @@ abstract class Player extends Model
 	 */
 	public function getTeamColor(): int {
 		if (empty($this->color)) {
-			$this->color = (isset($this->game) && $this->getGame()->mode?->isSolo() ? 2 : $this->getTeam()?->color) ?? 2;
+			$this->color = ($this->getGame() !== null && $this->getGame()->getMode()?->isSolo() ?
+				2 :
+				$this->getTeam()?->color) ?? 2;
 		}
 		return $this->color;
 	}
@@ -271,6 +318,12 @@ abstract class Player extends Model
 		} catch (Exception) {
 			return false;
 		}
+	}
+
+	public function getQueryData(): array {
+		$data = parent::getQueryData();
+		$this->extensionAddQueryData($data);
+		return $data;
 	}
 
 	/**
@@ -373,7 +426,7 @@ abstract class Player extends Model
 	 */
 	public function addHits(Player $player, int $count = 1): static {
 		/** @var PlayerHit $className */
-		$className = str_replace('Player', 'PlayerHit', get_class($this));
+		$className = str_replace('Player', 'PlayerHit', $this::class);
 		if (isset($this->hitPlayers[$player->vest])) {
 			$this->hitPlayers[$player->vest]->count += $count;
 			return $this;
@@ -429,6 +482,12 @@ abstract class Player extends Model
 	 */
 	public function jsonSerialize(): array {
 		$data = parent::jsonSerialize();
+		if (isset($data['data'])) {
+			unset($data['data']);
+		}
+		if (isset($data['hooks'])) {
+			unset($data['hooks']);
+		}
 		$data['user'] = $this->user?->id;
 		if (isset($this->user)) {
 			$data['code'] = $this->user->getCode();
@@ -440,6 +499,7 @@ abstract class Player extends Model
 		}
 		$data['hitPlayers'] = $this->getHitsPlayers();
 		$data['avgSkill'] = $this->getSkill();
+		$this->extensionJson($data);
 		return $data;
 	}
 
@@ -449,11 +509,11 @@ abstract class Player extends Model
 	 * @return int
 	 */
 	public function getSkill(): int {
-		if (!isset($this->getGame()->group)) {
+		if ($this->getGame()->getGroup() === null) {
 			return $this->skill;
 		}
 		try {
-			$players = $this->getGame()->group->getPlayers();
+			$players = $this->getGame()->getGroup()->getPlayers();
 			$name = Strings::toAscii($this->name);
 			if (isset($players[$name])) {
 				return $players[$name]->getSkill();
@@ -488,8 +548,16 @@ abstract class Player extends Model
 			return null;
 		}
 		return DB::select('player_game_rating', '[difference]')
-		         ->where('[id_user] = %i AND [code] = %s', $this->user->id, $this->getGame()->code)
-		         ->fetchSingle(false);
+		         ->where('[id_user] = %i AND [code] = %s', $this->user->id, $this->getGame()->code
+		         )->fetchSingle(false);
+	}
+
+	public function fillFromRow(): void {
+		if (!isset($this->row)) {
+			return;
+		}
+		parent::fillFromRow();
+		$this->extensionFillFromRow();
 	}
 
 	public function getRankDifferenceInfo(): ?array {

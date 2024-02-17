@@ -5,6 +5,7 @@ namespace App\GameModels\Traits;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
 use Lsr\Core\Models\Attributes\ManyToOne;
+use Lsr\Core\Models\LoadingType;
 use RuntimeException;
 use Throwable;
 
@@ -15,7 +16,7 @@ trait WithGame
 {
 
 	/** @var G */
-	#[ManyToOne]
+	#[ManyToOne(loadingType: LoadingType::LAZY)]
 	public Game $game;
 
 	/**
@@ -24,8 +25,9 @@ trait WithGame
 	 */
 	public function getGame() : Game {
 		if (!isset($this->game)) {
-			if (isset($this->row->id_game)) {
-				$this->game = GameFactory::getById($this->row->id_game, ['system' => $this::SYSTEM]);
+			$gameId = $this->row?->id_game ?? $this->relationIds['game'];
+			if (isset($gameId)) {
+				$this->game = GameFactory::getById($gameId, ['system' => $this::SYSTEM]);
 				return $this->game;
 			}
 			throw new RuntimeException('Model has no game assigned');

@@ -7,6 +7,7 @@ namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\GameModes\CustomResultsMode;
+use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\PrimaryKey;
@@ -19,7 +20,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class M100Naboju extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode
 {
 
-	use Evo5Scores;
+	use LaserMaxxScores;
 
 
 	public string $name = '100 nábojů';

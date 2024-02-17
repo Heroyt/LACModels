@@ -2,7 +2,8 @@
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
-namespace App\GameModels\Game;
+
+namespace App\GameModels\Game\Evo5;
 
 use Dibi\Row;
 use Lsr\Core\Models\Interfaces\InsertExtendInterface;

@@ -13,6 +13,8 @@ use App\GameModels\Game\Query\TeamQuery;
  *
  * @template T of Team
  *
+ * @property T[] $data
+ *
  * @extends AbstractCollection<T>
  */
 class TeamCollection extends AbstractCollection
