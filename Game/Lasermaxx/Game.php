@@ -104,7 +104,12 @@ abstract class Game extends \App\GameModels\Game\Game
 			$this->minesOn = false;
 			/** @var Player $player */
 			foreach ($this->getPlayers() as $player) {
-				if ($player->minesHits !== 0 || $player->scoreMines !== 0 || $player->bonus->getSum() > 0) {
+				if (
+					$player->minesHits !== 0 ||
+					$player->scoreMines !== 0 ||
+					(property_exists($player, 'bonuses') && $player->bonuses > 0) ||
+					(property_exists($player, 'bonus') && $player->bonus->getSum() > 0)
+				) {
 					$this->minesOn = true;
 					break;
 				}
