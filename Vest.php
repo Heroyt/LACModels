@@ -9,8 +9,6 @@ use App\GameModels\Game\Enums\VestStatus;
 use DateTimeImmutable;
 use DateTimeInterface;
 use App\Models\Arena;
-use DateTimeImmutable;
-use DateTimeInterface;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\ManyToOne;
 use Lsr\Core\Models\Attributes\PrimaryKey;
@@ -85,11 +83,6 @@ class Vest extends Model
 	 */
 	public static function getVestCount(string $system): int {
 		return self::querySystem($system)->count();
-	}
-
-	public function update(): bool {
-		$this->updatedAt = new DateTimeImmutable();
-		return parent::update();
 	}
 
 	public function update(): bool {

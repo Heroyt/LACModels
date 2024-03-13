@@ -5,9 +5,10 @@
 
 namespace App\GameModels\Game;
 
+use App\Exceptions\GameModeNotFoundException;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Throwable;
 
 /**
  * A trophy (achievement) which a player can obtain
@@ -46,9 +47,13 @@ class PlayerTrophy
 	/** @var array<string,bool> */
 	private array $checked = [];
 
-	public function __construct(
-		private readonly Player $player
-	) {
+	/**
+	 * @param Player $player
+	 *
+	 * @throws Throwable
+	 * @throws GameModeNotFoundException
+	 */
+	public function __construct(private readonly Player $player) {
 		$this->solo = $player->getGame()->getMode()?->isSolo() ?? false;
 		self::getFields(); // Initialize fields array
 	}
@@ -58,7 +63,7 @@ class PlayerTrophy
 	 *
 	 * @return array{name:string,description:string,icon:string}[]
 	 */
-	public static function getFields() : array {
+	public static function getFields(): array {
 		if (empty(self::$fields)) {
 			self::$fields = [
 				'score'             => [
@@ -68,12 +73,18 @@ class PlayerTrophy
 				],
 				'hits'              => [
 					'name'        => lang('Největší terminátor', context: 'results.bests'),
-					'description' => lang('Staň se hráčem s největším počtem zásahů.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Staň se hráčem s největším počtem zásahů.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'predator',
 				],
 				'deaths'            => [
 					'name'        => lang('Objekt největšího zájmu', context: 'results.bests'),
-					'description' => lang('Staň se hráčem s největším počtem smrtí.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Staň se hráčem s největším počtem smrtí.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'skull',
 				],
 				'accuracy'          => [
@@ -83,22 +94,34 @@ class PlayerTrophy
 				],
 				'shots'             => [
 					'name'        => lang('Nejúspornější střelec', context: 'results.bests'),
-					'description' => lang('Staň se hráčem s nejméně výstřely z celé hry.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Staň se hráčem s nejméně výstřely z celé hry.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'bullet',
 				],
 				'miss'              => [
 					'name'        => lang('Největší mimoň', context: 'results.bests'),
-					'description' => lang('Staň se hráčem, který se nejvícekrát netrefil.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Staň se hráčem, který se nejvícekrát netrefil.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'bullets',
 				],
 				'hitsOwn'           => [
 					'name'        => lang('Zabiják vlastního týmu', context: 'results.bests'),
-					'description' => lang('Staň se hrářem, který nejvíckát zasáhnul spoluhráče.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Staň se hrářem, který nejvíckát zasáhnul spoluhráče.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'kill',
 				],
 				'deathsOwn'         => [
 					'name'        => lang('Největší vlastňák', context: 'results.bests'),
-					'description' => lang('Staň se hráčem, kterého nejvíckrát trefili spoluhráči.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Staň se hráčem, kterého nejvíckrát trefili spoluhráči.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'skull',
 				],
 				'mines'             => [
@@ -133,12 +156,18 @@ class PlayerTrophy
 				],
 				'kd-2'              => [
 					'name'        => lang('Zabiják', context: 'results.bests'),
-					'description' => lang('Měj alespoň 2x tolik zásahů co smrtí.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Měj alespoň 2x tolik zásahů co smrtí.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'kill',
 				],
 				'kd-0-5'            => [
 					'name'        => lang('Terč', context: 'results.bests'),
-					'description' => lang('Měl alespoň přibližně 2x tolik smrtí co zásahů.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Měl alespoň přibližně 2x tolik smrtí co zásahů.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'dead',
 				],
 				'zero'              => [
@@ -148,17 +177,26 @@ class PlayerTrophy
 				],
 				'team-50'           => [
 					'name'        => lang('Tahoun týmu', context: 'results.bests'),
-					'description' => lang('Získej alespoň přibližně polovinu skóre celého tvého týmu.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Získej alespoň přibližně polovinu skóre celého tvého týmu.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'star',
 				],
 				'favouriteTarget'   => [
 					'name'        => lang('Zasedlý', context: 'results.bests'),
-					'description' => lang('Alespoň přibližně polovina všech tvých zásahů je jen jeden hráč.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Alespoň přibližně polovina všech tvých zásahů je jen jeden hráč.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'death',
 				],
 				'favouriteTargetOf' => [
 					'name'        => lang('Pronásledovaný', context: 'results.bests'),
-					'description' => lang('Alespoň přibližně polovina všech tvých smrtí je jen jeden hráč.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Alespoň přibližně polovina všech tvých smrtí je jen jeden hráč.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'death',
 				],
 				'devil'             => [
@@ -178,12 +216,18 @@ class PlayerTrophy
 				],
 				'fair'              => [
 					'name'        => lang('Férový hráč', context: 'results.bests'),
-					'description' => lang('Zasáhni všechny své nepřátele stejněkrát (přibližně).', context: 'results.bests.description'),
+					'description' => lang(
+						         'Zasáhni všechny své nepřátele stejněkrát (přibližně).',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'balance',
 				],
 				'average'           => [
 					'name'        => lang('Hráč', context: 'results.bests'),
-					'description' => lang('Průměrný hráč. Bohužel na tebe nesedí žádná z trofejí.', context: 'results.bests.description'),
+					'description' => lang(
+						         'Průměrný hráč. Bohužel na tebe nesedí žádná z trofejí.',
+						context: 'results.bests.description'
+					),
 					'icon'        => 'Vesta',
 				],
 			];
@@ -197,11 +241,11 @@ class PlayerTrophy
 	 * Trophies are checked in hierarchical order.
 	 *
 	 * @return array{name:string,description:string,icon:string}
-	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
+	 * @throws Throwable
 	 * @throws ValidationException
 	 */
-	public function getOne() : array {
+	public function getOne(): array {
 		// Special
 		foreach (self::SPECIAL_TROPHIES as $name) {
 			if ($this->check($name)) {
@@ -237,7 +281,7 @@ class PlayerTrophy
 	 * @return bool
 	 * @throws ModelNotFoundException
 	 * @throws ValidationException
-	 * @throws DirectoryCreationException
+	 * @throws Throwable
 	 */
 	public function check(string $name): bool {
 		if (isset($this->checked[$name])) {
@@ -269,11 +313,8 @@ class PlayerTrophy
 				return $this->checked[$name];
 			case 'team-50':
 				$this->checked[$name] = !$this->solo && $this->player->getTeam(
-					)?->score !== 0 && $this->player->getTeam(
-					)
-				                                                                              ?->getPlayerCount(
-				                                                                              ) > 1 && ($this->player->score / $this->player->getTeam(
-						)->score) > 0.45;
+					)?->score !== 0 && $this->player->getTeam()?->getPlayerCount(
+						) > 1 && ($this->player->score / $this->player->getTeam()->score) > 0.45;
 				return $this->checked[$name];
 			case 'kd-1':
 				$this->checked[$name] = $this->player->deaths !== 0 && abs(
@@ -338,11 +379,11 @@ class PlayerTrophy
 
 	/**
 	 * @return array{name:string,description:string,icon:string}[]
-	 * @throws DirectoryCreationException
 	 * @throws ModelNotFoundException
+	 * @throws Throwable
 	 * @throws ValidationException
 	 */
-	public function getAll() : array {
+	public function getAll(): array {
 		$fields = [];
 		foreach ($this::getFields() as $name => $field) {
 			if ($name === 'average') {

@@ -14,6 +14,7 @@ use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
+use OpenApi\Attributes as OA;
 
 /**
  * LaserMaxx Evo5 game model
@@ -31,8 +32,9 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game
 	#[NoDB]
 	public string  $playerClass = Player::class;
 	#[NoDB]
-	public string  $teamClass   = Team::class;
+	public string   $teamClass   = Team::class;
 	#[Instantiate]
+	#[OA\Property]
 	public Scoring $scoring;
 
 	public function getMode(): ?AbstractMode {

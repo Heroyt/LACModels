@@ -5,11 +5,8 @@
 
 namespace App\GameModels\Game\Evo5;
 
-use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Game\Game as BaseGame;
-use App\GameModels\Tools\Evo5\RegressionStatCalculator;
-use App\Services\Maths\RegressionCalculator;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\ManyToOne;

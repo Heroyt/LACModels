@@ -168,34 +168,30 @@ class PlayerFactory implements FactoryInterface
 								$addFields .= ', [p' . $key . '].[' . $field['first'] . ']' . $field['operation'] . '[p' . $key . '].[' . $field['second'] . ']';
 							}
 						}
-						else {
-							if (isset($field['aggregate']) && is_string($name)) {
-								switch (strtolower($field['aggregate'])) {
-									case 'sum':
-										$addFields .= ', SUM([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-									case 'avg':
-										$addFields .= ', AVG([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-									case 'max':
-										$addFields .= ', MAX([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-									case 'min':
-										$addFields .= ', MIN([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-								}
+						else if (isset($field['aggregate']) && is_string($name)) {
+							switch (strtolower($field['aggregate'])) {
+								case 'sum':
+									$addFields .= ', SUM([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
+								case 'avg':
+									$addFields .= ', AVG([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
+								case 'max':
+									$addFields .= ', MAX([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
+								case 'min':
+									$addFields .= ', MIN([p' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
 							}
 						}
 					}
+					else if (is_string($name)) {
+						// Allows setting alias
+						$addFields .= ', [p'.$key.'].['.$name.'] as ['.$field.']';
+					}
 					else {
-						if (is_string($name)) {
-							// Allows setting alias
-							$addFields .= ', [p'.$key.'].['.$name.'] as ['.$field.']';
-						}
-						else {
-							// No alias
-							$addFields .= ', [p'.$key.'].['.$field.']';
-						}
+						// No alias
+						$addFields .= ', [p'.$key.'].['.$field.']';
 					}
 				}
 			}
@@ -216,34 +212,30 @@ class PlayerFactory implements FactoryInterface
 								$addFields .= ', [g' . $key . '].[' . $field['first'] . ']' . $field['operation'] . '[g' . $key . '].[' . $field['second'] . ']';
 							}
 						}
-						else {
-							if (isset($field['aggregate']) && is_string($name)) {
-								switch (strtolower($field['aggregate'])) {
-									case 'sum':
-										$addFields .= ', SUM([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-									case 'avg':
-										$addFields .= ', AVG([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-									case 'max':
-										$addFields .= ', MAX([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-									case 'min':
-										$addFields .= ', MIN([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-								}
+						else if (isset($field['aggregate']) && is_string($name)) {
+							switch (strtolower($field['aggregate'])) {
+								case 'sum':
+									$addFields .= ', SUM([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
+								case 'avg':
+									$addFields .= ', AVG([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
+								case 'max':
+									$addFields .= ', MAX([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
+								case 'min':
+									$addFields .= ', MIN([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
 							}
 						}
 					}
+					else if (is_string($name)) {
+						// Allows setting alias
+						$addFields .= ', [g'.$key.'].['.$name.'] as ['.$field.']';
+					}
 					else {
-						if (is_string($name)) {
-							// Allows setting alias
-							$addFields .= ', [g'.$key.'].['.$name.'] as ['.$field.']';
-						}
-						else {
-							// No alias
-							$addFields .= ', [g'.$key.'].['.$field.']';
-						}
+						// No alias
+						$addFields .= ', [g'.$key.'].['.$field.']';
 					}
 				}
 			}
@@ -263,15 +255,13 @@ class PlayerFactory implements FactoryInterface
 							$addFields .= ', [m'.$key.'].['.$field['first'].']'.$field['operation'].'[m'.$key.'].['.$field['second'].']';
 						}
 					}
+					else if (is_string($name)) {
+						// Allows setting alias
+						$addFields .= ', [m'.$key.'].['.$name.'] as ['.$field.']';
+					}
 					else {
-						if (is_string($name)) {
-							// Allows setting alias
-							$addFields .= ', [m'.$key.'].['.$name.'] as ['.$field.']';
-						}
-						else {
-							// No alias
-							$addFields .= ', [m'.$key.'].['.$field.']';
-						}
+						// No alias
+						$addFields .= ', [m'.$key.'].['.$field.']';
 					}
 				}
 			}
@@ -365,34 +355,30 @@ class PlayerFactory implements FactoryInterface
 								$addFields .= ', [g' . $key . '].[' . $field['first'] . ']' . $field['operation'] . '[g' . $key . '].[' . $field['second'] . ']';
 							}
 						}
-						else {
-							if (isset($field['aggregate']) && is_string($name)) {
-								switch (strtolower($field['aggregate'])) {
-									case 'sum':
-										$addFields .= ', SUM([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-									case 'avg':
-										$addFields .= ', AVG([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-									case 'max':
-										$addFields .= ', MAX([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-									case 'min':
-										$addFields .= ', MIN([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
-										break;
-								}
+						else if (isset($field['aggregate']) && is_string($name)) {
+							switch (strtolower($field['aggregate'])) {
+								case 'sum':
+									$addFields .= ', SUM([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
+								case 'avg':
+									$addFields .= ', AVG([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
+								case 'max':
+									$addFields .= ', MAX([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
+								case 'min':
+									$addFields .= ', MIN([g' . $key . '].[' . $field['first'] . ']) as [' . $name . ']';
+									break;
 							}
 						}
 					}
+					else if (is_string($name)) {
+						// Allows setting alias
+						$addFields .= ', [g' . $key . '].[' . $name . '] as [' . $field . ']';
+					}
 					else {
-						if (is_string($name)) {
-							// Allows setting alias
-							$addFields .= ', [g' . $key . '].[' . $name . '] as [' . $field . ']';
-						}
-						else {
-							// No alias
-							$addFields .= ', [g' . $key . '].[' . $field . ']';
-						}
+						// No alias
+						$addFields .= ', [g' . $key . '].[' . $field . ']';
 					}
 				}
 			}

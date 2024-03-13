@@ -116,7 +116,6 @@ class GameModeFactory implements FactoryInterface
 			$modeName
 		)->fetch();
 		if (isset($mode->system)) {
-			/** @noinspection CallableParameterUseCaseInTypeContextInspection */
 			$system = $mode->system;
 		}
 		return self::findModeObject($system, $mode, $modeType);
@@ -134,7 +133,6 @@ class GameModeFactory implements FactoryInterface
 		/** @var Row|null $mode */
 		$mode = DB::select('vModesNames', 'id_mode, name, system')->where('[name] = %s', $modeName)->fetch();
 		if (isset($mode->system)) {
-			/** @noinspection CallableParameterUseCaseInTypeContextInspection */
 			$system = $mode->system;
 		}
 		return self::findModeObject($system, $mode, $modeType);

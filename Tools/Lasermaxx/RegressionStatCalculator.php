@@ -29,13 +29,14 @@ class RegressionStatCalculator
 	 *
 	 * @param GameModeType      $type
 	 * @param AbstractMode|null $mode
+	 * @param int               $teamCount
 	 *
 	 * @return numeric[]
 	 * @throws InsuficientRegressionDataException
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function getDeathsModel(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ($this->arena?->id ?? '') . 'deathModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+		$infoKey = ((string) ($this->arena?->id ?? '')) . 'deathModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 
 		/** @var numeric[]|null $model */
 		$model = Info::get($infoKey);
@@ -53,6 +54,7 @@ class RegressionStatCalculator
 	/**
 	 * @param GameModeType      $type
 	 * @param AbstractMode|null $mode
+	 * @param int               $teamCount
 	 *
 	 * @return numeric[]
 	 * @throws InsuficientRegressionDataException

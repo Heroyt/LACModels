@@ -34,7 +34,6 @@ class BonusCounts implements InsertExtendInterface
 	 */
 	public static function parseRow(Row $row) : static {
 		/**
-		 * @noinspection ProperNullCoalescingOperatorUsageInspection
 		 * @phpstan-ignore-next-line
 		 */
 		return new self(

@@ -2,7 +2,7 @@
 
 namespace App\GameModels\Factory;
 
-use App\Core\App;
+use Lsr\Core\App;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;

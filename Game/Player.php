@@ -5,14 +5,15 @@
 
 namespace App\GameModels\Game;
 
+use App\Exceptions\GameModeNotFoundException;
 use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Factory\PlayerFactory;
-use App\GameModels\Traits\Expandable;
 use App\GameModels\Traits\WithGame;
 use App\Models\Auth\LigaPlayer as User;
 use App\Models\Tournament\Player as TournamentPlayer;
 use Dibi\Exception;
 use Dibi\Row;
+use JsonException;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -30,8 +31,6 @@ use Throwable;
 /**
  * Base class for player models
  *
- * @property \LAC\Modules\Tournament\Models\Player|null $tournamentPlayer
- *
  * @template G of Game
  * @template T of Team
  *
@@ -43,12 +42,11 @@ abstract class Player extends Model
 {
 	/** @phpstan-use WithGame<G> */
 	use WithGame;
-	use Expandable;
 
-	public const CACHE_TAGS = ['players'];
+	public const CACHE_TAGS    = ['players'];
 	public const CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
-	public const SYSTEM     = '';
-	public const DI_TAG     = 'playerDataExtension';
+	public const SYSTEM        = '';
+	public const DI_TAG        = 'playerDataExtension';
 
 	#[Required]
 	#[StringLength(1, 15)]
@@ -75,25 +73,24 @@ abstract class Player extends Model
 
 	/** @var T|null */
 	#[ManyToOne(foreignKey: 'id_team')]
-	public ?Team $team = null;
+	public ?Team             $team             = null;
 	#[ManyToOne]
-	public ?User $user = null;
+	public ?User             $user             = null;
 	#[ManyToOne('id_player', 'id_tournament_player')]
 	public ?TournamentPlayer $tournamentPlayer = null;
-	public ?float $relativeHits = null;
-	public ?float $relativeDeaths = null;
-	protected int $color = 0;
+	public ?float            $relativeHits     = null;
+	public ?float            $relativeDeaths   = null;
+	protected int            $color            = 0;
 	/** @var Player<G,T>|null */
 	protected ?Player $favouriteTarget = null;
 	/** @var Player<G,T>|null */
-	protected ?Player $favouriteTargetOf = null;
+	protected ?Player      $favouriteTargetOf = null;
 	protected PlayerTrophy $trophy;
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
 		$this->cacheTags[] = 'games/' . $this::SYSTEM;
 		$this->cacheTags[] = 'players/' . $this::SYSTEM;
 		parent::__construct($id, $dbRow);
-		$this->initExtensions();
 		$this->hitPlayers ??= [];
 	}
 
@@ -131,7 +128,7 @@ abstract class Player extends Model
 		}
 
 		//$this->calculateSkill();
-		return parent::save() && $this->extensionSave();
+		return parent::save();
 	}
 
 	/**
@@ -145,19 +142,6 @@ abstract class Player extends Model
 			$this->relativeHits = 1 + ($diff / $expected);
 		}
 		return $this->relativeHits;
-	}
-
-	/**
-	 * @return float
-	 * @throws Throwable
-	 */
-	public function getRelativeDeaths(): float {
-		if (!isset($this->relativeDeaths)) {
-			$expected = $this->getExpectedAverageDeathCount();
-			$diff = $this->deaths - $expected;
-			$this->relativeDeaths = 1 + ($diff / $expected);
-		}
-		return $this->relativeDeaths;
 	}
 
 	/**
@@ -179,25 +163,6 @@ abstract class Player extends Model
 			return (2.5771 * $enemyPlayerCount) + (2.48007 * $teamPlayerCount) + 36.76356;
 		}
 		return (2.05869 * $enemyPlayerCount) + 44.8715;
-	}
-
-	/**
-	 * Get the expected number of deaths based on enemy and teammate count for this player.
-	 *
-	 * We used regression to calculate the best model to describe the best model to predict the average number of hits
-	 * based on the player's enemy and teammate count. We can easily calculate the expected average deaths count for each
-	 * player based on our findings.
-	 *
-	 * @return float
-	 * @throws Throwable
-	 */
-	public function getExpectedAverageDeathCount(): float {
-		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->mode?->isSolo() ? 1 : $this->getTeam()?->getPlayerCount());
-		$teamPlayerCount = ($this->getTeam()?->getPlayerCount() ?? 1) - 1;
-		if ($this->getGame()->mode?->isTeam()) {
-			return (2.730673 * $enemyPlayerCount) + (-0.0566788 * $teamPlayerCount) + 43.203734389;
-		}
-		return (4.01628957539 * $enemyPlayerCount) - 15.0000175286;
 	}
 
 	/**
@@ -235,15 +200,15 @@ abstract class Player extends Model
 	/**
 	 * Get the expected number of deaths based on enemy and teammate count for this player.
 	 *
-	 * We used regression to calculate the best model to describe the best model to predict the average number of hits based on the player's enemy and teammate count.
-	 * We can easily calculate the expected average deaths count for each player based on our findings.
+	 * We used regression to calculate the best model to describe the best model to predict the average number of hits
+	 * based on the player's enemy and teammate count. We can easily calculate the expected average deaths count for each
+	 * player based on our findings.
 	 *
 	 * @return float
 	 * @throws Throwable
 	 */
 	public function getExpectedAverageDeathCount(): float {
-		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->getMode()?->isSolo(
-			) ? 1 : $this->getTeam()?->getPlayerCount());
+		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->getMode()?->isSolo() ? 1 : $this->getTeam()?->getPlayerCount());
 		$teamPlayerCount = ($this->getTeam()?->getPlayerCount() ?? 1) - 1;
 		if ($this->getGame()->getMode()?->isTeam()) {
 			return (2.730673 * $enemyPlayerCount) + (-0.0566788 * $teamPlayerCount) + 43.203734389;
@@ -271,16 +236,127 @@ abstract class Player extends Model
 		return $this->skill;
 	}
 
+	/**
+	 * Calculate the base, not rounded skill level
+	 *
+	 * @return float
+	 * @throws Throwable
+	 */
+	protected function calculateBaseSkill(): float {
+		$skill = 0.0;
+
+		// Add points for hits - average hits <=> 300 points
+		$skill += ($hitsSkill = $this->calculateSkillForHits());
+
+		// Add points for K:D - average K:D <=> 130 points
+		$skill += ($kdSkill = $this->calculateSkillFromKD());
+
+		// Add points for accuracy - 100% accuracy <=> 500 points
+		$skill += ($accuracySkill = $this->calculateSkillFromAccuracy());
+
+		// Add points for position - 100th percentile <=> 200 points
+		$skill += ($positionSkill = $this->calculateSkillFromPosition());
+
+		if (isset($_GET['detail'])) {
+			echo json_encode([
+				                 'player' => $this->name,
+				                 'skills' => [
+					                 'hits'     => $hitsSkill,
+					                 'kd'       => $kdSkill,
+					                 'accuracy' => $accuracySkill,
+					                 'position' => $positionSkill,
+				                 ],
+				                 'sum'    => $skill,
+			                 ],
+			                 JSON_THROW_ON_ERROR) . PHP_EOL;
+		}
+
+
+		return $skill;
+	}
+
+	/**
+	 * @return float
+	 * @throws Throwable
+	 */
+	protected function calculateSkillForHits(): float {
+		$expectedAverageHits = $this->getExpectedAverageHitCount();
+		$hitsDiff = $this->hits - $expectedAverageHits;
+
+		if (isset($_GET['detail'])) {
+			echo json_encode([
+				                 'player'        => $this->name,
+				                 'expected_hits' => $expectedAverageHits,
+				                 'hits'          => $this->hits,
+				                 'diff'          => $hitsDiff,
+				                 'teamCount'     => $this->getGame()->getTeams()->count(),
+			                 ],
+			                 JSON_THROW_ON_ERROR) . PHP_EOL;
+		}
+
+		// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
+		$hitsDiffPercent = 1 + ($hitsDiff / $expectedAverageHits);
+
+		// Completely average game should acquire at least 300 points
+		return $hitsDiffPercent * 200;
+	}
+
+	/**
+	 * @return float
+	 * @throws Throwable
+	 */
+	protected function calculateSkillFromKD(): float {
+		$kd = $this->getKd();
+		$skill = 0.0;
+		if ($kd >= 1) {
+			$skill += $kd * 50;
+		}
+		else if ($kd !== 0.0) {
+			$skill -= (1 / $kd) * 5;
+		}
+
+		// Add points for deviation from an average K:D
+		$averageKd = $this->getGame()->getAverageKd();
+		if ($averageKd === 0.0) {
+			$averageKd = 1.0;
+		}
+		$kdDiff = 1 + (($kd - $averageKd) / $averageKd); // $average K:D should never be 0 if any hits were fired
+		$skill += $kdDiff * 80;
+
+		return $skill;
+	}
+
 	public function getKd(): float {
 		return $this->hits / ($this->deaths === 0 ? 1 : $this->deaths);
 	}
 
 	/**
-	 * @return void
+	 * @return float
+	 */
+	protected function calculateSkillFromAccuracy(): float {
+		return 500 * ($this->accuracy / 100);
+	}
+
+
+	/**
+	 * @return float
 	 * @throws Throwable
 	 */
-	public function instantiateProperties(): void {
-		parent::instantiateProperties();
+	protected function calculateSkillFromPosition(): float {
+		$pos = 0;
+		$realPos = 0;
+		$prevScore = null;
+		/** @var Player $player */
+		foreach ($this->getGame()->getPlayersSorted() as $player) {
+			if ($player->vest === $this->vest) {
+				break;
+			}
+			$realPos++;
+			if ($prevScore !== $player->score) {
+				$prevScore = $player->score;
+				$pos = $realPos;
+			}
+		}
 
 		$playerCount = $this->getGame()->getPlayerCount();
 		return 200.0 * ($playerCount - $pos) / $playerCount;
@@ -292,9 +368,8 @@ abstract class Player extends Model
 	 */
 	public function getTeamColor(): int {
 		if (empty($this->color)) {
-			$this->color = ($this->getGame() !== null && $this->getGame()->getMode()?->isSolo() ?
-				2 :
-				$this->getTeam()?->color) ?? 2;
+			$this->color = ($this->getGame() !== null && $this->getGame()->getMode()?->isSolo() ? 2 : $this->getTeam(
+			)?->color) ?? 2;
 		}
 		return $this->color;
 	}
@@ -318,12 +393,6 @@ abstract class Player extends Model
 		} catch (Exception) {
 			return false;
 		}
-	}
-
-	public function getQueryData(): array {
-		$data = parent::getQueryData();
-		$this->extensionAddQueryData($data);
-		return $data;
 	}
 
 	/**
@@ -351,6 +420,7 @@ abstract class Player extends Model
 	 *
 	 * @return array{name:string,icon:string}
 	 * @throws ModelNotFoundException
+	 * @throws Throwable
 	 * @throws ValidationException
 	 */
 	public function getBestAt(): array {
@@ -358,10 +428,22 @@ abstract class Player extends Model
 	}
 
 	/**
+	 * @return PlayerTrophy
+	 * @throws Throwable
+	 * @throws GameModeNotFoundException
+	 */
+	public function getTrophy(): PlayerTrophy {
+		$this->trophy ??= new PlayerTrophy($this);
+		return $this->trophy;
+	}
+
+	/**
 	 * Get all trophies
 	 *
 	 * @return array{name:string,icon:string}[]
+	 * @throws GameModeNotFoundException
 	 * @throws ModelNotFoundException
+	 * @throws Throwable
 	 * @throws ValidationException
 	 */
 	public function getAllBestAt(): array {
@@ -477,8 +559,8 @@ abstract class Player extends Model
 	/**
 	 * @return array<string, mixed>
 	 * @throws ModelNotFoundException
+	 * @throws Throwable
 	 * @throws ValidationException
-	 * @throws DirectoryCreationException
 	 */
 	public function jsonSerialize(): array {
 		$data = parent::jsonSerialize();
@@ -491,7 +573,7 @@ abstract class Player extends Model
 		$data['user'] = $this->user?->id;
 		if (isset($this->user)) {
 			$data['code'] = $this->user->getCode();
-			$data['rank'] = $this->user->rank;
+			$data['rank'] = $this->user->stats->rank;
 		}
 		$data['team'] = $this->getTeam()?->id;
 		if (isset($data['game'])) {
@@ -499,7 +581,6 @@ abstract class Player extends Model
 		}
 		$data['hitPlayers'] = $this->getHitsPlayers();
 		$data['avgSkill'] = $this->getSkill();
-		$this->extensionJson($data);
 		return $data;
 	}
 
@@ -507,6 +588,7 @@ abstract class Player extends Model
 	 * Get the player's skill value. If the player is a part of a group, returns the average group value.
 	 *
 	 * @return int
+	 * @throws Throwable
 	 */
 	public function getSkill(): int {
 		if ($this->getGame()->getGroup() === null) {
@@ -543,30 +625,35 @@ abstract class Player extends Model
 		];
 	}
 
+	/**
+	 * @return float|null
+	 * @throws Throwable
+	 */
 	public function getRankDifference(): ?float {
 		if (!isset($this->user)) {
 			return null;
 		}
-		return DB::select('player_game_rating', '[difference]')
-		         ->where('[id_user] = %i AND [code] = %s', $this->user->id, $this->getGame()->code
-		         )->fetchSingle(false);
+		return DB::select('player_game_rating', '[difference]')->where(
+				'[id_user] = %i AND [code] = %s',
+				$this->user->id,
+				$this->getGame()->code
+			)->fetchSingle(false);
 	}
 
-	public function fillFromRow(): void {
-		if (!isset($this->row)) {
-			return;
-		}
-		parent::fillFromRow();
-		$this->extensionFillFromRow();
-	}
-
+	/**
+	 * @return array|null
+	 * @throws Throwable
+	 * @throws JsonException
+	 */
 	public function getRankDifferenceInfo(): ?array {
 		if (!isset($this->user)) {
 			return null;
 		}
-		$row = DB::select('player_game_rating', '[expected_results], [normalized_skill]')
-		         ->where('[id_user] = %i AND [code] = %s', $this->user->id, $this->getGame()->code)
-		         ->fetch(false);
+		$row = DB::select('player_game_rating', '[expected_results], [normalized_skill]')->where(
+				'[id_user] = %i AND [code] = %s',
+				$this->user->id,
+				$this->getGame()->code
+			)->fetch(false);
 		if (!isset($row, $row->expected_results, $row->normalized_skill)) {
 			return null;
 		}
@@ -575,130 +662,6 @@ abstract class Player extends Model
 		$info['normalizedSkill'] = $row->normalized_skill;
 
 		return $info;
-	}
-
-	public function getTrophy(): PlayerTrophy {
-		$this->trophy ??= new PlayerTrophy($this);
-		return $this->trophy;
-	}
-
-	/**
-	 * Calculate the base, not rounded skill level
-	 *
-	 * @return float
-	 * @throws Throwable
-	 */
-	protected function calculateBaseSkill(): float {
-		$skill = 0.0;
-
-		// Add points for hits - average hits <=> 300 points
-		$skill += ($hitsSkill = $this->calculateSkillForHits());
-
-		// Add points for K:D - average K:D <=> 130 points
-		$skill += ($kdSkill = $this->calculateSkillFromKD());
-
-		// Add points for accuracy - 100% accuracy <=> 500 points
-		$skill += ($accuracySkill = $this->calculateSkillFromAccuracy());
-
-		// Add points for position - 100th percentile <=> 200 points
-		$skill += ($positionSkill = $this->calculateSkillFromPosition());
-
-		if (isset($_GET['detail'])) {
-			echo json_encode(
-					[
-						'player' => $this->name,
-						'skills' => [
-							'hits'     => $hitsSkill,
-							'kd'       => $kdSkill,
-							'accuracy' => $accuracySkill,
-							'position' => $positionSkill,
-						],
-						'sum'    => $skill,
-					]
-				) . PHP_EOL;
-		}
-
-
-		return $skill;
-	}
-
-	protected function calculateSkillFromPosition(): float {
-		$pos = 0;
-		$realPos = 0;
-		$prevScore = null;
-		/** @var Player $player */
-		foreach ($this->getGame()->getPlayersSorted() as $player) {
-			if ($player->vest === $this->vest) {
-				break;
-			}
-			$realPos++;
-			if ($prevScore !== $player->score) {
-				$prevScore = $player->score;
-				$pos = $realPos;
-			}
-		}
-
-		$playerCount = $this->getGame()->getPlayerCount();
-		return 200.0 * ($playerCount - $pos) / $playerCount;
-	}
-
-	/**
-	 * @return float
-	 * @throws Throwable
-	 */
-	protected function calculateSkillForHits(): float {
-		$expectedAverageHits = $this->getExpectedAverageHitCount();
-		$hitsDiff = $this->hits - $expectedAverageHits;
-
-		if (isset($_GET['detail'])) {
-			echo json_encode(
-					[
-						'player'        => $this->name,
-						'expected_hits' => $expectedAverageHits,
-						'hits'          => $this->hits,
-						'diff'          => $hitsDiff,
-						'teamCount'     => $this->getGame()->getTeams()->count(),
-					]
-				) . PHP_EOL;
-		}
-
-		// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
-		$hitsDiffPercent = 1 + ($hitsDiff / $expectedAverageHits);
-
-		// Completely average game should acquire at least 300 points
-		return $hitsDiffPercent * 200;
-	}
-
-	/**
-	 * @return float
-	 * @throws Throwable
-	 */
-	protected function calculateSkillFromKD(): float {
-		$kd = $this->getKd();
-		$skill = 0.0;
-		if ($kd >= 1) {
-			$skill += $kd * 50;
-		}
-		else if ($kd !== 0.0) {
-			$skill -= (1 / $kd) * 5;
-		}
-
-		// Add points for deviation from an average K:D
-		$averageKd = $this->getGame()->getAverageKd();
-		if ($averageKd === 0.0) {
-			$averageKd = 1.0;
-		}
-		$kdDiff = 1 + (($kd - $averageKd) / $averageKd); // $average K:D should never be 0 if any hits were fired
-		$skill += $kdDiff * 80;
-
-		return $skill;
-	}
-
-	/**
-	 * @return float
-	 */
-	protected function calculateSkillFromAccuracy(): float {
-		return 500 * ($this->accuracy / 100);
 	}
 
 }

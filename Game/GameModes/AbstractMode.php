@@ -9,9 +9,6 @@ use App\GameModels\Game\ModeSettings;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\TeamCollection;
-use App\Models\GameModeVariation;
-use App\Models\GameModeVariationValue;
-use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
@@ -38,7 +35,7 @@ abstract class AbstractMode extends Model
 	#[StringLength(1, 20)]
 	#[OA\Property]
 	public string       $name        = '';
-	public string $alias    = '';
+	public string       $alias       = '';
 	#[OA\Property]
 	public ?string      $description = '';
 	#[OA\Property]
@@ -50,15 +47,12 @@ abstract class AbstractMode extends Model
 	#[Instantiate]
 	#[OA\Property]
 	public ModeSettings $settings;
-	public bool   $rankable = true;
-	public bool   $active   = true;
-	/** @var GameModeVariationValue[][] */
-	private array $variations = [];
+	public bool         $active      = true;
 
 	#[OA\Property]
 	public bool $rankable = true;
 
-	public function isSolo() : bool {
+	public function isSolo(): bool {
 		return $this->type === GameModeType::SOLO;
 	}
 
@@ -105,12 +99,9 @@ abstract class AbstractMode extends Model
 		try {
 			/** @var Player $player */
 			foreach ($game->getPlayers() as $player) {
-				$player->score =
-					($player->hits * $game->scoring->hitOther) +
-					($player->deaths * $game->scoring->deathOther) +
-					($player->shots * $game->scoring->shot);
+				$player->score = ($player->hits * $game->scoring->hitOther) + ($player->deaths * $game->scoring->deathOther) + ($player->shots * $game->scoring->shot);
 			}
-		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
+		} catch (DirectoryCreationException) {
 		}
 	}
 
@@ -124,7 +115,7 @@ abstract class AbstractMode extends Model
 					$team->score += $player->score;
 				}
 			}
-		} catch (ModelNotFoundException|ValidationException|DirectoryCreationException $e) {
+		} catch (DirectoryCreationException) {
 		}
 	}
 
@@ -156,36 +147,6 @@ abstract class AbstractMode extends Model
 	 */
 	public function getTeamAlternative(): string {
 		return $this::class;
-	}
-
-	/**
-	 * @return GameModeVariationValue[][]
-	 * @throws DirectoryCreationException
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
-	 */
-	public function getVariations(): array {
-		if (empty($this->variations)) {
-			$rows = DB::select(GameModeVariation::TABLE_VALUES, '[id_variation], [value], [suffix], [order]')
-				->where('[id_mode] = %i', $this->id)
-				->orderBy('[id_variation], [order]')
-				->fetchAssoc('id_variation|value');
-			foreach ($rows as $variationId => $values) {
-				if (!isset($this->variations[$variationId])) {
-					$this->variations[$variationId] = [];
-				}
-				foreach ($values as $value) {
-					$this->variations[$variationId][] = new GameModeVariationValue(
-						GameModeVariation::get($variationId),
-						$this,
-						$value->value,
-						$value->suffix,
-						$value->order
-					);
-				}
-			}
-		}
-		return $this->variations;
 	}
 
 	public function getName(): string {

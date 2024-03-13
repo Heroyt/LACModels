@@ -9,8 +9,8 @@ use OpenApi\Attributes as OA;
 /**
  * Types of game modes
  *
- * @method static |null tryFrom(string $value)
- * @method static from(mixed $value)
+ * @method static GameModeType|null tryFrom(string $value)
+ * @method static GameModeType from(mixed $value)
  * @property string $value
  */
 #[OA\Schema(type: 'string')]

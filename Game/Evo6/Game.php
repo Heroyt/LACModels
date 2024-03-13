@@ -7,6 +7,7 @@ use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\PrimaryKey;
+use OpenApi\Attributes as OA;
 
 /**
  * LaserMaxx Evo6 game model
@@ -22,10 +23,11 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game
 	public const TABLE  = 'evo6_games';
 
 	#[NoDB]
-	public string  $playerClass = Player::class;
+	public string                             $playerClass = Player::class;
 	#[NoDB]
-	public string  $teamClass   = Team::class;
+	public string                             $teamClass   = Team::class;
 	#[Instantiate]
+	#[OA\Property]
 	public Scoring $scoring;
 
 }

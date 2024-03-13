@@ -5,7 +5,7 @@ namespace App\GameModels\Game\Lasermaxx;
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
-use App\Services\RegressionCalculator;
+use App\Services\Maths\RegressionCalculator;
 use Throwable;
 
 /**

@@ -5,7 +5,6 @@
 
 namespace App\GameModels\Game;
 
-use App\Core\App;
 use App\Core\Collections\CollectionCompareFilter;
 use App\Core\Collections\Comparison;
 use App\Exceptions\GameModeNotFoundException;
@@ -15,7 +14,6 @@ use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Evo5\BonusCounts;
 use App\GameModels\Game\Evo5\Scoring;
 use App\GameModels\Game\GameModes\AbstractMode;
-use App\GameModels\Traits\Expandable;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Models\Arena;
@@ -28,7 +26,6 @@ use DateTimeInterface;
 use DateTimeZone;
 use Dibi\Row;
 use Lsr\Core\App;
-use JsonException;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -51,9 +48,7 @@ if (!class_exists(Game::class)) {
 	/**
 	 * Base class for game models
 	 *
-	 * @property LAC\Modules\Tables\Models\Table|null $table
- * @property LAC\Modules\Tournament\Models\Game|null $tournamentGame
- * @phpstan-consistent-constructor
+	 * @phpstan-consistent-constructor
 	 * @template T of Team
 	 * @template P of Player
 	 *
@@ -70,9 +65,8 @@ if (!class_exists(Game::class)) {
 
 		/** @phpstan-use WithTeams<T> */
 		use WithTeams;
-	use Expandable;
 
-		public const SYSTEM = '';
+		public const SYSTEM     = '';
 		public const CACHE_TAGS = ['games'];
 
 		public ?string $resultsFile = null;
@@ -97,9 +91,6 @@ if (!class_exists(Game::class)) {
 		public ?AbstractMode $mode     = null;
 		#[OA\Property]
 		public GameModeType  $gameType = GameModeType::TEAM;
-		#[Instantiate]
-		#[OA\Property]
-		public ?Scoring      $scoring  = null;
 		#[ManyToOne]
 		#[OA\Property]
 		public ?Arena        $arena    = null;
@@ -124,7 +115,6 @@ if (!class_exists(Game::class)) {
 		public function __construct(?int $id = null, ?Row $dbRow = null) {
 			$this->cacheTags[] = 'games/' . $this::SYSTEM;
 			parent::__construct($id, $dbRow);
-			$this->initExtensions();
 		}
 
 		/**
@@ -258,9 +248,7 @@ if (!class_exists(Game::class)) {
 								) ?? GameModeType::TEAM,
 								static::SYSTEM
 							);
-							if (isset($mode)) {
-								$game->mode = $mode;
-							}
+							$game->mode = $mode;
 						}
 						break;
 					case 'players':
@@ -389,37 +377,25 @@ if (!class_exists(Game::class)) {
 		}
 
 		/**
-	 * @return AbstractMode|null
-	 * @throws GameModeNotFoundException
-	 */
-	public function getMode(): ?AbstractMode {
-		if (!isset($this->mode)) {
-			if (isset($this->relationIds['mode'])) {
-				$this->mode = GameModeFactory::getById($this->relationIds['mode']);
+		 * @return AbstractMode|null
+		 * @throws GameModeNotFoundException
+		 */
+		public function getMode(): ?AbstractMode {
+			if (!isset($this->mode)) {
+				if (isset($this->relationIds['mode'])) {
+					$this->mode = GameModeFactory::getById($this->relationIds['mode']);
+				}
+				else if (isset($this->modeName)) {
+					$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
+				}
+				else {
+					$this->mode = null;
+				}
 			}
-			else if (isset($this->modeName)) {
-				$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
-			}
-			else {
-				$this->mode = null;
-			}
+			return $this->mode;
 		}
-		return $this->mode;
-	}
 
-	public function getQueryData(): array {
-		$data = parent::getQueryData();
-		$this->extensionAddQueryData($data);
-		return $data;
-	}
-
-	public function fillFromRow(): void {
-		if (!isset($this->row)) {
-			return;
-		}
-		parent::fillFromRow();
-		$this->extensionFillFromRow();
-	}public function isStarted(): bool {
+		public function isStarted(): bool {
 			return $this->start !== null;
 		}
 
@@ -456,12 +432,12 @@ if (!class_exists(Game::class)) {
 		 */
 		public function getBestsFields(): array {
 			$fields = [
-				'hits'   => lang('Největší terminátor', context: 'results.bests'),
-				'deaths' => lang('Objekt největšího zájmu', context: 'results.bests'),
-				'score'  => lang('Absolutní vítěz', context: 'results.bests'),
+				'hits'     => lang('Největší terminátor', context: 'results.bests'),
+				'deaths'   => lang('Objekt největšího zájmu', context: 'results.bests'),
+				'score'    => lang('Absolutní vítěz', context: 'results.bests'),
 				'accuracy' => lang('Hráč s nejlepší muškou', context: 'results.bests'),
-				'shots'  => lang('Nejúspornější střelec', context: 'results.bests'),
-				'miss'   => lang('Největší mimoň', context: 'results.bests'),
+				'shots'    => lang('Nejúspornější střelec', context: 'results.bests'),
+				'miss'     => lang('Největší mimoň', context: 'results.bests'),
 			];
 			foreach ($fields as $key => $value) {
 				$settingName = Strings::toCamelCase('best_' . $key);
@@ -538,7 +514,6 @@ if (!class_exists(Game::class)) {
 			          )
 			          ->fetch(cache: false);
 			if (isset($test)) {
-				/** @noinspection PhpFieldAssignmentTypeMismatchInspection */
 				$this->id = $test->$pk;
 				$this->code = $test->code;
 			}
@@ -710,6 +685,10 @@ if (!class_exists(Game::class)) {
 			return empty($kds) ? 1 : array_sum($kds) / count($kds);
 		}
 
+		/**
+		 * @return void
+		 * @throws GameModeNotFoundException
+		 */
 		public function recalculateScores(): void {
 			if ($this->getMode() !== null) {
 				$this->getMode()->recalculateScores($this);
@@ -717,20 +696,33 @@ if (!class_exists(Game::class)) {
 			}
 		}
 
+		/**
+		 * @return void
+		 * @throws GameModeNotFoundException
+		 */
 		public function reorder(): void {
 			if ($this->getMode() !== null) {
-			$this->getMode()->reorderGame($this);
+				$this->getMode()->reorderGame($this);
+			}
 		}
-		$this->runHook('reorder');
-	}
 
-	public function getGroup(): ?GameGroup {
-		$this->group ??= isset($this->relationIds['group']) ? GameGroup::get($this->relationIds['group']) : null;
-				return $this->group;
-	}
+		/**
+		 * @return GameGroup|null
+		 * @throws ModelNotFoundException
+		 * @throws ValidationException
+		 */
+		public function getGroup(): ?GameGroup {
+			$this->group ??= isset($this->relationIds['group']) ? GameGroup::get($this->relationIds['group']) : null;
+			return $this->group;
+		}
 
-	public function getMusic(): ?MusicMode {
-		$this->music ??= isset($this->relationIds['music']) ? MusicMode::get($this->relationIds['music']) : null;
+		/**
+		 * @return MusicMode|null
+		 * @throws ModelNotFoundException
+		 * @throws ValidationException
+		 */
+		public function getMusic(): ?MusicMode {
+			$this->music ??= isset($this->relationIds['music']) ? MusicMode::get($this->relationIds['music']) : null;
 			return $this->music;
 		}
 
