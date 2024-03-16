@@ -15,7 +15,7 @@ use OpenApi\Attributes as OA;
  * @extends \App\GameModels\Game\Lasermaxx\Game<Team, Player>
  * @phpstan-ignore-next-line
  */
-#[PrimaryKey('id_game'), Factory(GameFactory::class, ['system' => 'evo6'])]
+#[PrimaryKey('id_game'), Factory(GameFactory::class, ['system' => 'evo6']), OA\Schema(schema: 'GameEvo6')]
 class Game extends \App\GameModels\Game\Lasermaxx\Game
 {
 

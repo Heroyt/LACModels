@@ -518,7 +518,7 @@ if (!class_exists(Game::class)) {
 				$this->code = $test->code;
 			}
 			if (empty($this->code)) {
-				$this->code = uniqid('g', false);
+				$this->code = uniqid($this->arena?->gameCodePrefix ?? 'g', false);
 			}
 			$success = parent::save();
 			if (!$success) {

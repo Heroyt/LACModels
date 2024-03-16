@@ -16,7 +16,7 @@ use OpenApi\Attributes as OA;
  *
  * @phpstan-consistent-constructor
  */
-#[OA\Schema]
+#[OA\Schema(schema: 'ScoringEvo5', title: 'Scoring Evo5')]
 class Scoring implements InsertExtendInterface
 {
 

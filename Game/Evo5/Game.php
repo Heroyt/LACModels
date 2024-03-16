@@ -22,7 +22,7 @@ use OpenApi\Attributes as OA;
  * @extends \App\GameModels\Game\Lasermaxx\Game<Team, Player>
  * @phpstan-ignore-next-line
  */
-#[PrimaryKey('id_game'), Factory(GameFactory::class, ['system' => 'evo5'])]
+#[PrimaryKey('id_game'), Factory(GameFactory::class, ['system' => 'evo5']), OA\Schema(schema: 'GameEvo5')]
 class Game extends \App\GameModels\Game\Lasermaxx\Game
 {
 
