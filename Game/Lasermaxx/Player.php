@@ -3,6 +3,7 @@
 namespace App\GameModels\Game\Lasermaxx;
 
 use App\Exceptions\GameModeNotFoundException;
+use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
 use App\Services\RegressionCalculator;
@@ -120,7 +121,11 @@ abstract class Player extends \App\GameModels\Game\Player
 
 	public function getSkillParts(): array {
 		$parts = parent::getSkillParts();
-		$parts['teamHits'] = $this->calculateSkillFromTeamHits();
+		try {
+			$parts['teamHits'] = $this->calculateSkillFromTeamHits();
+		} catch (InsuficientRegressionDataException) {
+			// Ignore
+		}
 		$parts['bonuses'] = $this->calculateSkillFromBonuses();
 		return $parts;
 	}

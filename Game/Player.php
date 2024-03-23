@@ -239,7 +239,11 @@ abstract class Player extends Model
 		$skill = 0.0;
 
 		// Add points for hits - average hits <=> 300 points
-		$skill += $this->calculateSkillForHits();
+		try {
+			$skill += $this->calculateSkillForHits();
+		} catch (InsuficientRegressionDataException) {
+			// Ignore error
+		}
 
 		// Add points for K:D - average K:D <=> 130 points
 		$skill += $this->calculateSkillFromKD();
@@ -579,9 +583,15 @@ abstract class Player extends Model
 	 * @throws Throwable
 	 */
 	public function getSkillParts(): array {
+		$hits = 0.0;
+		try {
+			$hits = $this->calculateSkillForHits();
+		} catch (InsuficientRegressionDataException) {
+			// Ignore
+		}
 		return [
 			'position' => $this->calculateSkillFromPosition(),
-			'hits'     => $this->calculateSkillForHits(),
+			'hits' => $hits,
 			'kd'       => $this->calculateSkillFromKD(),
 			'accuracy' => $this->calculateSkillFromAccuracy(),
 		];
