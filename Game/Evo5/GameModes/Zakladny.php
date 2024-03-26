@@ -12,6 +12,7 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\GameModels\Game\Team;
+use App\Gate\Screens\Results\LaserMaxxZakladnyResultsScreen;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -86,8 +87,7 @@ class Zakladny extends AbstractMode implements CustomResultsMode
 	/**
 	 * @inheritDoc
 	 */
-	public function getCustomGateTemplate(Controller $controller) : string {
-		$controller->params['mode'] = $this;
-		return 'pages/gate/modes/zakladny';
+	public function getCustomGateScreen(): string {
+		return LaserMaxxZakladnyResultsScreen::class;
 	}
 }

@@ -67,12 +67,12 @@ class GameFactory implements FactoryInterface
 	 * Prepare a SQL query for all games (from all systems)
 	 *
 	 * @param bool                      $excludeNotFinished
-	 * @param DateTime|null             $date
+	 * @param DateTimeInterface|null $date
 	 * @param array<string|int, string> $fields
 	 *
 	 * @return Fluent
 	 */
-	public static function queryGames(bool $excludeNotFinished = false, ?DateTime $date = null, array $fields = []) : Fluent {
+	public static function queryGames(bool $excludeNotFinished = false, ?DateTimeInterface $date = null, array $fields = []): Fluent {
 		$query = DB::getConnection()->select('*');
 		$queries = [];
 		$defaultFields = ['id_game', 'system', 'code', 'start', 'end'];

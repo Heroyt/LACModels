@@ -13,6 +13,7 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\GameModels\Game\Team;
+use App\Gate\Screens\Results\LaserMaxxCSGOResultsScreen;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -119,7 +120,7 @@ class CSGO extends AbstractMode implements CustomResultsMode
 	/**
 	 * @inheritDoc
 	 */
-	public function getCustomGateTemplate(Controller $controller) : string {
-		return 'pages/gate/modes/csgo';
+	public function getCustomGateScreen(): string {
+		return LaserMaxxCSGOResultsScreen::class;
 	}
 }

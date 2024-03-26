@@ -2,6 +2,8 @@
 
 namespace App\GameModels\Game\GameModes;
 
+use App\Gate\Screens\GateScreen;
+use App\Gate\Screens\Results\ResultsScreenInterface;
 use Lsr\Core\Controllers\Controller;
 
 /**
@@ -18,10 +20,10 @@ interface CustomResultsMode
 	public function getCustomResultsTemplate(Controller $controller) : string;
 
 	/**
-	 * Get a template file containing the custom gate results
+	 * Get a custom gate screen that will show the results for this mode
 	 *
-	 * @return string Path to template file
+	 * @return class-string<ResultsScreenInterface&GateScreen> Custom results gate screen to use
 	 */
-	public function getCustomGateTemplate(Controller $controller) : string;
+	public function getCustomGateScreen(): string;
 
 }

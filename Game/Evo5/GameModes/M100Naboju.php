@@ -8,6 +8,7 @@ namespace App\GameModels\Game\Evo5\GameModes;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
+use App\Gate\Screens\Results\LaserMaxx100NabojuResultsScreen;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\PrimaryKey;
@@ -39,7 +40,7 @@ class M100Naboju extends \App\GameModels\Game\GameModes\Deathmach implements Cus
 	 *
 	 * @return string Path to template file
 	 */
-	public function getCustomGateTemplate(Controller $controller) : string {
-		return 'pages/gate/modes/100naboju';
+	public function getCustomGateScreen(): string {
+		return LaserMaxx100NabojuResultsScreen::class;
 	}
 }
