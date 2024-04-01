@@ -38,6 +38,6 @@ class Survival extends \App\GameModels\Game\GameModes\Deathmach implements Custo
 	 * @return string Path to template file
 	 */
 	public function getCustomGateScreen(): string {
-		return LaserMaxxSurvivalResultsScreen::class;
+		return LaserMaxxSurvivalResultsScreen::getDiKey();
 	}
 }
