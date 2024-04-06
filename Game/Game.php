@@ -20,6 +20,7 @@ use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
+use App\Services\FeatureConfig;
 use App\Services\LigaApi;
 use DateTime;
 use DateTimeInterface;
@@ -477,7 +478,14 @@ abstract class Game extends Model
 	 * @throws Throwable
 	 */
 	public function sync(): bool {
-		$liga = App::getServiceByType(LigaApi::class);
+		/** @var FeatureConfig $featureConfig */
+		$featureConfig = App::getService('features');
+		if (!$featureConfig->isFeatureEnabled('liga')) {
+			return false;
+		}
+
+		/** @var LigaApi $liga */
+		$liga = App::getService('liga');
 		if ($liga->syncGames($this::SYSTEM, [$this])) {
 			$this->sync = true;
 			try {
