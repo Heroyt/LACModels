@@ -28,6 +28,7 @@ use DateTimeZone;
 use Dibi\Row;
 use JsonException;
 use Lsr\Core\Caching\Cache;
+use Lsr\Core\Config;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -70,6 +71,7 @@ abstract class Game extends Model
 	public const CACHE_TAGS = ['games'];
 
 	public const DI_TAG = 'gameDataExtension';
+	private static string $codePrefix;
 
 	public ?string $resultsFile = null;
 	public string  $modeName;
@@ -496,6 +498,15 @@ abstract class Game extends Model
 		return false;
 	}
 
+	public static function getCodePrefix() : string {
+		if (!isset(self::$codePrefix)) {
+			/** @var Config $config */
+			$config = App::getService('config');
+			self::$codePrefix = $config->getConfig('ENV')['GAME_PREFIX'] ?? 'g';
+		}
+		return self::$codePrefix;
+	}
+
 	/**
 	 * @return bool
 	 * @throws DirectoryCreationException
@@ -518,7 +529,7 @@ abstract class Game extends Model
 			$this->code = $test->code;
 		}
 		if (empty($this->code)) {
-			$this->code = uniqid('g', false);
+			$this->code = uniqid(self::getCodePrefix(), false);
 		}
 		$success = parent::save();
 		if (!$success) {
