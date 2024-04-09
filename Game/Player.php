@@ -5,6 +5,7 @@
 
 namespace App\GameModels\Game;
 
+use App\Exceptions\GameModeNotFoundException;
 use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Traits\Expandable;
@@ -614,6 +615,16 @@ abstract class Player extends Model
 		}
 		parent::fillFromRow();
 		$this->extensionFillFromRow();
+	}
+
+	/**
+	 * @return PlayerTrophy
+	 * @throws Throwable
+	 * @throws GameModeNotFoundException
+	 */
+	public function getTrophy() : PlayerTrophy {
+		$this->trophy ??= new PlayerTrophy($this);
+		return $this->trophy;
 	}
 
 }

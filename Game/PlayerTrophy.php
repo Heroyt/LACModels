@@ -14,6 +14,28 @@ use Lsr\Logging\Exceptions\DirectoryCreationException;
  */
 class PlayerTrophy
 {
+	public const SPECIAL_TROPHIES = [
+		'100-percent',
+		'zero-deaths',
+		'devil',
+		'not-found',
+		'not-found-shots',
+	];
+	public const OTHER_TROPHIES = [
+		'kd-1',
+		'kd-2',
+		'50-percent',
+		'5-percent',
+		'kd-0-5',
+		'fair',
+	];
+
+	public const RARE_TROPHIES = [
+		'zero',
+		'team-50',
+		'favouriteTarget',
+		'favouriteTargetOf',
+	];
 
 	/**
 	 * @var array{name:string,description:string,icon:string}[] Best names
@@ -178,7 +200,13 @@ class PlayerTrophy
 	 */
 	public function getOne() : array {
 		// Special
-		foreach (['100-percent', 'zero-deaths', 'devil', 'not-found', 'not-found-shots'] as $name) {
+		foreach (self::SPECIAL_TROPHIES as $name) {
+			if ($this->check($name)) {
+				return $this::getFields()[$name];
+			}
+		}
+		// Rare
+		foreach (self::RARE_TROPHIES as $name) {
 			if ($this->check($name)) {
 				return $this::getFields()[$name];
 			}
@@ -190,18 +218,7 @@ class PlayerTrophy
 			}
 		}
 		// Other
-		foreach ([
-							 'team-50',
-							 'kd-1',
-							 'kd-2',
-							 '50-percent',
-							 'zero',
-							 '5-percent',
-							 'kd-0-5',
-							 'favouriteTarget',
-							 'favouriteTargetOf',
-							 'fair',
-						 ] as $name) {
+		foreach (self::OTHER_TROPHIES as $name) {
 			if ($this->check($name)) {
 				return $this::getFields()[$name];
 			}
@@ -219,7 +236,7 @@ class PlayerTrophy
 	 * @throws ValidationException
 	 * @throws DirectoryCreationException
 	 */
-	private function check(string $name) : bool {
+	public function check(string $name) : bool {
 		// Classic
 		if (in_array($name, $this->player::CLASSIC_BESTS, true)) {
 			$best = $this->player->getGame()->getBestPlayer($name);
