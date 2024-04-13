@@ -69,9 +69,9 @@ class PlayerFactory implements FactoryInterface
 	 *
 	 * @return Fluent
 	 */
-	public static function queryPlayers(array $gameIds = []) : Fluent {
+    public static function queryPlayers(array $gameIds = [], array $fields = []) : Fluent {
 		$query = DB::getConnection()->select('*');
-		$queries = self::getPlayersUnionQueries($gameIds);
+        $queries = self::getPlayersUnionQueries($gameIds, $fields);
 		$query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
 		return (new Fluent($query))->cacheTags('players');
 	}
@@ -81,10 +81,44 @@ class PlayerFactory implements FactoryInterface
 	 *
 	 * @return string[]
 	 */
-	public static function getPlayersUnionQueries(array $gameIds = []) : array {
+    public static function getPlayersUnionQueries(array $gameIds = [], array $fields = []) : array {
 		$queries = [];
+        $defaultFields = [
+          'id_player',
+          'system',
+          'id_user',
+          'id_game',
+          'name',
+          'score',
+          'skill',
+          'accuracy',
+          'hits',
+          'deaths',
+          'shots',
+        ];
 		foreach (GameFactory::getSupportedSystems() as $key => $system) {
-			$q = DB::select(["[{$system}_players]", "[p$key]"], "[p$key].[id_player], [p$key].[id_user], [p$key].[id_game], [p$key].[id_team], %s as [system], [p$key].[name], [p$key].[score], [p$key].[accuracy], [p$key].[hits], [p$key].[deaths], [p$key].[shots], [p$key].[skill]", $system);
+        $addFields = '';
+        if (!empty($fields)) {
+            foreach ($fields as $name => $field) {
+                // Prevent duplicate fields
+                if (in_array($name, $defaultFields, true) || in_array($field, $defaultFields, true)) {
+                    continue;
+                }
+                if (is_string($name)) {
+                    // Allows setting alias
+                    $addFields .= ', [p'.$key.'].['.$name.'] as ['.$field.']';
+                }
+                else {
+                    // No alias
+                    $addFields .= ', [p'.$key.'].['.$field.']';
+                }
+            }
+        }
+        $q = DB::select(
+          ["[{$system}_players]", "[p$key]"],
+          "[p$key].[id_player], [p$key].[id_user], [p$key].[id_game], [p$key].[id_team], %s as [system], [p$key].[name], [p$key].[score], [p$key].[accuracy], [p$key].[hits], [p$key].[deaths], [p$key].[shots], [p$key].[skill]".$addFields,
+          $system
+        );
 			if (!empty($gameIds[$system])) {
 				$q->where("[p$key].[id_game] IN %in", $gameIds[$system]);
 			}
