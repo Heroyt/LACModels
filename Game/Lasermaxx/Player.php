@@ -61,8 +61,13 @@ abstract class Player extends \App\GameModels\Game\Player
 	 */
 	public function getExpectedAverageDeathCount(): float {
 		$type = $this->getGame()->gameType;
-		$model = $this->getRegressionCalculator()->getDeathsModel($type, $this->getGame()->getMode());
-		return $this->calculateHitDeathModel($type, $model);
+      try {
+          $model = $this->getRegressionCalculator()->getDeathsModel($type, $this->getGame()->getMode());
+          return $this->calculateHitDeathModel($type, $model);
+      } catch (InsuficientRegressionDataException $e) {
+          $this->getLogger()->exception($e);
+          return parent::getExpectedAverageDeathCount();
+      }
 	}
 
 	/**
@@ -111,12 +116,19 @@ abstract class Player extends \App\GameModels\Game\Player
 	 * @throws Throwable
 	 */
 	public function getExpectedAverageTeammateDeathCount(): float {
-		$model = $this->getRegressionCalculator()->getDeathsOwnModel($this->getGame()->getMode());
-		$length = $this->getGame()->getRealGameLength();
-		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
-		$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
-		return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length],
-		                                                           $model);
+      try {
+          $model = $this->getRegressionCalculator()->getDeathsOwnModel($this->getGame()->getMode());
+          $length = $this->getGame()->getRealGameLength();
+          $enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
+          $teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
+          return RegressionCalculator::calculateRegressionPrediction(
+            [$teamPlayerCount, $enemyPlayerCount, $length],
+            $model
+          );
+      } catch (InsuficientRegressionDataException $e) {
+          $this->getLogger()->exception($e);
+          return 0.0;
+      }
 	}
 
 	public function getSkillParts(): array {
@@ -173,12 +185,19 @@ abstract class Player extends \App\GameModels\Game\Player
 	 * @throws Throwable
 	 */
 	public function getExpectedAverageTeammateHitCount(): float {
-		$model = $this->getRegressionCalculator()->getHitsOwnModel($this->getGame()->getMode());
-		$length = $this->getGame()->getRealGameLength();
-		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
-		$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
-		return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length],
-		                                                           $model);
+      try {
+          $model = $this->getRegressionCalculator()->getHitsOwnModel($this->getGame()->getMode());
+          $length = $this->getGame()->getRealGameLength();
+          $enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getTeam()?->getPlayerCount() ?? 1);
+          $teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
+          return RegressionCalculator::calculateRegressionPrediction(
+            [$teamPlayerCount, $enemyPlayerCount, $length],
+            $model
+          );
+      } catch (InsuficientRegressionDataException $e) {
+          $this->getLogger()->exception($e);
+          return 0.0;
+      }
 	}
 
 	/**
@@ -248,8 +267,13 @@ abstract class Player extends \App\GameModels\Game\Player
 	}
 
 	public function getExpectedAverageHitCount(): float {
-		$type = $this->getGame()->gameType;
-		$model = $this->getRegressionCalculator()->getHitsModel($type, $this->getGame()->getMode());
-		return $this->calculateHitDeathModel($type, $model);
+      try {
+          $type = $this->getGame()->gameType;
+          $model = $this->getRegressionCalculator()->getHitsModel($type, $this->getGame()->getMode());
+          return $this->calculateHitDeathModel($type, $model);
+      } catch (InsuficientRegressionDataException $e) {
+          $this->getLogger()->exception($e);
+          return parent::getExpectedAverageHitCount();
+      }
 	}
 }

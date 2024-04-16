@@ -51,7 +51,7 @@ abstract class Player extends Model
 	public const DI_TAG     = 'playerDataExtension';
 
 	#[Required]
-	#[StringLength(1, 15)]
+  #[StringLength(1, 50)]
 	public string     $name     = '';
 	public int        $score    = 0;
 	public int        $skill    = 0;
