@@ -342,13 +342,11 @@ abstract class Game extends Model
             if (isset($this->relationIds['mode'])) {
                 $this->mode = GameModeFactory::getById($this->relationIds['mode']);
             }
+            elseif (isset($this->modeName)) {
+                $this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
+            }
             else {
-                if (isset($this->modeName)) {
-                    $this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
-                }
-                else {
-                    $this->mode = null;
-                }
+                $this->mode = null;
             }
         }
         return $this->mode;
