@@ -88,6 +88,6 @@ class Zakladny extends AbstractMode implements CustomResultsMode
 	 * @inheritDoc
 	 */
 	public function getCustomGateScreen(): string {
-		return LaserMaxxZakladnyResultsScreen::getDiKey();
+      return LaserMaxxZakladnyResultsScreen::class;
 	}
 }

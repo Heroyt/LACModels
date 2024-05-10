@@ -41,6 +41,6 @@ class M100Naboju extends \App\GameModels\Game\GameModes\Deathmach implements Cus
 	 * @return string Path to template file
 	 */
 	public function getCustomGateScreen(): string {
-		return LaserMaxx100NabojuResultsScreen::getDiKey();
+      return LaserMaxx100NabojuResultsScreen::class;
 	}
 }

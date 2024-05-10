@@ -121,6 +121,6 @@ class CSGO extends AbstractMode implements CustomResultsMode
 	 * @inheritDoc
 	 */
 	public function getCustomGateScreen(): string {
-		return LaserMaxxCSGOResultsScreen::getDiKey();
+      return LaserMaxxCSGOResultsScreen::class;
 	}
 }
