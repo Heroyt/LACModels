@@ -636,6 +636,8 @@ abstract class Game extends Model
             CacheParent::Tags => [
               'games/'.$this::SYSTEM.'/'.$this->id,
               'games/'.$this->start?->format('Y-m-d'),
+              'games/'.$this->start?->format('Y-m'),
+              'games/'.$this->start?->format('Y'),
               'games/'.$this->code,
             ],
           ]
