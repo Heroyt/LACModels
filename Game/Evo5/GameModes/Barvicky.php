@@ -51,7 +51,8 @@ class Barvicky extends AbstractMode implements CustomLoadMode
 	 *        key:string,
 	 *        name:string,
 	 *        playerCount:int
-	 *      }[]
+   *      }[],
+   *      hiddenTeams?: string,
 	 *    } $data
 	 *
 	 * @return array{
@@ -66,12 +67,13 @@ class Barvicky extends AbstractMode implements CustomLoadMode
 	 *        key:string,
 	 *        name:string,
 	 *        playerCount:int
-	 *      }[]
+   *      }[],
+   *      hiddenTeams?: string,
 	 *    } Modified data
 	 */
 	public function modifyGameDataBeforeLoad(array $data) : array {
 		// Shuffle teams
-		if (isset($_POST['hiddenTeams']) && $_POST['hiddenTeams'] === '1') {
+      if (isset($data['hiddenTeams']) && $data['hiddenTeams'] === '1') {
 			$teamCount = count($data['teams']);
 			$pKeys = array_keys($data['players']);
 			shuffle($pKeys);
