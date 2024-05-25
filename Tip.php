@@ -24,7 +24,7 @@ class Tip extends Model
 	public static function shuffledFormatted() : array {
 		$formatted = [];
 		foreach (self::shuffled() as $tip) {
-			$formatted[] = sprintf(lang('Tip #%d', context: 'tips'), $tip->id).': '.lang($tip->text, context: 'tips');
+        $formatted[] = sprintf(lang('Tip #%d', domain: 'tips'), $tip->id).': '.lang($tip->text, domain: 'tips');
 		}
 		return $formatted;
 	}

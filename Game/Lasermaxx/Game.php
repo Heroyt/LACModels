@@ -78,14 +78,14 @@ abstract class Game extends \App\GameModels\Game\Game
 			}
 			if ($mode->isTeam()) {
 				if ($mode->settings->bestHitsOwn) {
-					$info['hitsOwn'] = lang('Zabiják vlastního týmu', context: 'results.bests');
+            $info['hitsOwn'] = lang('Zabiják vlastního týmu', domain: 'results', context: 'bests');
 				}
 				if ($mode->settings->bestDeathsOwn) {
-					$info['deathsOwn'] = lang('Největší vlastňák', context: 'results.bests');
+            $info['deathsOwn'] = lang('Největší vlastňák', domain: 'results', context: 'bests');
 				}
 			}
 			if ($mode->settings->bestMines && $mode->settings->mines && $this->isMinesOn()) {
-				$info['mines'] = lang('Drtič min', context: 'results.bests');
+          $info['mines'] = lang('Drtič min', domain: 'results', context: 'bests');
 			}
 		} catch (GameModeNotFoundException) {
 		}

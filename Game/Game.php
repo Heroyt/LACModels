@@ -404,12 +404,12 @@ abstract class Game extends Model
      */
     public function getBestsFields() : array {
         $fields = [
-          'hits'     => lang('Největší terminátor', context: 'results.bests'),
-          'deaths'   => lang('Objekt největšího zájmu', context: 'results.bests'),
-          'score'    => lang('Absolutní vítěz', context: 'results.bests'),
-          'accuracy' => lang('Hráč s nejlepší muškou', context: 'results.bests'),
-          'shots'    => lang('Nejúspornější střelec', context: 'results.bests'),
-          'miss'     => lang('Největší mimoň', context: 'results.bests'),
+          'hits'     => lang('Největší terminátor', domain: 'results', context: 'bests'),
+          'deaths'   => lang('Objekt největšího zájmu', domain: 'results', context: 'bests'),
+          'score'    => lang('Absolutní vítěz', domain: 'results', context: 'bests'),
+          'accuracy' => lang('Hráč s nejlepší muškou', domain: 'results', context: 'bests'),
+          'shots'    => lang('Nejúspornější střelec', domain: 'results', context: 'bests'),
+          'miss'     => lang('Největší mimoň', domain: 'results', context: 'bests'),
         ];
         foreach ($fields as $key => $value) {
             $settingName = Strings::toCamelCase('best_'.$key);
