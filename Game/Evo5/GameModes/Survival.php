@@ -3,8 +3,11 @@
 namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
+use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\CustomResultsMode;
+use App\GameModels\Game\GameModes\ModifyScoresMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
+use App\GameModels\Game\Lasermaxx\Player;
 use App\Gate\Screens\Results\LaserMaxxSurvivalResultsScreen;
 use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Models\Attributes\Factory;
@@ -15,7 +18,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class Survival extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode
+class Survival extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode, ModifyScoresMode
 {
 
 	use LaserMaxxScores;
@@ -40,4 +43,15 @@ class Survival extends \App\GameModels\Game\GameModes\Deathmach implements Custo
 	public function getCustomGateScreen(): string {
       return LaserMaxxSurvivalResultsScreen::class;
 	}
+
+    public function modifyResults(Game $game) : void {
+        // Add 1000 score to surviving players
+        /** @var Player $player */
+        foreach ($game->getPlayers() as $player) {
+            if (($player->ammoRest ?? 1) > 0 && $player->getRemainingLives() > 0) {
+                $player->scoreBonus += 1000;
+                $player->score += 1000;
+            }
+        }
+    }
 }
