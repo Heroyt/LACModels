@@ -80,7 +80,7 @@ class Zakladny extends AbstractMode implements CustomResultsMode
 	 * @inheritDoc
 	 */
     public function getCustomResultsTemplate() : string {
-		return '';
+        return 'zakladny';
 	}
 
 	/**
