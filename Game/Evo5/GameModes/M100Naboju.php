@@ -31,7 +31,7 @@ class M100Naboju extends \App\GameModels\Game\GameModes\Deathmach implements Cus
 	 * @return string Path to template file
 	 */
     public function getCustomResultsTemplate() : string {
-		return '';
+        return 'naboju';
 	}
 
 	/**
