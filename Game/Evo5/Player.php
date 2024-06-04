@@ -36,4 +36,7 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player
 		return $this->bonus->getSum();
 	}
 
+    public function getBonusCount() : int {
+        return $this->bonus->getSum();
+    }
 }

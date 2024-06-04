@@ -50,6 +50,8 @@ abstract class Player extends \App\GameModels\Game\Player
 
 	protected RegressionStatCalculator $calculator;
 
+    abstract public function getBonusCount() : int;
+
 	/**
 	 * Get an expected number of deaths based on the number of teammates and enemies.
 	 *

@@ -9,7 +9,6 @@ use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\Gate\Screens\Results\LaserMaxx100NabojuResultsScreen;
-use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
@@ -31,7 +30,7 @@ class M100Naboju extends \App\GameModels\Game\GameModes\Deathmach implements Cus
 	 *
 	 * @return string Path to template file
 	 */
-	public function getCustomResultsTemplate(Controller $controller) : string {
+    public function getCustomResultsTemplate() : string {
 		return '';
 	}
 

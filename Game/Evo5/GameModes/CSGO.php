@@ -14,7 +14,6 @@ use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\GameModels\Game\Team;
 use App\Gate\Screens\Results\LaserMaxxCSGOResultsScreen;
-use Lsr\Core\Controllers\Controller;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Core\Models\Attributes\Factory;
@@ -113,7 +112,7 @@ class CSGO extends AbstractMode implements CustomResultsMode
 	/**
 	 * @inheritDoc
 	 */
-	public function getCustomResultsTemplate(Controller $controller) : string {
+    public function getCustomResultsTemplate() : string {
 		return '';
 	}
 

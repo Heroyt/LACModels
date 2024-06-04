@@ -36,4 +36,8 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player
 	public function getMines(): int {
 		return $this->bonuses;
 	}
+
+    public function getBonusCount() : int {
+        return $this->bonuses;
+    }
 }
