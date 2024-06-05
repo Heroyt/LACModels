@@ -95,6 +95,8 @@ abstract class Game extends Model
     public bool $started = false;
     #[NoDB]
     public bool $finished = false;
+    public ?string $meta = null;
+    protected ?array $metaData = null;
     protected float $realGameLength;
 
     public function __construct(?int $id = null, ?Row $dbRow = null) {
@@ -711,6 +713,19 @@ abstract class Game extends Model
             $this->getMode()->reorderGame($this);
         }
         $this->runHook('reorder');
+    }
+
+    public function setMeta(array $meta) : static {
+        $this->metaData = $meta;
+        $this->meta = igbinary_serialize($meta);
+        return $this;
+    }
+
+    public function getMeta() : array {
+        if (!isset($this->metaData)) {
+            $this->metaData = isset($this->meta) ? igbinary_unserialize($this->meta) : [];
+        }
+        return $this->metaData;
     }
 
 }
