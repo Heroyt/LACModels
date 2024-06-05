@@ -447,6 +447,9 @@ abstract class Game extends Model
         if (isset($data['data'])) {
             unset($data['data']);
         }
+        if (isset($data['meta'])) {
+            unset($data['meta']);
+        }
         if (isset($data['hooks'])) {
             unset($data['hooks']);
         }
