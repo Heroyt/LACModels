@@ -11,6 +11,7 @@ use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
+use App\GameModels\Game\Lasermaxx\Team as LasermaxxTeam;
 use App\GameModels\Game\Team;
 use App\Gate\Screens\Results\LaserMaxxZakladnyResultsScreen;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -89,4 +90,16 @@ class Zakladny extends AbstractMode implements CustomResultsMode
 	public function getCustomGateScreen(): string {
       return LaserMaxxZakladnyResultsScreen::class;
 	}
+
+    public function getBaseNameForTeam(LasermaxxTeam $team) : string {
+        // TODO: rewrite this to be more modular
+
+        // The only variants are MZ and ZM
+        $topTeam = str_ends_with($team->getGame()->modeName, 'ZM') ? 1 : 2; // 1 = green, 2 = blue
+
+        if ($team->getTeamColor() === $topTeam) {
+            return lang('Horní základna', context: 'mode.zakladny', domain: 'results');
+        }
+        return lang('Dolní základna', context: 'mode.zakladny', domain: 'results');
+    }
 }
