@@ -5,6 +5,7 @@
 
 namespace App\GameModels\Game;
 
+use App\Core\App;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
@@ -38,9 +39,9 @@ class PlayerTrophy
     ];
 
     /**
-     * @var array{name:string,description:string,icon:string}[] Best names
+     * @var array{name:string,description:string,icon:string}[][] Best names
      */
-    public static array $fields;
+    public static array $fields = [];
     public bool $solo;
 
     public function __construct(
@@ -56,8 +57,9 @@ class PlayerTrophy
      * @return array{name:string,description:string,icon:string}[]
      */
     public static function getFields() : array {
-        if (empty(self::$fields)) {
-            self::$fields = [
+        $lang = App::getInstance()->translations->getLang();
+        if (empty(self::$fields[$lang])) {
+            self::$fields[$lang] = [
               'score'             => [
                 'name'        => lang('Absolutní vítěz', context: 'bests', domain: 'results'),
                 'description' => lang(
@@ -265,7 +267,7 @@ class PlayerTrophy
               ],
             ];
         }
-        return self::$fields;
+        return self::$fields[$lang];
     }
 
     /**
