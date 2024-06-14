@@ -16,7 +16,7 @@ use Lsr\Core\Models\Model;
 class PrintTemplate extends Model
 {
 
-	public const TABLE = 'print_templates';
+    public const string TABLE = 'print_templates';
 
 	public string           $slug        = '';
 	public string           $name        = '';
