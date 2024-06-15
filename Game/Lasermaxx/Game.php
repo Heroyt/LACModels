@@ -34,12 +34,12 @@ abstract class Game extends \App\GameModels\Game\Game
 	 */
 	public static function getTeamColors(): array {
 		return [
-			0 => '#f00',
-			1 => '#0c0',
+      0 => '#E00000',
+      1 => '#008500',
 			2 => '#00f',
-			3 => '#f081da',
-			4 => '#f5bc00',
-			5 => '#28d1f0',
+      3 => '#D100C7',
+      4 => '#E0A800',
+      5 => '#24AAC2',
 		];
 	}
 
