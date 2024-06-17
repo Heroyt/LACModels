@@ -731,4 +731,11 @@ abstract class Game extends Model
         return $this->metaData;
     }
 
+    public function setMetaValue(string $key, mixed $value) : static {
+        $meta = $this->getMeta();
+        $meta[$key] = $value;
+        $this->setMeta($meta);
+        return $this;
+    }
+
 }
