@@ -20,6 +20,7 @@ use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
+use App\Models\WithMetaData;
 use App\Services\FeatureConfig;
 use App\Services\LigaApi;
 use DateTime;
@@ -47,30 +48,42 @@ use Throwable;
 /**
  * Base class for game models
  *
+ * @phpstan-type GameMeta array{
+ *      music:null|numeric,
+ *      mode:string,
+ *      loadTime:int,
+ *      group?:int,
+ *      table?:int,
+ *      variations?:array<int,string>,
+ *      hash: string,
+ * }
+ *
  * @property LAC\Modules\Tables\Models\Table|null $table
  * @property LAC\Modules\Tournament\Models\Game|null $tournamentGame
  * @phpstan-consistent-constructor
  * @template T of Team
  * @template P of Player
  *
+ * @phpstan-use WithTeams<T>
  * @use WithTeams<T>
+ * @phpstan-use WithPlayers<P>
  * @use WithPlayers<P>
+ * @phpstan-use WithMetaData<GameMeta>
+ * @use WithMetaData<GameMeta>
  */
 #[PrimaryKey('id_game')]
 #[Factory(GameFactory::class)] // @phpstan-ignore-line
 abstract class Game extends Model
 {
-    /** @phpstan-use WithPlayers<P> */
     use WithPlayers;
-
-    /** @phpstan-use WithTeams<T> */
     use WithTeams;
     use Expandable;
+    use WithMetaData;
 
     public const SYSTEM = '';
-    public const CACHE_TAGS = ['games'];
+    public const array CACHE_TAGS = ['games'];
 
-    public const DI_TAG = 'gameDataExtension';
+    public const string DI_TAG = 'gameDataExtension';
     private static string $codePrefix;
 
     public ?string $resultsFile = null;
@@ -95,8 +108,6 @@ abstract class Game extends Model
     public bool $started = false;
     #[NoDB]
     public bool $finished = false;
-    public ?string $meta = null;
-    protected ?array $metaData = null;
     protected float $realGameLength;
 
     public function __construct(?int $id = null, ?Row $dbRow = null) {
@@ -716,26 +727,6 @@ abstract class Game extends Model
             $this->getMode()->reorderGame($this);
         }
         $this->runHook('reorder');
-    }
-
-    public function setMeta(array $meta) : static {
-        $this->metaData = $meta;
-        $this->meta = igbinary_serialize($meta);
-        return $this;
-    }
-
-    public function getMeta() : array {
-        if (!isset($this->metaData)) {
-            $this->metaData = isset($this->meta) ? igbinary_unserialize($this->meta) : [];
-        }
-        return $this->metaData;
-    }
-
-    public function setMetaValue(string $key, mixed $value) : static {
-        $meta = $this->getMeta();
-        $meta[$key] = $value;
-        $this->setMeta($meta);
-        return $this;
     }
 
 }
