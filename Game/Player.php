@@ -45,10 +45,10 @@ abstract class Player extends Model
 	use WithGame;
 	use Expandable;
 
-	public const CACHE_TAGS = ['players'];
+    public const array CACHE_TAGS = ['players'];
 	public const CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
 	public const SYSTEM     = '';
-	public const DI_TAG     = 'playerDataExtension';
+    public const string DI_TAG = 'playerDataExtension';
 
 	#[Required]
   #[StringLength(1, 50)]
@@ -541,10 +541,6 @@ abstract class Player extends Model
 		if (isset($this->user)) {
 			$data['code'] = $this->user->getCode();
 			$data['rank'] = $this->user->rank;
-		}
-		$data['team'] = $this->getTeam()?->id;
-		if (isset($data['game'])) {
-			unset($data['game']);
 		}
 		$data['hitPlayers'] = $this->getHitsPlayers();
 		$data['avgSkill'] = $this->getSkill();

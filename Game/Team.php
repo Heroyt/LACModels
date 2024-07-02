@@ -176,9 +176,6 @@ abstract class Team extends Model
 		if (isset($data['players'])) {
 			unset($data['players']);
 		}
-		if (isset($data['game'])) {
-			unset($data['game']);
-		}
 		$this->extensionJson($data);
 		return $data;
 	}
