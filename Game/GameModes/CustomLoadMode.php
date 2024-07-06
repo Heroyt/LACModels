@@ -2,8 +2,12 @@
 
 namespace App\GameModels\Game\GameModes;
 
+use App\Tools\GameLoading\LasermaxxGameLoader;
+
 /**
  * Interface for game modes which should somehow modify the game load process
+ *
+ * @phpstan-import-type LoadData from LasermaxxGameLoader
  */
 interface CustomLoadMode
 {
@@ -19,37 +23,9 @@ interface CustomLoadMode
     /**
      * Modify the game data which should be passed to the load file.
      *
-     * @param array{
-     *   meta:array<string,string|numeric>,
-     *   players:array{
-     *       vest:int,
-     *       name:string,
-     *       vip:bool,
-     *       team:int,
-     *       code?:string
-     *   }[],
-     *   teams:array{
-     *       key:int,
-     *       name:string,
-     *       playerCount:int
-     *   }
-     *   } $data
+     * @param LoadData $data
      *
-     * @return array{
-     *   meta:array<string,string|numeric>,
-     *   players:array{
-     *       vest:int,
-     *       name:string,
-     *       vip:bool,
-     *       team:int,
-     *       code?:string
-     *   }[],
-     *   teams:array{
-     *       key:int,
-     *       name:string,
-     *       playerCount:int
-     *   }
-     *   } Modified data
+     * @return LoadData Modified data
      */
     public function modifyGameDataBeforeLoad(array $data): array;
 }
