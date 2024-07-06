@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
@@ -111,7 +112,7 @@ abstract class Game extends Model
     protected float $realGameLength;
 
     public function __construct(?int $id = null, ?Row $dbRow = null) {
-        $this->cacheTags[] = 'games/'.$this::SYSTEM;
+        $this->cacheTags[] = 'games/' . $this::SYSTEM;
         parent::__construct($id, $dbRow);
         $this->initExtensions();
     }
@@ -119,14 +120,14 @@ abstract class Game extends Model
     /**
      * @return array<int, string>
      */
-    public static function getTeamColors() : array {
+    public static function getTeamColors(): array {
         return [];
     }
 
     /**
      * @return array<int, string>
      */
-    public static function getTeamNames() : array {
+    public static function getTeamNames(): array {
         return [];
     }
 
@@ -189,7 +190,7 @@ abstract class Game extends Model
      * @throws Throwable
      * @throws ValidationException
      */
-    public static function fromJson(array $data) : Game {
+    public static function fromJson(array $data): Game {
         $game = new static();
         /** @var Player[] $players */
         $players = [];
@@ -230,9 +231,9 @@ abstract class Game extends Model
                         $value['type'] = GameModeType::TEAM->value;
                     }
                     $game->mode = GameModeFactory::findByName(
-                      $value['name'],
-                      GameModeType::tryFrom($value['type']) ?? GameModeType::TEAM,
-                      static::SYSTEM
+                        $value['name'],
+                        GameModeType::tryFrom($value['type']) ?? GameModeType::TEAM,
+                        static::SYSTEM
                     );
                     break;
                 case 'players':
@@ -290,7 +291,7 @@ abstract class Game extends Model
                 {
                     foreach ($value as $teamData) {
                         /** @var Team $team */
-                        $team = new $game->teamClass;
+                        $team = new $game->teamClass();
                         $team->setGame($game);
                         $id = 0;
                         foreach ($teamData as $keyTeam => $valueTeam) {
@@ -350,28 +351,26 @@ abstract class Game extends Model
      * @return AbstractMode|null
      * @throws GameModeNotFoundException
      */
-    public function getMode() : ?AbstractMode {
+    public function getMode(): ?AbstractMode {
         if (!isset($this->mode)) {
             if (isset($this->relationIds['mode'])) {
                 $this->mode = GameModeFactory::getById($this->relationIds['mode']);
-            }
-            elseif (isset($this->modeName)) {
+            } elseif (isset($this->modeName)) {
                 $this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
-            }
-            else {
+            } else {
                 $this->mode = null;
             }
         }
         return $this->mode;
     }
 
-    public function getQueryData() : array {
+    public function getQueryData(): array {
         $data = parent::getQueryData();
         $this->extensionAddQueryData($data);
         return $data;
     }
 
-    public function fillFromRow() : void {
+    public function fillFromRow(): void {
         if (!isset($this->row)) {
             return;
         }
@@ -379,7 +378,7 @@ abstract class Game extends Model
         $this->extensionFillFromRow();
     }
 
-    public function isStarted() : bool {
+    public function isStarted(): bool {
         return $this->start !== null;
     }
 
@@ -393,7 +392,7 @@ abstract class Game extends Model
      * @throws ValidationException
      * @noinspection PhpMissingBreakStatementInspection
      */
-    public function getBestPlayer(string $property) : ?Player {
+    public function getBestPlayer(string $property): ?Player {
         $query = $this->getPlayers()->query()->sortBy($property);
         switch ($property) {
             case 'shots':
@@ -402,8 +401,8 @@ abstract class Game extends Model
             case 'hitsOwn':
             case 'deathsOwn':
                 /* @phpstan-ignore-next-line */ $query->addFilter(
-              new CollectionCompareFilter($property, Comparison::GREATER, 0)
-            );
+                    new CollectionCompareFilter($property, Comparison::GREATER, 0)
+                );
             default:
                 $query->desc();
                 break;
@@ -415,7 +414,7 @@ abstract class Game extends Model
      * @return array<string,string>
      * @noinspection PhpArrayShapeAttributeCanBeAddedInspection
      */
-    public function getBestsFields() : array {
+    public function getBestsFields(): array {
         $fields = [
           'hits'     => lang('Největší terminátor', domain: 'results', context: 'bests'),
           'deaths'   => lang('Objekt největšího zájmu', domain: 'results', context: 'bests'),
@@ -425,7 +424,7 @@ abstract class Game extends Model
           'miss'     => lang('Největší mimoň', domain: 'results', context: 'bests'),
         ];
         foreach ($fields as $key => $value) {
-            $settingName = Strings::toCamelCase('best_'.$key);
+            $settingName = Strings::toCamelCase('best_' . $key);
             if (!($this->getMode()->settings->$settingName ?? true)) {
                 unset($fields[$key]);
             }
@@ -440,7 +439,7 @@ abstract class Game extends Model
      *
      * @return Player|null
      */
-    public function getVestPlayer(int | string $vestNum) : ?Player {
+    public function getVestPlayer(int | string $vestNum): ?Player {
         return $this->getPlayers()->query()->filter('vest', $vestNum)->first();
     }
 
@@ -451,7 +450,7 @@ abstract class Game extends Model
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function jsonSerialize() : array {
+    public function jsonSerialize(): array {
         $this->getTeams();
         $this->getPlayers();
         $data = parent::jsonSerialize();
@@ -486,12 +485,12 @@ abstract class Game extends Model
         return $data;
     }
 
-    public function getGroup() : ?GameGroup {
+    public function getGroup(): ?GameGroup {
         $this->group ??= isset($this->relationIds['group']) ? GameGroup::get($this->relationIds['group']) : null;
         return $this->group;
     }
 
-    public function getMusic() : ?MusicMode {
+    public function getMusic(): ?MusicMode {
         $this->music ??= isset($this->relationIds['music']) ? MusicMode::get($this->relationIds['music']) : null;
         return $this->music;
     }
@@ -505,7 +504,7 @@ abstract class Game extends Model
      * @throws ModelNotFoundException
      * @throws Throwable
      */
-    public function sync() : bool {
+    public function sync(): bool {
         /** @var FeatureConfig $featureConfig */
         $featureConfig = App::getService('features');
         if (!$featureConfig->isFeatureEnabled('liga')) {
@@ -532,13 +531,13 @@ abstract class Game extends Model
      * @throws Throwable
      * @noinspection PhpUndefinedFieldInspection
      */
-    public function save() : bool {
+    public function save(): bool {
         $pk = $this::getPrimaryKey();
         /** @var Row|null $test */
-        $test = DB::select($this::TABLE, $pk.', code')->where(
-          'start = %dt OR start = %dt',
-          $this->start,
-          $this->start->getTimestamp() + ($this->timing?->before ?? 20)
+        $test = DB::select($this::TABLE, $pk . ', code')->where(
+            'start = %dt OR start = %dt',
+            $this->start,
+            $this->start->getTimestamp() + ($this->timing?->before ?? 20)
         )->fetch(cache: false);
         if (isset($test)) {
             /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
@@ -575,7 +574,7 @@ abstract class Game extends Model
         return $success && $this->extensionSave();
     }
 
-    public static function getCodePrefix() : string {
+    public static function getCodePrefix(): string {
         if (!isset(self::$codePrefix)) {
             /** @var Config $config */
             $config = App::getService('config');
@@ -590,7 +589,7 @@ abstract class Game extends Model
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function calculateSkills() : void {
+    public function calculateSkills(): void {
         /** @var Player[] $players */
         $players = $this->getPlayers()->getAll();
 
@@ -623,14 +622,13 @@ abstract class Game extends Model
             $newDiff = (int) abs(round($player->skill * $percent));
             if ($diff < 0) {
                 $player->skill -= $newDiff;
-            }
-            else {
+            } else {
                 $player->skill += $newDiff;
             }
         }
     }
 
-    public function insert() : bool {
+    public function insert(): bool {
         if ($this->getGroup() !== null) {
             $this->getGroup()->clearCache();
         }
@@ -640,23 +638,23 @@ abstract class Game extends Model
         return parent::insert();
     }
 
-    public function clearCache() : void {
+    public function clearCache(): void {
         parent::clearCache();
 
         // Invalidate cached objects
         /** @var Cache $cache */
         $cache = App::getService('cache');
-        $cache->remove('games/'.$this::SYSTEM.'/'.$this->id);
+        $cache->remove('games/' . $this::SYSTEM . '/' . $this->id);
         $cache->clean(
-          [
+            [
             CacheParent::Tags => [
-              'games/'.$this::SYSTEM.'/'.$this->id,
-              'games/'.$this->start?->format('Y-m-d'),
-              'games/'.$this->start?->format('Y-m'),
-              'games/'.$this->start?->format('Y'),
-              'games/'.$this->code,
+              'games/' . $this::SYSTEM . '/' . $this->id,
+              'games/' . $this->start?->format('Y-m-d'),
+              'games/' . $this->start?->format('Y-m'),
+              'games/' . $this->start?->format('Y'),
+              'games/' . $this->code,
             ],
-          ]
+            ]
         );
 
         if ($this->getGroup() !== null) {
@@ -665,7 +663,7 @@ abstract class Game extends Model
 
         // Invalidate generated results cache
         /** @var string[]|false $files */
-        $files = glob(TMP_DIR.'results/'.$this->code.'*');
+        $files = glob(TMP_DIR . 'results/' . $this->code . '*');
         if ($files !== false) {
             foreach ($files as $file) {
                 @unlink($file);
@@ -673,7 +671,7 @@ abstract class Game extends Model
         }
     }
 
-    public function delete() : bool {
+    public function delete(): bool {
         /** @var Cache $cache */
         $cache = App::getService('cache');
         $cache->clean([CacheParent::Tags => ['games/counts']]);
@@ -685,7 +683,7 @@ abstract class Game extends Model
      *
      * @return float Real game length in minutes.
      */
-    public function getRealGameLength() : float {
+    public function getRealGameLength(): float {
         if (!isset($this->realGameLength)) {
             if (!isset($this->end, $this->start) || !$this->isFinished()) {
                 // If the game is not finished, it does not have a game length
@@ -697,14 +695,14 @@ abstract class Game extends Model
         return $this->realGameLength;
     }
 
-    public function isFinished() : bool {
+    public function isFinished(): bool {
         return $this->end !== null && $this->importTime !== null;
     }
 
     /**
      * @return float
      */
-    public function getAverageKd() : float {
+    public function getAverageKd(): float {
         try {
             /** @var float[] $kds */
             $kds = $this->getPlayers()->query()->map(fn(Player $player) => $player->getKd())->get();
@@ -714,7 +712,7 @@ abstract class Game extends Model
         return empty($kds) ? 1 : array_sum($kds) / count($kds);
     }
 
-    public function recalculateScores() : void {
+    public function recalculateScores(): void {
         if ($this->getMode() !== null) {
             $this->getMode()->recalculateScores($this);
             $this->reorder();
@@ -722,11 +720,10 @@ abstract class Game extends Model
         }
     }
 
-    public function reorder() : void {
+    public function reorder(): void {
         if ($this->getMode() !== null) {
             $this->getMode()->reorderGame($this);
         }
         $this->runHook('reorder');
     }
-
 }

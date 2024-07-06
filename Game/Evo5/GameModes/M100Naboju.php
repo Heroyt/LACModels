@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
@@ -19,27 +20,26 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class M100Naboju extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode
 {
+    use LaserMaxxScores;
 
-	use LaserMaxxScores;
 
+    public string $name = '100 nábojů';
 
-	public string $name = '100 nábojů';
-
-	/**
-	 * Get a template file containing custom results
-	 *
-	 * @return string Path to template file
-	 */
-    public function getCustomResultsTemplate() : string {
+    /**
+     * Get a template file containing custom results
+     *
+     * @return string Path to template file
+     */
+    public function getCustomResultsTemplate(): string {
         return 'naboju';
-	}
+    }
 
-	/**
-	 * Get a template file containing the custom gate results
-	 *
-	 * @return string Path to template file
-	 */
-	public function getCustomGateScreen(): string {
-      return LaserMaxx100NabojuResultsScreen::class;
-	}
+    /**
+     * Get a template file containing the custom gate results
+     *
+     * @return string Path to template file
+     */
+    public function getCustomGateScreen(): string {
+        return LaserMaxx100NabojuResultsScreen::class;
+    }
 }

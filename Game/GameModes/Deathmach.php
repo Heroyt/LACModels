@@ -14,13 +14,11 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class Deathmach extends AbstractMode
 {
+    public GameModeType $type        = GameModeType::SOLO;
+    public string $name        = 'Deathmach';
+    public ?string $description = 'Free for all game type.';
 
-	public GameModeType $type        = GameModeType::SOLO;
-	public string       $name        = 'Deathmach';
-	public ?string      $description = 'Free for all game type.';
-
-	public function getTeamAlternative() : string {
-		return TeamDeathmach::class;
-	}
-
+    public function getTeamAlternative(): string {
+        return TeamDeathmach::class;
+    }
 }

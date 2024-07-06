@@ -18,26 +18,25 @@ use Lsr\Core\Models\LoadingType;
 #[PrimaryKey('id_player'), Factory(PlayerFactory::class, ['system' => 'evo6'])]
 class Player extends \App\GameModels\Game\Lasermaxx\Player
 {
+    public const TABLE  = 'evo6_players';
+    public const SYSTEM = 'evo6';
 
-	public const TABLE  = 'evo6_players';
-	public const SYSTEM = 'evo6';
+    public int $bonuses  = 0;
+    public int $calories = 0;
 
-	public int $bonuses  = 0;
-	public int $calories = 0;
+    #[ManyToOne(class: Game::class, loadingType: LoadingType::LAZY)]
+    public BaseGame $game;
+    #[ManyToOne(foreignKey: 'id_team', class: Team::class)]
+    public ?\App\GameModels\Game\Team $team = null;
 
-	#[ManyToOne(class: Game::class, loadingType: LoadingType::LAZY)]
-	public BaseGame                   $game;
-	#[ManyToOne(foreignKey: 'id_team', class: Team::class)]
-	public ?\App\GameModels\Game\Team $team = null;
+    /**
+     * @inheritDoc
+     */
+    public function getMines(): int {
+        return $this->bonuses;
+    }
 
-	/**
-	 * @inheritDoc
-	 */
-	public function getMines(): int {
-		return $this->bonuses;
-	}
-
-    public function getBonusCount() : int {
+    public function getBonusCount(): int {
         return $this->bonuses;
     }
 }

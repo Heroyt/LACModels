@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
@@ -16,10 +18,8 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class TmaSolo extends Deathmach
 {
+    use LaserMaxxScores;
 
-	use LaserMaxxScores;
 
-
-	public string $name = 'T.M.A. - solo';
-
+    public string $name = 'T.M.A. - solo';
 }

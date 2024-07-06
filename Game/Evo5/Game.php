@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
@@ -24,18 +25,17 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[PrimaryKey('id_game'), Factory(GameFactory::class, ['system' => 'evo5'])]
 class Game extends \App\GameModels\Game\Lasermaxx\Game
 {
+    public const SYSTEM = 'evo5';
+    public const TABLE  = 'evo5_games';
 
-	public const SYSTEM = 'evo5';
-	public const TABLE  = 'evo5_games';
+    #[NoDB]
+    public string $playerClass = Player::class;
+    #[NoDB]
+    public string $teamClass   = Team::class;
+    #[Instantiate]
+    public Scoring $scoring;
 
-	#[NoDB]
-	public string  $playerClass = Player::class;
-	#[NoDB]
-	public string  $teamClass   = Team::class;
-	#[Instantiate]
-	public Scoring $scoring;
-
-	public function getMode(): ?AbstractMode {
-		return parent::getMode() ?? ($this->gameType === GameModeType::SOLO ? new Deathmach() : new TeamDeathmach());
-	}
+    public function getMode(): ?AbstractMode {
+        return parent::getMode() ?? ($this->gameType === GameModeType::SOLO ? new Deathmach() : new TeamDeathmach());
+    }
 }

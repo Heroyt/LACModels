@@ -10,19 +10,17 @@ use App\Gate\Screens\Results\ResultsScreenInterface;
  */
 interface CustomResultsMode
 {
+    /**
+     * Get a template file containing custom results
+     *
+     * @return string Path to template file
+     */
+    public function getCustomResultsTemplate(): string;
 
-	/**
-	 * Get a template file containing custom results
-	 *
-	 * @return string Path to template file
-	 */
-    public function getCustomResultsTemplate() : string;
-
-	/**
-	 * Get a custom gate screen that will show the results for this mode
-	 *
-	 * @return class-string<ResultsScreenInterface&GateScreen> Custom results gate screen to use
-	 */
-	public function getCustomGateScreen(): string;
-
+    /**
+     * Get a custom gate screen that will show the results for this mode
+     *
+     * @return class-string<ResultsScreenInterface&GateScreen> Custom results gate screen to use
+     */
+    public function getCustomGateScreen(): string;
 }

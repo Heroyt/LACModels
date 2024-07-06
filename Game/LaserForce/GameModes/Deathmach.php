@@ -13,8 +13,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class Deathmach extends \App\GameModels\Game\GameModes\Deathmach
 {
-
-	public function getTeamAlternative() : string {
-		return TeamDeathmach::class;
-	}
+    public function getTeamAlternative(): string {
+        return TeamDeathmach::class;
+    }
 }

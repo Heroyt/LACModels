@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
@@ -10,7 +11,5 @@ namespace App\GameModels\Game\Evo6;
  */
 class PlayerHit extends \App\GameModels\Game\PlayerHit
 {
-
-	public const TABLE = 'evo6_hits';
-
+    public const TABLE = 'evo6_hits';
 }

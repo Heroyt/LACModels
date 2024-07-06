@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
@@ -19,7 +20,6 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class Barvicky extends AbstractMode implements CustomLoadMode
 {
-
     use LaserMaxxScores;
 
 
@@ -32,7 +32,7 @@ class Barvicky extends AbstractMode implements CustomLoadMode
      *
      * @return string Script name or empty string
      */
-    public function getNewGameScriptToRun() : string {
+    public function getNewGameScriptToRun(): string {
         return 'barvicky';
     }
 
@@ -71,7 +71,7 @@ class Barvicky extends AbstractMode implements CustomLoadMode
      *      hiddenTeams?: string,
      *    } Modified data
      */
-    public function modifyGameDataBeforeLoad(array $data) : array {
+    public function modifyGameDataBeforeLoad(array $data): array {
         // Shuffle teams
         if (isset($data['hiddenTeams']) && $data['hiddenTeams'] === '1') {
             $teamCount = count($data['teams']);
@@ -92,7 +92,7 @@ class Barvicky extends AbstractMode implements CustomLoadMode
 
         // Add starting team color meta
         foreach ($data['players'] as $player) {
-            $data['meta']['p'.$player['vest'].'-startTeam'] = $player['team'];
+            $data['meta']['p' . $player['vest'] . '-startTeam'] = $player['team'];
         }
         return $data;
     }

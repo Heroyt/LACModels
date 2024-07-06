@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
@@ -16,8 +17,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class TeamDeathmach extends \App\GameModels\Game\GameModes\TeamDeathmach
 {
-
-	public function getSoloAlternative() : string {
-		return Deathmach::class;
-	}
+    public function getSoloAlternative(): string {
+        return Deathmach::class;
+    }
 }

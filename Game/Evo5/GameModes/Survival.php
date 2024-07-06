@@ -19,35 +19,34 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class Survival extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode, ModifyScoresMode
 {
+    use LaserMaxxScores;
 
-	use LaserMaxxScores;
 
+    public string $name = 'Survival';
 
-	public string $name = 'Survival';
-
-	/**
-	 * Get a template file containing custom results
-	 *
-	 * @return string Path to template file
-	 */
-    public function getCustomResultsTemplate() : string {
+    /**
+     * Get a template file containing custom results
+     *
+     * @return string Path to template file
+     */
+    public function getCustomResultsTemplate(): string {
         return 'survival';
-	}
+    }
 
-	/**
-	 * Get a template file containing the custom gate results
-	 *
-	 * @return string Path to template file
-	 */
-	public function getCustomGateScreen(): string {
-      return LaserMaxxSurvivalResultsScreen::class;
-	}
+    /**
+     * Get a template file containing the custom gate results
+     *
+     * @return string Path to template file
+     */
+    public function getCustomGateScreen(): string {
+        return LaserMaxxSurvivalResultsScreen::class;
+    }
 
     /**
      * @param  \App\GameModels\Game\Lasermaxx\Game  $game
      * @return void
      */
-    public function modifyResults(Game $game) : void {
+    public function modifyResults(Game $game): void {
         // Add 1000 score to surviving players
         /** @var Player $player */
         foreach ($game->getPlayers() as $player) {

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
@@ -12,40 +13,38 @@ use Lsr\Core\Models\Model;
 #[PrimaryKey('id_tip')]
 class Tip extends Model
 {
+    public const TABLE = 'tips';
 
-	public const TABLE = 'tips';
+    public string $text;
 
-	public string $text;
+    /**
+     * @return string[]
+     * @throws ValidationException
+     */
+    public static function shuffledFormatted(): array {
+        $formatted = [];
+        foreach (self::shuffled() as $tip) {
+            $formatted[] = sprintf(lang('Tip #%d', domain: 'tips'), $tip->id) . ': ' . lang($tip->text, domain: 'tips');
+        }
+        return $formatted;
+    }
 
-	/**
-	 * @return string[]
-	 * @throws ValidationException
-	 */
-	public static function shuffledFormatted() : array {
-		$formatted = [];
-		foreach (self::shuffled() as $tip) {
-        $formatted[] = sprintf(lang('Tip #%d', domain: 'tips'), $tip->id).': '.lang($tip->text, domain: 'tips');
-		}
-		return $formatted;
-	}
+    /**
+     * Get all tips, shuffled (=in random order).
+     *
+     * @return Tip[]
+     * @throws ValidationException
+     */
+    public static function shuffled(): array {
+        return self::query()->orderBy('RAND()')->get();
+    }
 
-	/**
-	 * Get all tips, shuffled (=in random order).
-	 *
-	 * @return Tip[]
-	 * @throws ValidationException
-	 */
-	public static function shuffled() : array {
-		return self::query()->orderBy('RAND()')->get();
-	}
-
-	/**
-	 * Get one random
-	 *
-	 * @return Tip|null
-	 */
-	public static function random() : ?Tip {
-		return self::query()->orderBy('RAND()')->first();
-	}
-
+    /**
+     * Get one random
+     *
+     * @return Tip|null
+     */
+    public static function random(): ?Tip {
+        return self::query()->orderBy('RAND()')->first();
+    }
 }

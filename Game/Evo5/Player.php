@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
@@ -22,21 +23,20 @@ use Lsr\Core\Models\LoadingType;
 #[PrimaryKey('id_player'), Factory(PlayerFactory::class, ['system' => 'evo5'])]
 class Player extends \App\GameModels\Game\Lasermaxx\Player
 {
+    public const TABLE  = 'evo5_players';
+    public const SYSTEM = 'evo5';
+    #[Instantiate]
+    public BonusCounts $bonus;
+    #[ManyToOne(class: Game::class, loadingType: LoadingType::LAZY)]
+    public BaseGame $game;
+    #[ManyToOne(foreignKey: 'id_team', class: Team::class)]
+    public ?\App\GameModels\Game\Team $team = null;
 
-	public const TABLE  = 'evo5_players';
-	public const SYSTEM = 'evo5';
-	#[Instantiate]
-	public BonusCounts                $bonus;
-	#[ManyToOne(class: Game::class, loadingType: LoadingType::LAZY)]
-	public BaseGame                   $game;
-	#[ManyToOne(foreignKey: 'id_team', class: Team::class)]
-	public ?\App\GameModels\Game\Team $team = null;
+    public function getMines(): int {
+        return $this->bonus->getSum();
+    }
 
-	public function getMines(): int {
-		return $this->bonus->getSum();
-	}
-
-    public function getBonusCount() : int {
+    public function getBonusCount(): int {
         return $this->bonus->getSum();
     }
 }

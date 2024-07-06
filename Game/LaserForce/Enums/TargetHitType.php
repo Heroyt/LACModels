@@ -7,8 +7,6 @@ namespace App\GameModels\Game\LaserForce\Enums;
  */
 enum TargetHitType: string
 {
-
-	case HIT = 'hit';
-	case DESTROYED = 'destroyed';
-
+    case HIT = 'hit';
+    case DESTROYED = 'destroyed';
 }

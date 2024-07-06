@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
@@ -26,100 +27,99 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class CSGO extends AbstractMode implements CustomResultsMode
 {
+    use LaserMaxxScores;
 
-	use LaserMaxxScores;
 
+    public string $name = 'CSGO';
 
-	public string $name = 'CSGO';
+    /**
+     * @param Evo5Game $game
+     *
+     * @return Evo5Team|null
+     * @throws ModelNotFoundException
+     * @throws ValidationException
+     */
+    public function getWin(Game $game): ?Team {
+        $teams = $game->getTeams();
+        // Two teams - get the last team alive or team with most hits
+        if (count($teams) === 2) {
+            /** @var Evo5Team $team1 */
+            $team1 = $teams->first();
+            $remaining1 = $this->getRemainingLives($team1);
+            /** @var Evo5Team $team2 */
+            $team2 = $teams->last();
+            $remaining2 = $this->getRemainingLives($team2);
+            if ($remaining1 === 0 && $remaining2 > 0) {
+                return $team2;
+            }
+            if ($remaining1 > 0 && $remaining2 === 0) {
+                return $team1;
+            }
+            if ($remaining1 > 0 && $remaining2 > 0) {
+                $hits1 = $team1->getHits();
+                $hits2 = $team2->getHits();
+                if ($hits1 > $hits2) {
+                    return $team1;
+                }
+                if ($hits2 > $hits1) {
+                    return $team2;
+                }
+            }
+            return null;
+        }
 
-	/**
-	 * @param Evo5Game $game
-	 *
-	 * @return Evo5Team|null
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
-	 */
-	public function getWin(Game $game) : ?Team {
-		$teams = $game->getTeams();
-		// Two teams - get the last team alive or team with most hits
-		if (count($teams) === 2) {
-			/** @var Evo5Team $team1 */
-			$team1 = $teams->first();
-			$remaining1 = $this->getRemainingLives($team1);
-			/** @var Evo5Team $team2 */
-			$team2 = $teams->last();
-			$remaining2 = $this->getRemainingLives($team2);
-			if ($remaining1 === 0 && $remaining2 > 0) {
-				return $team2;
-			}
-			if ($remaining1 > 0 && $remaining2 === 0) {
-				return $team1;
-			}
-			if ($remaining1 > 0 && $remaining2 > 0) {
-				$hits1 = $team1->getHits();
-				$hits2 = $team2->getHits();
-				if ($hits1 > $hits2) {
-					return $team1;
-				}
-				if ($hits2 > $hits1) {
-					return $team2;
-				}
-			}
-			return null;
-		}
+        // More teams - Get alive team with the most hits
+        $max = 0;
+        $maxTeam = null;
+        /** @var Evo5Team $team */
+        foreach ($teams as $team) {
+            if ($this->getRemainingLives($team) === 0) {
+                continue;
+            }
+            $hits = $team->getHits();
+            if ($hits > $max) {
+                $max = $hits;
+                $maxTeam = $team;
+            }
+        }
+        return $maxTeam;
+    }
 
-		// More teams - Get alive team with the most hits
-		$max = 0;
-		$maxTeam = null;
-		/** @var Evo5Team $team */
-		foreach ($teams as $team) {
-			if ($this->getRemainingLives($team) === 0) {
-				continue;
-			}
-			$hits = $team->getHits();
-			if ($hits > $max) {
-				$max = $hits;
-				$maxTeam = $team;
-			}
-		}
-		return $maxTeam;
-	}
+    /**
+     * @param Evo5Team $team
+     *
+     * @return int
+     * @throws ModelNotFoundException
+     * @throws ValidationException
+     */
+    public function getRemainingLives(Evo5Team $team): int {
+        return $this->getTotalLives($team) - $team->getDeaths();
+    }
 
-	/**
-	 * @param Evo5Team $team
-	 *
-	 * @return int
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
-	 */
-	public function getRemainingLives(Evo5Team $team) : int {
-		return $this->getTotalLives($team) - $team->getDeaths();
-	}
+    /**
+     * @param Evo5Team $team
+     *
+     * @return int
+     * @throws ModelNotFoundException
+     * @throws ValidationException
+     */
+    public function getTotalLives(Evo5Team $team): int {
+        /** @var Evo5Game $game */
+        $game = $team->getGame();
+        return count($team->getPlayers()) * $game->lives;
+    }
 
-	/**
-	 * @param Evo5Team $team
-	 *
-	 * @return int
-	 * @throws ModelNotFoundException
-	 * @throws ValidationException
-	 */
-	public function getTotalLives(Evo5Team $team) : int {
-		/** @var Evo5Game $game */
-		$game = $team->getGame();
-		return count($team->getPlayers()) * $game->lives;
-	}
+    /**
+     * @inheritDoc
+     */
+    public function getCustomResultsTemplate(): string {
+        return '';
+    }
 
-	/**
-	 * @inheritDoc
-	 */
-    public function getCustomResultsTemplate() : string {
-		return '';
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function getCustomGateScreen(): string {
-      return LaserMaxxCSGOResultsScreen::class;
-	}
+    /**
+     * @inheritDoc
+     */
+    public function getCustomGateScreen(): string {
+        return LaserMaxxCSGOResultsScreen::class;
+    }
 }

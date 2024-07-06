@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
@@ -20,13 +21,12 @@ use App\GameModels\Game\Query\PlayerQuery;
  */
 class PlayerCollection extends AbstractCollection
 {
+    protected string $type = Player::class;
 
-	protected string $type = Player::class;
-
-	/**
-	 * @return PlayerQuery<P>
-	 */
-	public function query() : CollectionQueryInterface {
-		return new PlayerQuery($this);
-	}
+    /**
+     * @return PlayerQuery<P>
+     */
+    public function query(): CollectionQueryInterface {
+        return new PlayerQuery($this);
+    }
 }

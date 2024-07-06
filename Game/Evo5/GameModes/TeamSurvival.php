@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
+
 namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
@@ -17,11 +19,9 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class TeamSurvival extends Survival
 {
+    use LaserMaxxScores;
 
-	use LaserMaxxScores;
 
-
-	public string       $name = 'Team Survival';
-	public GameModeType $type = GameModeType::TEAM;
-
+    public string $name = 'Team Survival';
+    public GameModeType $type = GameModeType::TEAM;
 }

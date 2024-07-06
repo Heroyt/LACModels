@@ -2,7 +2,6 @@
 
 namespace App\GameModels\Game\Query;
 
-
 use App\Core\Collections\AbstractCollectionQuery;
 use App\GameModels\Game\Team;
 
@@ -13,5 +12,4 @@ use App\GameModels\Game\Team;
  */
 class TeamQuery extends AbstractCollectionQuery
 {
-
 }

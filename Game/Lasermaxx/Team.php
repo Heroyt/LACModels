@@ -12,5 +12,4 @@ namespace App\GameModels\Game\Lasermaxx;
  */
 abstract class Team extends \App\GameModels\Game\Team
 {
-
 }

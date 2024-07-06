@@ -13,9 +13,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class CustomTeamMode extends AbstractMode
 {
-
-	public function getSoloAlternative() : string {
-		return CustomSoloMode::class;
-	}
-
+    public function getSoloAlternative(): string {
+        return CustomSoloMode::class;
+    }
 }

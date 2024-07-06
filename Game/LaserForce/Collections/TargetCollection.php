@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
@@ -17,13 +18,12 @@ use App\GameModels\Game\LaserForce\Target;
  */
 class TargetCollection extends AbstractCollection
 {
+    protected string $type = Target::class;
 
-	protected string $type = Target::class;
-
-	/**
-	 * @return CollectionQueryInterface<Target>
-	 */
-	public function query() : CollectionQueryInterface {
-		return new TargetQuery($this);
-	}
+    /**
+     * @return CollectionQueryInterface<Target>
+     */
+    public function query(): CollectionQueryInterface {
+        return new TargetQuery($this);
+    }
 }
