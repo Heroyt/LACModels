@@ -22,10 +22,10 @@ use Lsr\Logging\Exceptions\DirectoryCreationException;
 #[PrimaryKey('id_style')]
 class PrintStyle extends Model
 {
-    public const TABLE = 'print_styles';
+    public const string TABLE = 'print_styles';
 
-    public const COLORS  = ['dark', 'light', 'primary'];
-    public const CLASSES = ['text', 'bg', ''];
+    public const array COLORS  = ['dark', 'light', 'primary'];
+    public const array CLASSES = ['text', 'bg', ''];
     #[NoDB]
     public static bool $gotVars      = false;
     public string $name         = '';
