@@ -7,16 +7,16 @@ use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
 /**
- * Basic team deathmach game mode
+ * Basic team Deathmatch game mode
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class TeamDeathmach extends AbstractMode
+class TeamDeathmatch extends AbstractMode
 {
-    public string $name        = 'Team deathmach';
+    public string $name        = 'Team deathmatch';
     public ?string $description = 'Classic team game type.';
 
     public function getSoloAlternative(): string {
-        return Deathmach::class;
+        return Deathmatch::class;
     }
 }

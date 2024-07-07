@@ -1,19 +1,22 @@
 <?php
 
-namespace App\GameModels\Game\LaserForce\GameModes;
+namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
+use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use Lsr\Core\Models\Attributes\Factory;
 use Lsr\Core\Models\Attributes\PrimaryKey;
 
 /**
- * LaserForce Deathmach game mode
+ * LaserMaxx Evo5 Deathmatch game mode
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class Deathmach extends \App\GameModels\Game\GameModes\Deathmach
+class Deathmatch extends \App\GameModels\Game\GameModes\Deathmatch
 {
+    use LaserMaxxScores;
+
     public function getTeamAlternative(): string {
-        return TeamDeathmach::class;
+        return TeamDeathmatch::class;
     }
 }

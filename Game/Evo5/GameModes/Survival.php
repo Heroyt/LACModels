@@ -17,7 +17,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class Survival extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode, ModifyScoresMode
+class Survival extends \App\GameModels\Game\GameModes\Deathmatch implements CustomResultsMode, ModifyScoresMode
 {
     use LaserMaxxScores;
 

@@ -76,9 +76,9 @@ class GameModeFactory implements FactoryInterface
 
         if (empty($className)) {
             if ($modeType === GameModeType::TEAM) {
-                $className = 'TeamDeathmach';
+                $className = 'TeamDeathmatch';
             } else {
-                $className = 'Deathmach';
+                $className = 'Deathmatch';
             }
         }
         $class = $classBase . $classSystem . $classNamespace . $className;

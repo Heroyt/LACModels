@@ -18,7 +18,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class M100Naboju extends \App\GameModels\Game\GameModes\Deathmach implements CustomResultsMode
+class M100Naboju extends \App\GameModels\Game\GameModes\Deathmatch implements CustomResultsMode
 {
     use LaserMaxxScores;
 

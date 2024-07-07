@@ -11,7 +11,7 @@ use App\GameModels\Game\LaserForce\Player;
 /**
  *
  */
-class LaserBall extends TeamDeathmach implements CustomEventsInterface
+class LaserBall extends TeamDeathmatch implements CustomEventsInterface
 {
     public string $name        = 'Laser ball';
     public ?string $description = 'Laser game football!';

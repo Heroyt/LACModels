@@ -16,7 +16,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class TmaSolo extends Deathmach
+class TmaSolo extends Deathmatch
 {
     use LaserMaxxScores;
 
