@@ -3,11 +3,12 @@
 namespace App\GameModels\Game\GameModes;
 
 use App\Tools\GameLoading\LasermaxxGameLoader;
+use App\Tools\GameLoading\LasermaxxLoadData;
 
 /**
  * Interface for game modes which should somehow modify the game load process
  *
- * @phpstan-import-type LoadData from LasermaxxGameLoader
+ * @phpstan-import-type GameData from LasermaxxGameLoader
  */
 interface CustomLoadMode
 {
@@ -23,9 +24,10 @@ interface CustomLoadMode
     /**
      * Modify the game data which should be passed to the load file.
      *
-     * @param LoadData $data
+     * @param  LasermaxxLoadData  $loadData
+     * @param  GameData|array<string,mixed>  $data
      *
-     * @return LoadData Modified data
+     * @return LasermaxxLoadData Modified data
      */
-    public function modifyGameDataBeforeLoad(array $data): array;
+    public function modifyGameDataBeforeLoad(LasermaxxLoadData $loadData, array $data): LasermaxxLoadData;
 }
