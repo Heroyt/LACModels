@@ -108,7 +108,7 @@ class GameFactory implements FactoryInterface
     /**
      * Get a list of all supported systems
      *
-     * @return string[]
+     * @return non-empty-string[]
      */
     public static function getSupportedSystems(): array {
         if (!isset(self::$supportedSystems)) {
