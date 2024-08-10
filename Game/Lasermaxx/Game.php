@@ -59,7 +59,7 @@ abstract class Game extends \App\GameModels\Game\Game
     }
 
     public function insert(): bool {
-        $this->logger->info('Inserting game: ' . $this->fileNumber);
+        $this->getLogger()->info('Inserting game: ' . $this->fileNumber);
         return parent::insert();
     }
 
