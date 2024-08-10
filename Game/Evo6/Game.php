@@ -17,8 +17,8 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[PrimaryKey('id_game'), Factory(GameFactory::class, ['system' => 'evo6'])]
 class Game extends \App\GameModels\Game\Lasermaxx\Game
 {
-    public const SYSTEM = 'evo6';
-    public const TABLE  = 'evo6_games';
+    public const string SYSTEM = 'evo6';
+    public const string TABLE  = 'evo6_games';
 
     #[NoDB]
     public string $playerClass = Player::class;

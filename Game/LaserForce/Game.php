@@ -12,8 +12,8 @@ class Game extends \App\GameModels\Game\Game
 {
     use WithTargets;
 
-    public const TABLE  = 'laserforce_games';
-    public const SYSTEM = 'laserForce';
+    public const string TABLE  = 'laserforce_games';
+    public const string SYSTEM = 'laserForce';
 
     /** @var Event[] */
     #[NoDB]

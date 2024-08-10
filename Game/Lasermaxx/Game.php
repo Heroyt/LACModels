@@ -7,6 +7,7 @@ use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Player as BasePlayer;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
+use OpenApi\Attributes as OA;
 
 /**
  * LaserMaxx game model
@@ -16,6 +17,7 @@ use Lsr\Core\Exceptions\ValidationException;
  *
  * @extends \App\GameModels\Game\Game<T, P>
  */
+#[OA\Schema(schema: 'GameLmx')]
 abstract class Game extends \App\GameModels\Game\Game
 {
     public int $fileNumber;

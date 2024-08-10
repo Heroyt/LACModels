@@ -44,6 +44,7 @@ use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Nette\Caching\Cache as CacheParent;
+use OpenApi\Attributes as OA;
 use Throwable;
 
 /**
@@ -73,6 +74,7 @@ use Throwable;
  * @use WithMetaData<GameMeta>
  */
 #[PrimaryKey('id_game')]
+#[OA\Schema(schema: 'Game')]
 #[Factory(GameFactory::class)] // @phpstan-ignore-line
 abstract class Game extends Model
 {
@@ -81,33 +83,48 @@ abstract class Game extends Model
     use Expandable;
     use WithMetaData;
 
-    public const SYSTEM = '';
+    /** @var 'evo5'|'evo6'|'laserforce'|string */
+    public const string SYSTEM = '';
     public const array CACHE_TAGS = ['games'];
 
     public const string DI_TAG = 'gameDataExtension';
     private static string $codePrefix;
 
+    #[OA\Property]
     public ?string $resultsFile = null;
+    #[OA\Property]
     public string $modeName;
+    #[OA\Property]
     public ?DateTimeInterface $fileTime = null;
+    #[OA\Property]
     public ?DateTimeInterface $start = null;
+    #[OA\Property]
     public ?DateTimeInterface $importTime = null;
+    #[OA\Property]
     public ?DateTimeInterface $end = null;
     #[Instantiate]
+    #[OA\Property]
     public ?Timing $timing = null;
+    #[OA\Property]
     public string $code;
     #[ManyToOne(loadingType: LoadingType::LAZY)]
+    #[OA\Property]
     public ?AbstractMode $mode;
+    #[OA\Property]
     public GameModeType $gameType = GameModeType::TEAM;
     /** @var bool Indicates if the game is synchronized to public API */
     public bool $sync = false;
     #[ManyToOne(loadingType: LoadingType::LAZY)]
+    #[OA\Property]
     public ?MusicMode $music;
     #[ManyToOne(loadingType: LoadingType::LAZY)]
+    #[OA\Property]
     public ?GameGroup $group;
     #[NoDB]
+    #[OA\Property]
     public bool $started = false;
     #[NoDB]
+    #[OA\Property]
     public bool $finished = false;
     protected float $realGameLength;
 
