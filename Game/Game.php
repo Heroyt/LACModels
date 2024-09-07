@@ -495,8 +495,10 @@ abstract class Game extends Model
         if (!isset($data['music'])) {
             $data['music'] = $this->getMusic();
         }
-        if (!isset($data['mode'])) {
-            $data['mode'] = $this->getMode();
+        $data['metaData'] = $this->getMeta();
+        $data['mode'] = $this->getMode()?->jsonSerialize();
+        if (isset($data['mode'])) {
+            $data['mode']['variations'] = $this->getMeta()['variations'] ?? [];
         }
         $this->extensionJson($data);
         return $data;

@@ -157,6 +157,7 @@ abstract class AbstractMode extends Model
             $rows = DB::select(GameModeVariation::TABLE_VALUES, '[id_variation], [value], [suffix], [order]')
                 ->where('[id_mode] = %i', $this->id)
                 ->orderBy('[id_variation], [order]')
+                ->cacheTags('mode.variations', 'mode.' . $this->id, 'mode.' . $this->id . '.variations')
                 ->fetchAssoc('id_variation|value');
             foreach ($rows as $variationId => $values) {
                 if (!isset($this->variations[$variationId])) {
