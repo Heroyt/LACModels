@@ -152,7 +152,7 @@ class GameModeFactory implements FactoryInterface
     }
 
     /**
-     * @param array{system?:string,rankable?:bool,all?:bool} $options
+     * @param array{system?:string,rankable?:bool,all?:bool,public?:bool} $options
      *
      * @return AbstractMode[]
      * @throws GameModeNotFoundException
@@ -168,6 +168,9 @@ class GameModeFactory implements FactoryInterface
         }
         if (!isset($options['all']) || !((bool)$options['all'])) {
             $ids->where('active = 1');
+        }
+        if (isset($options['public'])) {
+            $ids->where('public = %i', (int) $options['public']);
         }
         $ids = $ids->fetchAssoc('id_mode');
         $modes = [];

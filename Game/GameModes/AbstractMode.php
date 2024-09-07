@@ -43,6 +43,7 @@ abstract class AbstractMode extends Model
     public ModeSettings $settings;
     public bool $rankable = true;
     public bool $active   = true;
+    public bool $public   = true;
     /** @var GameModeVariationValue[][] */
     private array $variations = [];
 
@@ -175,6 +176,21 @@ abstract class AbstractMode extends Model
             }
         }
         return $this->variations;
+    }
+
+    /**
+     * @return GameModeVariationValue[][]
+     * @throws ModelNotFoundException
+     * @throws ValidationException
+     */
+    public function getVariationsPublic(): array {
+        $public = [];
+        foreach ($this->getVariations() as $id => $variationValues) {
+            if (count($variationValues) > 0 && first($variationValues)->variation->public) {
+                $public[$id] = $variationValues;
+            }
+        }
+        return $public;
     }
 
     public function getName(): string {
