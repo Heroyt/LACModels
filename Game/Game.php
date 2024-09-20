@@ -23,7 +23,7 @@ use App\Models\GameGroup;
 use App\Models\MusicMode;
 use App\Models\WithMetaData;
 use App\Services\FeatureConfig;
-use App\Services\LigaApi;
+use App\Services\LaserLiga\LigaApi;
 use DateTime;
 use DateTimeInterface;
 use DateTimeZone;
