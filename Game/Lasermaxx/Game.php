@@ -37,7 +37,7 @@ abstract class Game extends \App\GameModels\Game\Game
         return [
         0 => '#E00000',
         1 => '#008500',
-            2 => '#00f',
+        2 => '#00f',
         3 => '#D100C7',
         4 => '#E0A800',
         5 => '#24AAC2',
@@ -79,14 +79,14 @@ abstract class Game extends \App\GameModels\Game\Game
             }
             if ($mode->isTeam()) {
                 if ($mode->settings->bestHitsOwn) {
-                    $info['hitsOwn'] = lang('Zabiják vlastního týmu', domain: 'results', context: 'bests');
+                    $info['hitsOwn'] = lang('Zabiják vlastního týmu', context: 'bests', domain: 'results');
                 }
                 if ($mode->settings->bestDeathsOwn) {
-                    $info['deathsOwn'] = lang('Největší vlastňák', domain: 'results', context: 'bests');
+                    $info['deathsOwn'] = lang('Největší vlastňák', context: 'bests', domain: 'results');
                 }
             }
             if ($mode->settings->bestMines && $mode->settings->mines && $this->isMinesOn()) {
-                $info['mines'] = lang('Drtič min', domain: 'results', context: 'bests');
+                $info['mines'] = lang('Drtič min', context: 'bests', domain: 'results');
             }
         } catch (GameModeNotFoundException) {
         }
