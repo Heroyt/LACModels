@@ -95,10 +95,15 @@ class GameModeFactory implements FactoryInterface
 				'Cannot find game mode class: ' . (isset($dbName) ? $classBase . $classSystem . $classNamespace . $dbName . '|' : '') . $classBase . $classSystem . $classNamespace . $className . '|' . $classBase . $classNamespace . $className
 			);
 		}
-		/** @var AbstractMode $mode */
-		$mode = new $class(...$args);
+		/** @var AbstractMode $gameMode */
+		$gameMode = new $class(...$args);
+
+		if (!isset($gameMode->id)) {
+			$gameMode = self::findByName($gameMode->getName(), $gameMode->type, $system);
+		}
+
 		Timer::stop('factory.gamemode');
-		return $mode;
+		return $gameMode;
 	}
 
 	/**

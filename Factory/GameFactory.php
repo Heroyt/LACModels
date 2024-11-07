@@ -6,7 +6,6 @@ use Lsr\Core\App;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
-use DateTime;
 use DateTimeInterface;
 use Dibi\Row;
 use Generator;
@@ -73,15 +72,15 @@ class GameFactory implements FactoryInterface
 	 * Prepare a SQL query for all games (from all systems)
 	 *
 	 * @param bool                      $excludeNotFinished
-	 * @param DateTime|null             $date
+	 * @param DateTimeInterface|null             $date
 	 * @param array<string|int, string> $fields
 	 *
 	 * @return Fluent
 	 */
-	public static function queryGames(bool $excludeNotFinished = false, ?DateTime $date = null, array $fields = []): Fluent {
+	public static function queryGames(bool $excludeNotFinished = false, ?DateTimeInterface $date = null, array $fields = []): Fluent {
 		$query = DB::getConnection()->select('*');
 		$queries = [];
-		$defaultFields = ['id_game', 'system', 'code', 'start', 'end'];
+		$defaultFields = ['id_game', 'id_mode', 'id_arena', 'system', 'code', 'start', 'end'];
 		foreach (self::getSupportedSystems() as $key => $system) {
 			$addFields = '';
 			if (!empty($fields)) {
@@ -101,7 +100,7 @@ class GameFactory implements FactoryInterface
 				}
 			}
 			$q = DB::select(["[{$system}_games]", "[g$key]"],
-			                "[g$key].[id_game], [g$key].[id_arena], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end]" . $addFields,
+			                "[g$key].[id_game], [g$key].[id_arena], [g$key].[id_mode], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end]" . $addFields,
 			                $system);
 			if ($excludeNotFinished) {
 				$q->where("[g$key].[end] IS NOT NULL");
@@ -141,12 +140,12 @@ class GameFactory implements FactoryInterface
 	 *
 	 * @param string        $system
 	 * @param bool          $excludeNotFinished
-	 * @param DateTime|null $date
+	 * @param DateTimeInterface|null $date
 	 * @param array         $fields
 	 *
 	 * @return Fluent
 	 */
-	public static function queryGamesSystem(string $system, bool $excludeNotFinished = false, ?DateTime $date = null, array $fields = []): Fluent {
+	public static function queryGamesSystem(string $system, bool $excludeNotFinished = false, ?DateTimeInterface $date = null, array $fields = []): Fluent {
 		$defaultFields = ['id_game', 'system', 'code', 'start', 'end', 'sync'];
 		$addFields = '';
 		if (!empty($fields)) {

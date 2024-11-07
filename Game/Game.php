@@ -21,7 +21,7 @@ use App\Models\Auth\LigaPlayer;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
 use App\Models\Tournament\Game as TournamentGame;
-use DateTime;
+use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use Dibi\Row;
@@ -153,7 +153,7 @@ if (!class_exists(Game::class)) {
 		 *         id_player?: int,
 		 *         name?: string,
 		 *         code?: string,
-		 *         team?: int,
+		 *         team?: int|array{color?:int},
 		 *         score?: int,
 		 *         skill?: int,
 		 *         shots?: int,
@@ -215,9 +215,14 @@ if (!class_exists(Game::class)) {
 						break;
 					case 'end':
 					case 'start':
-						$timezone = new DateTimeZone($value['timezone']);
-						$datetime = new DateTime($value['date']);
-						$datetime->setTimezone($timezone);
+						if (is_string($value)) {
+							$datetime = new DateTimeImmutable(($value));
+						}
+						else {
+							$timezone = new DateTimeZone($value['timezone'] ?? 'Europe/Prague');
+							$datetime = new DateTimeImmutable($value['date']);
+							$datetime->setTimezone($timezone);
+						}
 						$game->{$key} = $datetime;
 						break;
 					case 'timing':
@@ -286,22 +291,36 @@ if (!class_exists(Game::class)) {
 									case 'hitsOwn':
 									case 'deathsOther':
 									case 'deathsOwn':
-									case 'teamNum':
 										/* @phpstan-ignore-next-line */
 										$player->{$keyPlayer} = $valuePlayer;
 										break;
+									case 'team':
+										if (is_numeric($valuePlayer)) {
+											$player->teamNum = (int) $valuePlayer;
+										}
+										else if (is_array($valuePlayer) && array_key_exists('color', $valuePlayer)) {
+											$player->teamNum = (int) $valuePlayer['color'];
+										}
+										break;
 									case 'bonus':
 										/* @phpstan-ignore-next-line */
-										$player->bonus = new BonusCounts(...$valuePlayer);
+										$player->bonus = new BonusCounts(
+											$valuePlayer['agent'] ?? 0,
+											$valuePlayer['invisibility'] ?? 0,
+											$valuePlayer['machineGun'] ?? 0,
+											$valuePlayer['shield'] ?? 0,
+										);
 										break;
 									case 'code':
 										$player->user = LigaPlayer::getByCode($valuePlayer);
 										break;
 									case 'tournamentPlayer':
 										if (((int)$valuePlayer) > 0) {
-											$player->tournamentPlayer = \App\Models\Tournament\Player::get(
-												(int)$valuePlayer
-											);
+											try {
+												$player->tournamentPlayer = \App\Models\Tournament\Player::get(
+													(int)$valuePlayer
+												);
+											} catch (ModelNotFoundException){}
 										}
 										break;
 								}
@@ -336,7 +355,11 @@ if (!class_exists(Game::class)) {
 										break;
 									case 'tournamentTeam':
 										if (((int)$valueTeam) > 0) {
-											$team->tournamentTeam = \App\Models\Tournament\Team::get((int)$valueTeam);
+											try {
+												$team->tournamentTeam = \App\Models\Tournament\Team::get(
+													(int)$valueTeam
+												);
+											} catch (ModelNotFoundException){}
 										}
 										break;
 								}
@@ -354,6 +377,7 @@ if (!class_exists(Game::class)) {
 			}
 
 			// Assign hits and teams
+			$game->getLogger()->debug('Teams - '.json_encode($teams));
 			foreach (($data['players'] ?? []) as $playerData) {
 				$id = $playerData['id'] ?? $playerData['id_player'] ?? 0;
 				if (!isset($players[$id])) {
@@ -367,8 +391,15 @@ if (!class_exists(Game::class)) {
 					}
 				}
 				// Team
-				$teamId = (int)($playerData['team'] ?? 0);
-				if (isset($teams[$teamId])) {
+				$teamId = null;
+				if (is_numeric($playerData['team'])) {
+					$teamId = (int) $playerData['team'];
+				}
+				else if (is_array($playerData['team']) && array_key_exists('id', $playerData['team'])) {
+					$teamId = (int) $playerData['team']['id'];
+				}
+				$game->getLogger()->debug('Player - '.$player->vest.' - team '.json_encode($teamId));
+				if (isset($teamId, $teams[$teamId])) {
 					$player->setTeam($teams[$teamId]);
 					$teams[$teamId]->addPlayer($player);
 				}
@@ -381,15 +412,13 @@ if (!class_exists(Game::class)) {
 		 * @throws GameModeNotFoundException
 		 */
 		public function getMode(): ?AbstractMode {
-			if (!isset($this->mode)) {
+			if (!isset($this->mode, $this->mode->id)) {
+				$this->mode = null;
 				if (isset($this->relationIds['mode'])) {
 					$this->mode = GameModeFactory::getById($this->relationIds['mode']);
 				}
-				else if (isset($this->modeName)) {
+				if (!isset($this->mode) && isset($this->modeName)) {
 					$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
-				}
-				else {
-					$this->mode = null;
 				}
 			}
 			return $this->mode;
