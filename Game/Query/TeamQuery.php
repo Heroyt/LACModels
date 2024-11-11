@@ -9,7 +9,9 @@ use App\GameModels\Game\Team;
 /**
  * Query object for team models
  *
- * @extends AbstractCollectionQuery<Team>
+ * @template T of Team
+ *
+ * @extends AbstractCollectionQuery<T>
  */
 class TeamQuery extends AbstractCollectionQuery
 {

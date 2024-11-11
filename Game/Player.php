@@ -10,10 +10,11 @@ use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Traits\WithGame;
 use App\Models\Auth\LigaPlayer as User;
+use App\Models\DataObjects\Ranking\ExpectedResults;
 use App\Models\Tournament\Player as TournamentPlayer;
 use Dibi\Exception;
 use Dibi\Row;
-use JsonException;
+use Lsr\Core\App;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Exceptions\ValidationException;
@@ -26,6 +27,7 @@ use Lsr\Core\Models\Attributes\Validation\StringLength;
 use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Symfony\Component\Serializer\Serializer;
 use Throwable;
 
 /**
@@ -641,11 +643,9 @@ abstract class Player extends Model
 	}
 
 	/**
-	 * @return array|null
 	 * @throws Throwable
-	 * @throws JsonException
 	 */
-	public function getRankDifferenceInfo(): ?array {
+	public function getRankDifferenceInfo(): ?ExpectedResults {
 		if (!isset($this->user)) {
 			return null;
 		}
@@ -658,8 +658,10 @@ abstract class Player extends Model
 			return null;
 		}
 
-		$info = json_decode($row->expected_results, true, 512, JSON_THROW_ON_ERROR);
-		$info['normalizedSkill'] = $row->normalized_skill;
+		$serializer = App::getService('serializer');
+		assert($serializer instanceof Serializer);
+		$info = $serializer->deserialize($row->expected_results, ExpectedResults::class, 'json');
+		$info->normalizedSkill = $row->normalized_skill;
 
 		return $info;
 	}

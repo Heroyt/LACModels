@@ -27,6 +27,7 @@ class PlayerCollection extends AbstractCollection
 	 * @return PlayerQuery<P>
 	 */
 	public function query() : CollectionQueryInterface {
+		/** @phpstan-ignore-next-line  */
 		return new PlayerQuery($this);
 	}
 }
