@@ -19,8 +19,8 @@ use Lsr\Core\Models\LoadingType;
 class Player extends \App\GameModels\Game\Lasermaxx\Player
 {
 
-	public const TABLE  = 'evo6_players';
-	public const SYSTEM = 'evo6';
+	public const string TABLE  = 'evo6_players';
+	public const string SYSTEM = 'evo6';
 
 	public int $bonuses  = 0;
 	public int $calories = 0;

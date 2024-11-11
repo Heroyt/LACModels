@@ -23,8 +23,8 @@ use Lsr\Core\Models\LoadingType;
 class Player extends \App\GameModels\Game\Lasermaxx\Player
 {
 
-	public const TABLE  = 'evo5_players';
-	public const SYSTEM = 'evo5';
+	public const string TABLE  = 'evo5_players';
+	public const string SYSTEM = 'evo5';
 	#[Instantiate]
 	public BonusCounts                $bonus;
 	#[ManyToOne(class: Game::class, loadingType: LoadingType::LAZY)]

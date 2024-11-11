@@ -17,7 +17,6 @@ use Lsr\Core\Models\Attributes\Instantiate;
 use Lsr\Core\Models\Attributes\NoDB;
 use Lsr\Core\Models\Attributes\OneToMany;
 use Lsr\Core\Models\LoadingType;
-use Lsr\Core\Models\Model;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Throwable;
@@ -68,7 +67,7 @@ trait WithPlayers
 		if (!isset($this->players)) {
 			$this->players = new PlayerCollection();
 		}
-		/** @var Model|string $className */
+		/** @var class-string<P> $className */
 		$className = preg_replace(['/(.+)Game$/', '/(.+)Team$/'], '${1}Player', get_class($this));
 		$primaryKey = $className::getPrimaryKey();
 		$gameId = $this instanceof Game ? $this->id : $this->getGame()->id;
@@ -81,7 +80,7 @@ trait WithPlayers
 		}
 		$rows = $query->fetchAll();
 		foreach ($rows as $row) {
-			/** @var Player $player */
+			/** @var P $player */
 			$player = $className::get($row->$primaryKey, $row);
 			if ($this instanceof Game) {
 				$player->setGame($this);
@@ -90,7 +89,7 @@ trait WithPlayers
 				$player->setTeam($this);
 			}
 			try {
-				$this->players->set($player, $player->vest);
+				$this->players->set($player, (int) $player->vest);
 			} catch (InvalidArgumentException) {
 
 			}
@@ -149,7 +148,7 @@ trait WithPlayers
 	}
 
 	/**
-	 * @return PlayerCollection<P>|Player[]
+	 * @return PlayerCollection<P>
 	 */
 	public function getPlayersSorted() : PlayerCollection {
 		if (!isset($this->playersSorted)) {

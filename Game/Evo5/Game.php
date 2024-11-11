@@ -26,8 +26,8 @@ use OpenApi\Attributes as OA;
 class Game extends \App\GameModels\Game\Lasermaxx\Game
 {
 
-	public const SYSTEM = 'evo5';
-	public const TABLE  = 'evo5_games';
+	public const string SYSTEM = 'evo5';
+	public const string TABLE  = 'evo5_games';
 
 	#[NoDB]
 	public string  $playerClass = Player::class;

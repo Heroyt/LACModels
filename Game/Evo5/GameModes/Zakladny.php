@@ -71,11 +71,7 @@ class Zakladny extends AbstractMode implements CustomResultsMode
 		if (empty($shields)) {
 			return 0;
 		}
-		$max = max($shields);
-		if ($max === false) {
-			return 0;
-		}
-		return $max;
+		return max($shields);
 	}
 
 	/**

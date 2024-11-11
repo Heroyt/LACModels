@@ -2,7 +2,6 @@
 
 namespace App\GameModels\Game\Lasermaxx;
 
-use App\Exceptions\GameModeNotFoundException;
 use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
@@ -20,7 +19,7 @@ use Throwable;
 abstract class Player extends \App\GameModels\Game\Player
 {
 
-	public const CLASSIC_BESTS = [
+	public const array CLASSIC_BESTS = [
 		'score',
 		'hits',
 		'score',
@@ -240,9 +239,10 @@ abstract class Player extends \App\GameModels\Game\Player
 	 */
 	public function getKd(): float {
 		try {
-			return $this->getGame()->getMode()?->isSolo() ? parent::getKd(
-			) : $this->hitsOther / ($this->deathsOther === 0 ? 1 : $this->deathsOther);
-		} catch (GameModeNotFoundException|Throwable) {
+			return $this->getGame()->getMode()?->isSolo() ?
+				parent::getKd() :
+				$this->hitsOther / ($this->deathsOther === 0 ? 1 : $this->deathsOther);
+		} catch (Throwable) {
 			return parent::getKd();
 		}
 	}

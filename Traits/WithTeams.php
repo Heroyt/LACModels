@@ -82,7 +82,7 @@ trait WithTeams
 		if (!isset($this->teams)) {
 			$this->teams = new TeamCollection();
 		}
-		/** @var class-string<Game> $className */
+		/** @var class-string<T> $className */
 		$className = preg_replace('/(.+)Game$/', '${1}Team', get_class($this));
 		$primaryKey = $className::getPrimaryKey();
 		$rows = DB::select($className::TABLE, '*')
@@ -90,7 +90,7 @@ trait WithTeams
 							->cacheTags('games/'.$this::SYSTEM.'/'.$this->id, 'games/'.$this::SYSTEM.'/'.$this->id.'/teams', 'games/'.$this->start?->format('Y-m-d'), 'teams', 'teams/'.$this::SYSTEM)
 							->fetchAll();
 		foreach ($rows as $row) {
-			/** @var Team $team */
+			/** @var T $team */
 			$team = new $className($row->$primaryKey, $row);
 			/* @phpstan-ignore-next-line */
 			if ($this instanceof Game) {

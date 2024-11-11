@@ -108,7 +108,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function updateHitsModel(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ($this->arena?->id ?? '') . 'hitModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+		$infoKey = ($this->arena->id ?? '') . 'hitModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 		$model = $this->calculateHitRegression($type, $mode, $teamCount);
 		try {
 			Info::set($infoKey, $model);
@@ -129,7 +129,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function updateDeathsModel(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ($this->arena?->id ?? '') . 'deathModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+		$infoKey = ($this->arena->id ?? '') . 'deathModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 		$model = $this->calculateDeathRegression($type, $mode, $teamCount);
 		try {
 			Info::set($infoKey, $model);
@@ -147,7 +147,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function updateHitsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ($this->arena?->id ?? '') . 'hitsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+		$infoKey = ($this->arena->id ?? '') . 'hitsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 		$model = $this->calculateHitOwnRegression($mode, $teamCount);
 		try {
 			Info::set($infoKey, $model);
@@ -165,7 +165,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function updateDeathsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ($this->arena?->id ?? '') . 'deathsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+		$infoKey = ($this->arena->id ?? '') . 'deathsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 		$model = $this->calculateDeathOwnRegression($mode, $teamCount);
 		try {
 			Info::set($infoKey, $model);
@@ -187,7 +187,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function getDeathsModel(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ((string)($this->arena?->id ?? '')) . 'deathModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+		$infoKey = ((string)($this->arena->id ?? '')) . 'deathModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 
 		/** @var numeric[]|null $model */
 		$model = Info::get($infoKey);
@@ -321,8 +321,10 @@ class RegressionStatCalculator
 			$row->teammates ** 2,
 			$row->game_length ** 2,
 		];
-		$matY[] = [$row->value];
-		$actual[] = $row->value;
+		/** @var numeric $value */
+		$value = $row->value;
+		$matY[] = [$value];
+		$actual[] = $value;
 	}
 
 	/**
@@ -367,7 +369,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function getHitsModel(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ($this->arena?->id ?? '') . 'hitModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+		$infoKey = ($this->arena->id ?? '') . 'hitModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 
 		/** @var numeric[]|null $model */
 		$model = Info::get($infoKey);
@@ -436,7 +438,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function getHitsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ($this->arena?->id ?? '') . 'hitsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+		$infoKey = ($this->arena->id ?? '') . 'hitsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 
 		/** @var numeric[]|null $model */
 		$model = Info::get($infoKey);
@@ -491,7 +493,7 @@ class RegressionStatCalculator
 	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
 	 */
 	public function getDeathsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ($this->arena?->id ?? '') . 'deathsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+		$infoKey = ($this->arena->id ?? '') . 'deathsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 
 		/** @var numeric[]|null $model */
 		$model = Info::get($infoKey);

@@ -66,8 +66,8 @@ if (!class_exists(Game::class)) {
 		/** @phpstan-use WithTeams<T> */
 		use WithTeams;
 
-		public const SYSTEM     = '';
-		public const CACHE_TAGS = ['games'];
+		public const string SYSTEM     = '';
+		public const array  CACHE_TAGS = ['games'];
 
 		public ?string $resultsFile = null;
 		public string  $modeName;

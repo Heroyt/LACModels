@@ -2,20 +2,23 @@
 
 namespace App\GameModels\Factory;
 
-use Lsr\Core\App;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
+use App\Models\DataObjects\Game\MinimalGameRow;
 use DateTimeInterface;
+use Dibi\DateTime;
 use Dibi\Row;
 use Generator;
 use InvalidArgumentException;
+use Lsr\Core\App;
 use Lsr\Core\Caching\Cache;
 use Lsr\Core\Config;
 use Lsr\Core\DB;
 use Lsr\Core\Dibi\Fluent;
 use Lsr\Core\Exceptions\ModelNotFoundException;
 use Lsr\Core\Models\Interfaces\FactoryInterface;
+use Lsr\Core\Models\ModelRepository;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
 use Nette\Caching\Cache as CacheBase;
@@ -50,17 +53,7 @@ class GameFactory implements FactoryInterface
 		else {
 			$query = self::queryGamesSystem($system, $excludeNotFinished);
 		}
-		/**
-		 * @var null|Row{
-		 *   id_game:int,
-		 *   system:string,
-		 *   code: string,
-		 *   start: \Dibi\DateTime|null,
-		 *   end: \Dibi\DateTime|null,
-		 *   sync: int
-		 * } $row
-		 */
-		$row = $query->orderBy('end')->desc()->fetch(cache: false);
+		$row = $query->orderBy('end')->desc()->fetchDto(MinimalGameRow::class, cache: false);
 		if (isset($row)) {
 			/** @noinspection PhpUndefinedFieldInspection */
 			return self::getById((int)$row->id_game, ['system' => $row->system]);
@@ -72,7 +65,7 @@ class GameFactory implements FactoryInterface
 	 * Prepare a SQL query for all games (from all systems)
 	 *
 	 * @param bool                      $excludeNotFinished
-	 * @param DateTimeInterface|null             $date
+	 * @param DateTimeInterface|null    $date
 	 * @param array<string|int, string> $fields
 	 *
 	 * @return Fluent
@@ -138,10 +131,10 @@ class GameFactory implements FactoryInterface
 	/**
 	 * Prepare a SQL query for all games (from one system)
 	 *
-	 * @param string        $system
-	 * @param bool          $excludeNotFinished
+	 * @param string                 $system
+	 * @param bool                   $excludeNotFinished
 	 * @param DateTimeInterface|null $date
-	 * @param array         $fields
+	 * @param string[]               $fields
 	 *
 	 * @return Fluent
 	 */
@@ -224,18 +217,19 @@ class GameFactory implements FactoryInterface
 		$rows = $cache->load(
 			'games/' . $date->format('Y-m-d') . ($excludeNotFinished ? '/finished' : ''),
 			static function (array &$dependencies) use ($date, $excludeNotFinished) {
-			$dependencies[CacheBase::EXPIRE] = '7 days';
-			$dependencies[CacheBase::Tags] = [
-				'games',
-				'models',
-				'games/' . $date->format('Y-m-d'),
-			];
-			$query = self::queryGames($excludeNotFinished)
-			             ->cacheTags('games', 'games/' . $date->format('Y-m-d'))
-			             ->where('DATE([start]) = %d', $date)
-			             ->orderBy('start')->desc();
-			return $query->fetchAll();
-		});
+				$dependencies[CacheBase::Expire] = '7 days';
+				$dependencies[CacheBase::Tags] = [
+					'games',
+					'models',
+					'games/' . $date->format('Y-m-d'),
+				];
+				$query = self::queryGames($excludeNotFinished)
+				             ->cacheTags('games', 'games/' . $date->format('Y-m-d'))
+				             ->where('DATE([start]) = %d', $date)
+				             ->orderBy('start')->desc();
+				return $query->fetchAll();
+			}
+		);
 		$games = [];
 		foreach ($rows ?? [] as $row) {
 			$game = self::getById((int)$row->id_game, ['system' => $row->system]);
@@ -263,7 +257,7 @@ class GameFactory implements FactoryInterface
 			if (!isset($row->date)) {
 				continue;
 			}
-			/** @var \Dibi\DateTime $date */
+			/** @var DateTime $date */
 			$date = $row->date;
 			/** @var int $count */
 			$count = $row->count;
@@ -301,7 +295,7 @@ class GameFactory implements FactoryInterface
 	public static function getAllTeamsColors(): array {
 		$colors = [];
 		foreach (self::getSupportedSystems() as $system) {
-			/** @var Game $className */
+			/** @var class-string $className */
 			$className = 'App\GameModels\Game\\' . ucfirst($system) . '\Game';
 			if (method_exists($className, 'getTeamColors')) {
 				$colors[$system] = $className::getTeamColors();
@@ -318,7 +312,7 @@ class GameFactory implements FactoryInterface
 	public static function getAllTeamsNames(): array {
 		$colors = [];
 		foreach (self::getSupportedSystems() as $system) {
-			/** @var Game $className */
+			/** @var class-string $className */
 			$className = 'App\GameModels\Game\\' . ucfirst($system) . '\Game';
 			if (method_exists($className, 'getTeamColors')) {
 				$colors[$system] = $className::getTeamNames();
@@ -369,10 +363,14 @@ class GameFactory implements FactoryInterface
 	 */
 	public static function getAll(array $options = []): array {
 		if (!empty($options['system'])) {
-			$rows = self::queryGamesSystem($options['system'], isset($options['excludeNotFinished']) && $options['excludeNotFinished'])->fetchAll();
+			$rows = self::queryGamesSystem(
+				$options['system'],
+				isset($options['excludeNotFinished']) && $options['excludeNotFinished']
+			)->fetchAll();
 		}
 		else {
-			$rows = self::queryGames(isset($options['excludeNotFinished']) && $options['excludeNotFinished'])->fetchAll();
+			$rows = self::queryGames(isset($options['excludeNotFinished']) && $options['excludeNotFinished'])->fetchAll(
+			);
 		}
 		$models = [];
 		foreach ($rows as $row) {
@@ -401,6 +399,27 @@ class GameFactory implements FactoryInterface
 	}
 
 	/**
+	 * Get game by its unique code
+	 *
+	 * @param string $code
+	 *
+	 * @return Game|null
+	 * @throws Throwable
+	 */
+	public static function getByCode(string $code): ?Game {
+		$game = null;
+		Timer::startIncrementing('factory.game');
+		$gameRow = self::queryGames()->where('[code] = %s', $code)->cacheTags('games/' . $code)->fetchDto(MinimalGameRow::class);
+		if (isset($gameRow)) {
+			/** @noinspection PhpUndefinedFieldInspection */
+			/** @var Game|null $game */
+			$game = self::getById($gameRow->id_game, ['system' => $gameRow->system]);
+		}
+		Timer::stop('factory.game');
+		return $game;
+	}
+
+	/**
 	 * @param Fluent                $query
 	 * @param array{system?:string} $options
 	 *
@@ -408,9 +427,10 @@ class GameFactory implements FactoryInterface
 	 * @throws Throwable
 	 */
 	public static function iterateByIdFromQuery(Fluent $query, array $options = []): Generator {
-		$result = $query->execute();
+		$result = $query->fetchIteratorDto(MinimalGameRow::class);
+		/** @var MinimalGameRow $row */
 		foreach ($result as $row) {
-			$game = self::getById($row->id_game ?? $row->id, array_merge(['system' => $row->system ?? ''], $options));
+			$game = self::getById($row->id_game, array_merge(['system' => $row->system ?? ''], $options));
 			if (isset($game)) {
 				yield $game;
 			}
@@ -424,7 +444,8 @@ class GameFactory implements FactoryInterface
 	 * @throws Throwable
 	 */
 	public static function iterateByCodeFromQuery(Fluent $query): Generator {
-		$result = $query->execute();
+		$result = $query->fetchIteratorDto(MinimalGameRow::class);
+		/** @var MinimalGameRow $row */
 		foreach ($result as $row) {
 			$game = self::getByCode($row->code);
 			if (isset($game)) {
@@ -433,48 +454,17 @@ class GameFactory implements FactoryInterface
 		}
 	}
 
-	/**
-	 * Get game by its unique code
-	 *
-	 * @param string $code
-	 *
-	 * @return Game|null
-	 * @throws Throwable
-	 */
-	public static function getByCode(string $code): ?Game {
-		$game = null;
-		Timer::startIncrementing('factory.game');
-		/**
-		 * @var null|Row{
-		 *   id_game:int,
-		 *   system:string,
-		 *   code: string,
-		 *   start: \Dibi\DateTime|null,
-		 *   end: \Dibi\DateTime|null,
-		 *   sync: int
-		 * } $gameRow
-		 */
-		$gameRow = self::queryGames()->where('[code] = %s', $code)->cacheTags('games/' . $code)->fetch();
-		if (isset($gameRow)) {
-			/** @noinspection PhpUndefinedFieldInspection */
-			/** @var Game|null $game */
-			$game = self::getById((int)$gameRow->id_game, ['system' => $gameRow->system]);
-		}
-		Timer::stop('factory.game');
-		return $game;
-	}
-
 	public static function clearInstances(): void {
 		foreach (self::getSupportedSystems() as $system) {
 			/** @var class-string<Game> $gameClass */
 			$gameClass = '\\App\\GameModels\\Game\\' . Strings::toPascalCase($system) . '\\Game';
-			$gameClass::clearInstances();
+			ModelRepository::clearInstances($gameClass);
 			/** @var class-string<Team> $teamClass */
 			$teamClass = '\\App\\GameModels\\Game\\' . Strings::toPascalCase($system) . '\\Team';
-			$teamClass::clearInstances();
+			ModelRepository::clearInstances($teamClass);
 			/** @var class-string<Player> $playerClass */
 			$playerClass = '\\App\\GameModels\\Game\\' . Strings::toPascalCase($system) . '\\Player';
-			$playerClass::clearInstances();
+			ModelRepository::clearInstances($playerClass);
 		}
 	}
 }

@@ -25,7 +25,7 @@ trait WithGame
 	 */
 	public function getGame() : Game {
 		if (!isset($this->game)) {
-			$gameId = $this->row?->id_game ?? $this->relationIds['game'];
+			$gameId = $this->row->id_game ?? $this->relationIds['game'];
 			if (isset($gameId)) {
 				$this->game = GameFactory::getById($gameId, ['system' => $this::SYSTEM]);
 				return $this->game;
