@@ -658,7 +658,7 @@ abstract class Player extends Model
 			return null;
 		}
 
-		$serializer = App::getService('serializer');
+		$serializer = App::getService('symfony.serializer');
 		assert($serializer instanceof Serializer);
 		$info = $serializer->deserialize($row->expected_results, ExpectedResults::class, 'json');
 		$info->normalizedSkill = $row->normalized_skill;

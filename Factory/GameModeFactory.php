@@ -187,5 +187,4 @@ class GameModeFactory implements FactoryInterface
 		return $modes;
 	}
 
-
 }
