@@ -18,6 +18,8 @@ use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
 use App\Models\Arena;
 use App\Models\Auth\LigaPlayer;
+use App\Models\DataObjects\Import\GameImportDto;
+use App\Models\DataObjects\Import\TeamColorImportDto;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
 use App\Models\Tournament\Game as TournamentGame;
@@ -68,6 +70,16 @@ if (!class_exists(Game::class)) {
 
 		public const string SYSTEM     = '';
 		public const array  CACHE_TAGS = ['games'];
+		protected const array IMPORT_PROPERTIES = [
+			'resultsFile',
+			'fileTime',
+			'modeName',
+			'importTime',
+			'start',
+			'end',
+			'gameType',
+			'code,'
+		];
 
 		public ?string $resultsFile = null;
 		public string  $modeName;
@@ -143,8 +155,8 @@ if (!class_exists(Game::class)) {
 		 *     code?: string,
 		 *     respawn?: int,
 		 *     sync?: int|bool,
-		 *     start?: array{date:string,timezone:string},
-		 *     end?: array{date:string,timezone:string},
+		 *     start?: array{date:string,timezone?:string}|string,
+		 *     end?: array{date:string,timezone?:string}|string,
 		 *     timing?: array<string,int>,
 		 *     scoring?: array<string,int>,
 		 *     mode?: array{type?:string,name:string},
@@ -153,7 +165,7 @@ if (!class_exists(Game::class)) {
 		 *         id_player?: int,
 		 *         name?: string,
 		 *         code?: string,
-		 *         team?: int|array{color?:int},
+		 *         team?: int|array{id?:int,color?:int}|mixed,
 		 *         score?: int,
 		 *         skill?: int,
 		 *         shots?: int,
@@ -220,8 +232,7 @@ if (!class_exists(Game::class)) {
 						}
 						else {
 							$timezone = new DateTimeZone($value['timezone'] ?? 'Europe/Prague');
-							$datetime = new DateTimeImmutable($value['date']);
-							$datetime->setTimezone($timezone);
+							$datetime = new DateTimeImmutable($value['date'], $timezone);
 						}
 						$game->{$key} = $datetime;
 						break;
@@ -229,6 +240,7 @@ if (!class_exists(Game::class)) {
 						$game->timing = new Timing(...$value);
 						break;
 					case 'scoring':
+						assert(property_exists($game, 'scoring'));
 						$game->scoring = new Scoring(...$value);
 						break;
 					case 'modeName':
@@ -392,11 +404,100 @@ if (!class_exists(Game::class)) {
 				}
 				// Team
 				$teamId = null;
-				if (is_numeric($playerData['team'])) {
-					$teamId = (int) $playerData['team'];
+				if (isset($playerData['team'])) {
+					if (is_numeric($playerData['team'])) {
+						$teamId = (int) $playerData['team'];
+					}
+					else if (is_array($playerData['team']) && array_key_exists('id', $playerData['team'])) {
+						$teamId = (int) $playerData['team']['id'];
+					}
 				}
-				else if (is_array($playerData['team']) && array_key_exists('id', $playerData['team'])) {
-					$teamId = (int) $playerData['team']['id'];
+				$game->getLogger()->debug('Player - '.$player->vest.' - team '.json_encode($teamId));
+				if (isset($teamId, $teams[$teamId])) {
+					$player->setTeam($teams[$teamId]);
+					$teams[$teamId]->addPlayer($player);
+				}
+			}
+			return $game;
+		}
+
+		/**
+		 * @param GameImportDto $data
+		 *
+		 * @return static
+		 * @throws GameModeNotFoundException
+		 */
+		public static function fromImportDto(GameImportDto $data) : Game {
+			$game = new static();
+			/** @var Player[] $players */
+			$players = [];
+			/** @var Team[] $teams */
+			$teams = [];
+			foreach (static::IMPORT_PROPERTIES as $property) {
+				if (isset($data->{$property})) {
+					$game->{$property} = $data->{$property};
+				}
+			}
+			if (isset($data->mode)) {
+				$game->mode = GameModeFactory::findByName(
+					$data->mode->name,
+					$data->mode->type ?? GameModeType::TEAM,
+					static::SYSTEM
+				);
+				if (!empty($data->modeName)) {
+					$mode = GameModeFactory::find(
+						$data->modeName,
+						$data->gameType ?? GameModeType::TEAM,
+						static::SYSTEM
+					);
+					$game->mode = $mode;
+				}
+			}
+
+			foreach ($data->players as $playerData) {
+				/** @var P $player */
+				$player = ($game->playerClass)::fromImportDto($playerData);
+				$player->setGame($game);
+				$id = $playerData->id ?? $playerData->id_player ?? 0;
+				$game->addPlayer($player);
+				$players[$id] = $player;
+			}
+
+			foreach ($data->teams as $teamData) {
+				/** @var T $team */
+				$team = ($game->teamClass)::fromImportDto($teamData);
+				$team->setGame($game);
+				$id = $teamData->id ?? $teamData->id_player ?? 0;
+				$game->addTeam($team);
+				$teams[$id] = $team;
+			}
+
+			if (!isset($game->mode)) {
+				$game->getMode();
+			}
+
+			// Assign hits and teams
+			foreach ($data->players as $playerData) {
+				$id = $playerData->id ?? $playerData->id_player ?? 0;
+				if (!isset($players[$id])) {
+					continue;
+				}
+				$player = $players[$id];
+
+				// Hits
+				foreach ($playerData->hitPlayers as $hit) {
+					if (isset($players[$hit->target])) {
+						$player->addHits($players[$hit->target], $hit->count);
+					}
+				}
+
+				// Team
+				$teamId = null;
+				if (is_numeric($playerData->team)) {
+					$teamId = (int) $playerData->team;
+				}
+				else if ($playerData->team instanceof TeamColorImportDto) {
+					$teamId = $playerData->team->id;
 				}
 				$game->getLogger()->debug('Player - '.$player->vest.' - team '.json_encode($teamId));
 				if (isset($teamId, $teams[$teamId])) {
@@ -539,7 +640,7 @@ if (!class_exists(Game::class)) {
 			          ->where(
 				          'start = %dt OR start = %dt',
 				          $this->start,
-				          $this->start->getTimestamp() + ($this->timing?->before ?? 20)
+				          $this->start->getTimestamp() + ($this->timing->before ?? 20)
 			          )
 			          ->fetch(cache: false);
 			if (isset($test)) {
@@ -547,7 +648,7 @@ if (!class_exists(Game::class)) {
 				$this->code = $test->code;
 			}
 			if (empty($this->code)) {
-				$this->code = uniqid($this->arena?->gameCodePrefix ?? 'g', false);
+				$this->code = uniqid($this->arena->gameCodePrefix ?? 'g', false);
 			}
 			$success = parent::save();
 			if (!$success) {
@@ -670,7 +771,6 @@ if (!class_exists(Game::class)) {
 			}
 
 			// Invalidate generated results cache
-			/** @var string[]|false $files */
 			$files = glob(TMP_DIR . 'results/' . $this->code . '*');
 			if ($files !== false) {
 				foreach ($files as $file) {

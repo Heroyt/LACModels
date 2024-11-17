@@ -21,6 +21,21 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game
 
 	public const string SYSTEM = 'evo6';
 	public const string TABLE  = 'evo6_games';
+	protected const array IMPORT_PROPERTIES = [
+		'resultsFile',
+		'fileTime',
+		'modeName',
+		'importTime',
+		'start',
+		'end',
+		'gameType',
+		'code',
+		'fileNumber',
+		'lives',
+		'ammo',
+		'respawn',
+		'scoring',
+	];
 
 	#[NoDB]
 	public string                             $playerClass = Player::class;

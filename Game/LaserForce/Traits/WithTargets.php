@@ -120,7 +120,7 @@ trait WithTargets
 				$target->setTeam($this);
 			}
 			try {
-				$this->targets->set($target, $target->vest);
+				$this->targets->set($target, (int) $target->identifier);
 			} catch (InvalidArgumentException) {
 
 			}

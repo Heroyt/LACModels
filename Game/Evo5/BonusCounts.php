@@ -7,14 +7,16 @@ namespace App\GameModels\Game\Evo5;
 
 use Dibi\Row;
 use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * Structure containing player's bonuses
  */
+#[OA\Schema(schema: 'BonusCounts')]
 class BonusCounts implements InsertExtendInterface
 {
 
-	public const NAMES = [
+	public const array NAMES = [
 		'agent'        => 'Agent',
 		'invisibility' => 'Neviditelnost',
 		'machine_gun'  => 'Samopal',
@@ -22,9 +24,13 @@ class BonusCounts implements InsertExtendInterface
 	];
 
 	public function __construct(
+		#[OA\Property]
 		public int $agent = 0,
+		#[OA\Property]
 		public int $invisibility = 0,
+		#[OA\Property]
 		public int $machineGun = 0,
+		#[OA\Property]
 		public int $shield = 0,
 	) {
 	}

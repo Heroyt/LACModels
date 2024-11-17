@@ -22,6 +22,7 @@ class LaserBallCounts implements InsertExtendInterface
 	 * @inheritDoc
 	 */
 	public static function parseRow(Row $row) : ?static {
+		/** @phpstan-ignore return.type */
 		return new self(
 			$row->ball_got ?? 0,
 			$row->steals ?? 0,

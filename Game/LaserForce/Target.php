@@ -13,10 +13,10 @@ class Target extends Model
 {
 	use WithGame;
 
-	public const TABLE  = 'laserforce_targets';
-	public const SYSTEM = 'laserforce';
+	public const string TABLE  = 'laserforce_targets';
+	public const string SYSTEM = 'laserforce';
 
-	public const CACHE_TAGS = ['targets', 'games/laserforce', 'targets/laserforce'];
+	public const array CACHE_TAGS = ['targets', 'games/laserforce', 'targets/laserforce'];
 
 	public string $identifier = '';
 	public string $name       = '';

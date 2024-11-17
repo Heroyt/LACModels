@@ -22,6 +22,32 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player
 	public const string TABLE  = 'evo6_players';
 	public const string SYSTEM = 'evo6';
 
+	protected const array IMPORT_PROPERTIES = [
+		'name',
+		'score',
+		'skill',
+		'vest',
+		'shots',
+		'accuracy',
+		'hits',
+		'deaths',
+		'position',
+		'hitsOther',
+		'hitsOwn',
+		'deathsOther',
+		'deathsOwn',
+		'shotPoints',
+		'scoreBonus',
+		'scorePowers',
+		'scoreMines',
+		'ammoRest',
+		'minesHits',
+		'vip',
+		'myLasermaxx',
+		'bonuses',
+		'calories',
+	];
+
 	public int $bonuses  = 0;
 	public int $calories = 0;
 

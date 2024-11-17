@@ -6,10 +6,14 @@
 namespace App\GameModels\Game;
 
 use App\Exceptions\GameModeNotFoundException;
-use App\Exceptions\InsuficientRegressionDataException;
+use App\Exceptions\InsufficientRegressionDataException;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Traits\WithGame;
+use App\Models\Auth\LigaPlayer;
 use App\Models\Auth\LigaPlayer as User;
+use App\Models\DataObjects\Import\PlayerImportDto;
+use App\Models\DataObjects\Import\TeamColorImportDto;
+use App\Models\DataObjects\Player\PlayerHitRow;
 use App\Models\DataObjects\Ranking\ExpectedResults;
 use App\Models\Tournament\Player as TournamentPlayer;
 use Dibi\Exception;
@@ -45,10 +49,27 @@ abstract class Player extends Model
 	/** @phpstan-use WithGame<G> */
 	use WithGame;
 
-	public const CACHE_TAGS    = ['players'];
-	public const CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
+	public const array CACHE_TAGS = ['players'];
+	public const CLASSIC_BESTS    = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
 	public const SYSTEM        = '';
-	public const DI_TAG        = 'playerDataExtension';
+	public const string DI_TAG = 'playerDataExtension';
+
+	protected const array IMPORT_PROPERTIES = [
+		'name',
+		'score',
+		'skill',
+		'vest',
+		'shots',
+		'accuracy',
+		'hits',
+		'deaths',
+		'position',
+		'hitsOther',
+		'hitsOwn',
+		'deathsOther',
+		'deathsOwn',
+	];
+
 
 	#[Required]
 	#[StringLength(1, 15)]
@@ -119,7 +140,7 @@ abstract class Player extends Model
 				if (!isset($this->relativeDeaths)) {
 					$this->getRelativeDeaths();
 				}
-			} catch (InsuficientRegressionDataException) {
+			} catch (InsufficientRegressionDataException) {
 				// Ignore error -> Save
 			}
 		} catch (Throwable) {
@@ -210,7 +231,8 @@ abstract class Player extends Model
 	 * @throws Throwable
 	 */
 	public function getExpectedAverageDeathCount(): float {
-		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->getMode()?->isSolo() ? 1 : $this->getTeam()?->getPlayerCount());
+		$enemyPlayerCount = $this->getGame()->getPlayerCount() - ($this->getGame()->getMode()?->isSolo(
+			) ? 1 : $this->getTeam()?->getPlayerCount());
 		$teamPlayerCount = ($this->getTeam()?->getPlayerCount() ?? 1) - 1;
 		if ($this->getGame()->getMode()?->isTeam()) {
 			return (2.730673 * $enemyPlayerCount) + (-0.0566788 * $teamPlayerCount) + 43.203734389;
@@ -370,8 +392,11 @@ abstract class Player extends Model
 	 */
 	public function getTeamColor(): int {
 		if (empty($this->color)) {
-			$this->color = ($this->getGame() !== null && $this->getGame()->getMode()?->isSolo() ? 2 : $this->getTeam(
-			)?->color) ?? 2;
+			$this->color = (
+				$this->getGame()->getMode()?->isSolo() ?
+					2 :
+					$this->getTeam()?->color
+			) ?? 2;
 		}
 		return $this->color;
 	}
@@ -390,7 +415,6 @@ abstract class Player extends Model
 			$values[] = $hits->getQueryData();
 		}
 		try {
-			/** @phpstan-ignore-next-line */
 			return DB::replace($table, $values) > 0;
 		} catch (Exception) {
 			return false;
@@ -493,9 +517,11 @@ abstract class Player extends Model
 	 * @throws DirectoryCreationException
 	 */
 	public function loadHits(): array {
-		/** @var PlayerHit $className */
+		/** @var class-string<PlayerHit> $className */
 		$className = str_replace('Player', 'PlayerHit', get_class($this));
-		$hits = DB::select($className::TABLE, 'id_target, count')->where('id_player = %i', $this->id)->fetchAll();
+		$hits = DB::select($className::TABLE, 'id_target, count')
+		          ->where('id_player = %i', $this->id)
+		          ->fetchAllDto(PlayerHitRow::class);
 		foreach ($hits as $row) {
 			$this->addHits($this::get($row->id_target), $row->count);
 		}
@@ -509,7 +535,7 @@ abstract class Player extends Model
 	 * @return $this
 	 */
 	public function addHits(Player $player, int $count = 1): static {
-		/** @var PlayerHit $className */
+		/** @var class-string<PlayerHit> $className */
 		$className = str_replace('Player', 'PlayerHit', $this::class);
 		if (isset($this->hitPlayers[$player->vest])) {
 			$this->hitPlayers[$player->vest]->count += $count;
@@ -636,10 +662,10 @@ abstract class Player extends Model
 			return null;
 		}
 		return DB::select('player_game_rating', '[difference]')->where(
-				'[id_user] = %i AND [code] = %s',
-				$this->user->id,
-				$this->getGame()->code
-			)->fetchSingle(false);
+			'[id_user] = %i AND [code] = %s',
+			$this->user->id,
+			$this->getGame()->code
+		)->fetchSingle(false);
 	}
 
 	/**
@@ -650,10 +676,10 @@ abstract class Player extends Model
 			return null;
 		}
 		$row = DB::select('player_game_rating', '[expected_results], [normalized_skill]')->where(
-				'[id_user] = %i AND [code] = %s',
-				$this->user->id,
-				$this->getGame()->code
-			)->fetch(false);
+			'[id_user] = %i AND [code] = %s',
+			$this->user->id,
+			$this->getGame()->code
+		)->fetch(false);
 		if (!isset($row, $row->expected_results, $row->normalized_skill)) {
 			return null;
 		}
@@ -664,6 +690,32 @@ abstract class Player extends Model
 		$info->normalizedSkill = $row->normalized_skill;
 
 		return $info;
+	}
+
+	public static function fromImportDto(PlayerImportDto $data): static {
+		/** @phpstan-ignore-next-line */
+		$player = new static();
+		foreach (static::IMPORT_PROPERTIES as $property) {
+			if (isset($data->{$property})) {
+				$player->{$property} = $data->{$property};
+			}
+		}
+		if (isset($data->code)) {
+			$player->user = LigaPlayer::getByCode($data->code);
+		}
+		if ($data->team instanceof TeamColorImportDto) {
+			$player->teamNum = $data->team->color;
+		}
+		else if (is_int($data->team)) {
+			$player->teamNum = $data->team;
+		}
+		if (isset($data->tournamentPlayer) && $data->tournamentPlayer > 0) {
+			try {
+				$player->tournamentPlayer = TournamentPlayer::get($data->tournamentPlayer);
+			} catch (ModelNotFoundException) {
+			}
+		}
+		return $player;
 	}
 
 }

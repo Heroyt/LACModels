@@ -18,6 +18,20 @@ use Lsr\Core\Exceptions\ValidationException;
  */
 abstract class Game extends \App\GameModels\Game\Game
 {
+	protected const array IMPORT_PROPERTIES = [
+		'resultsFile',
+		'fileTime',
+		'modeName',
+		'importTime',
+		'start',
+		'end',
+		'gameType',
+		'code',
+		'fileNumber',
+		'lives',
+		'ammo',
+		'respawn',
+	];
 
 	public int $fileNumber;
 	/** @var int Initial lives */
@@ -108,7 +122,7 @@ abstract class Game extends \App\GameModels\Game\Game
 					$player->minesHits !== 0 ||
 					$player->scoreMines !== 0 ||
 					(property_exists($player, 'bonuses') && $player->bonuses > 0) ||
-					$player->bonus->getSum() > 0
+					(isset($player->bonus) && $player->bonus->getSum() > 0)
 				) {
 					$this->minesOn = true;
 					break;

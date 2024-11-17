@@ -25,6 +25,32 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player
 
 	public const string TABLE  = 'evo5_players';
 	public const string SYSTEM = 'evo5';
+
+	protected const array IMPORT_PROPERTIES = [
+		'name',
+		'score',
+		'skill',
+		'vest',
+		'shots',
+		'accuracy',
+		'hits',
+		'deaths',
+		'position',
+		'hitsOther',
+		'hitsOwn',
+		'deathsOther',
+		'deathsOwn',
+		'shotPoints',
+		'scoreBonus',
+		'scorePowers',
+		'scoreMines',
+		'ammoRest',
+		'minesHits',
+		'vip',
+		'myLasermaxx',
+		'bonus',
+	];
+
 	#[Instantiate]
 	public BonusCounts                $bonus;
 	#[ManyToOne(class: Game::class, loadingType: LoadingType::LAZY)]

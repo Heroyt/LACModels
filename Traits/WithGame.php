@@ -24,11 +24,16 @@ trait WithGame
 	 * @throws Throwable
 	 */
 	public function getGame() : Game {
+		/** @phpstan-ignore isset.variable */
 		if (!isset($this->game)) {
-			$gameId = $this->row->id_game ?? $this->relationIds['game'];
+			$gameId = $this->row->id_game ?? $this->relationIds['game'] ?? null;
 			if (isset($gameId)) {
-				$this->game = GameFactory::getById($gameId, ['system' => $this::SYSTEM]);
-				return $this->game;
+				/** @var G|null $game */
+				$game = GameFactory::getById($gameId, ['system' => $this::SYSTEM]);
+				if ($game !== null) {
+					$this->game = $game;
+					return $this->game;
+				}
 			}
 			throw new RuntimeException('Model has no game assigned');
 		}

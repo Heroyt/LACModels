@@ -8,6 +8,8 @@ namespace App\GameModels\Game;
 use App\GameModels\Factory\TeamFactory;
 use App\GameModels\Traits\WithGame;
 use App\GameModels\Traits\WithPlayers;
+use App\Models\DataObjects\Import\TeamImportDto;
+use App\Models\Tournament\Team as TournamentTeam;
 use Dibi\Row;
 use Lsr\Core\DB;
 use Lsr\Core\Exceptions\ModelNotFoundException;
@@ -40,24 +42,31 @@ abstract class Team extends Model
 	/** @phpstan-use WithGame<G> */
 	use WithGame;
 
-	public const PRIMARY_KEY = 'id_team';
-	public const SYSTEM = '';
+	public const string PRIMARY_KEY = 'id_team';
+	public const        SYSTEM      = '';
 
-	public const DI_TAG = 'teamDataExtension';
+	public const string DI_TAG            = 'teamDataExtension';
+	const array         IMPORT_PROPERTIES = [
+		'color',
+		'score',
+		'bonus',
+		'position',
+		'name',
+	];
 
 	#[Required]
-	public int $color    = 0;
+	public int    $color    = 0;
 	#[Required]
-	public int $score    = 0;
-	public ?int $bonus = null;
+	public int    $score    = 0;
+	public ?int   $bonus    = null;
 	#[Required]
-	public int $position = 0;
+	public int    $position = 0;
 	#[Required]
 	#[StringLength(1, 99)]
 	public string $name     = '';
 
 	#[ManyToOne('id_team', 'id_tournament_team')]
-	public ?\App\Models\Tournament\Team $tournamentTeam = null;
+	public ?TournamentTeam $tournamentTeam = null;
 
 
 	public function __construct(?int $id = null, ?Row $dbRow = null) {
@@ -65,6 +74,23 @@ abstract class Team extends Model
 		$this->cacheTags[] = 'teams/' . $this::SYSTEM;
 		parent::__construct($id, $dbRow);
 		$this->playerCount = $this->getPlayers()->count();
+	}
+
+	public static function fromImportDto(TeamImportDto $data): static {
+		/** @phpstan-ignore-next-line */
+		$team = new static();
+		foreach (static::IMPORT_PROPERTIES as $property) {
+			if (isset($data->{$property})) {
+				$team->{$property} = $data->{$property};
+			}
+		}
+		if (isset($data->tournamentTeam) && $data->tournamentTeam > 0) {
+			try {
+				$team->tournamentTeam = TournamentTeam::get($data->tournamentTeam);
+			} catch (ModelNotFoundException) {
+			}
+		}
+		return $team;
 	}
 
 	public function save(): bool {
@@ -220,17 +246,6 @@ abstract class Team extends Model
 		return $data;
 	}
 
-	/**
-	 * @return int
-	 */
-	public function getScore(): int {
-		$score = $this->score;
-		if (isset($this->bonus)) {
-			$score += $this->bonus;
-		}
-		return $score;
-	}
-
 	public function fillFromRow(): void {
 		if (!isset($this->row)) {
 			return;
@@ -255,6 +270,17 @@ abstract class Team extends Model
 			}
 		}
 		return $this;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getScore(): int {
+		$score = $this->score;
+		if (isset($this->bonus)) {
+			$score += $this->bonus;
+		}
+		return $score;
 	}
 
 }

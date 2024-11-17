@@ -13,7 +13,7 @@ use OpenApi\Attributes as OA;
  * @method static GameModeType from(mixed $value)
  * @property string $value
  */
-#[OA\Schema(type: 'string')]
+#[OA\Schema(type: 'string', example: 'TEAM')]
 enum GameModeType: string
 {
 	case TEAM = 'TEAM';

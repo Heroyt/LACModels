@@ -2,7 +2,7 @@
 
 namespace App\GameModels\Game\Lasermaxx;
 
-use App\Exceptions\InsuficientRegressionDataException;
+use App\Exceptions\InsufficientRegressionDataException;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
 use App\Services\Maths\RegressionCalculator;
@@ -31,17 +31,36 @@ abstract class Player extends \App\GameModels\Game\Player
 		'mines',
 	];
 
+	protected const array IMPORT_PROPERTIES = [
+		'name',
+		'score',
+		'skill',
+		'vest',
+		'shots',
+		'accuracy',
+		'hits',
+		'deaths',
+		'position',
+		'hitsOther',
+		'hitsOwn',
+		'deathsOther',
+		'deathsOwn',
+		'shotPoints',
+		'scoreBonus',
+		'scorePowers',
+		'scoreMines',
+		'ammoRest',
+		'minesHits',
+		'vip',
+		'myLasermaxx'
+	];
+
 	public int $shotPoints  = 0;
 	public int $scoreBonus  = 0;
 	public int $scorePowers = 0;
 	public int $scoreMines  = 0;
 	public int $ammoRest    = 0;
 	public int $minesHits   = 0;
-
-	public int $hitsOther   = 0;
-	public int $hitsOwn     = 0;
-	public int $deathsOwn   = 0;
-	public int $deathsOther = 0;
 
 	public bool $vip = false;
 
@@ -63,7 +82,7 @@ abstract class Player extends \App\GameModels\Game\Player
 			$type = $this->getGame()->gameType;
 			$model = $this->getRegressionCalculator()->getDeathsModel($type, $this->getGame()->getMode());
 			return $this->calculateHitDeathModel($type, $model);
-		} catch (InsuficientRegressionDataException) {
+		} catch (InsufficientRegressionDataException) {
 			return parent::getExpectedAverageDeathCount();
 		}
 	}
@@ -80,7 +99,7 @@ abstract class Player extends \App\GameModels\Game\Player
 
 	/**
 	 * @param GameModeType $type
-	 * @param numeric[]    $model
+	 * @param array<int|float>    $model
 	 *
 	 * @return float
 	 * @throws Throwable
@@ -121,7 +140,7 @@ abstract class Player extends \App\GameModels\Game\Player
 			$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
 			return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length],
 			                                                           $model);
-		} catch (InsuficientRegressionDataException) {
+		} catch (InsufficientRegressionDataException) {
 			return 0.0;
 		}
 	}
@@ -186,7 +205,7 @@ abstract class Player extends \App\GameModels\Game\Player
 			$teamPlayerCount = $this->getTeam()?->getPlayerCount() - 1;
 			return RegressionCalculator::calculateRegressionPrediction([$teamPlayerCount, $enemyPlayerCount, $length],
 			                                                           $model);
-		} catch (InsuficientRegressionDataException) {
+		} catch (InsufficientRegressionDataException) {
 			return 0.0;
 		}
 	}
@@ -263,7 +282,7 @@ abstract class Player extends \App\GameModels\Game\Player
 			$type = $this->getGame()->gameType;
 			$model = $this->getRegressionCalculator()->getHitsModel($type, $this->getGame()->getMode());
 			return $this->calculateHitDeathModel($type, $model);
-		} catch (InsuficientRegressionDataException) {
+		} catch (InsufficientRegressionDataException) {
 			return parent::getExpectedAverageHitCount();
 		}
 	}
