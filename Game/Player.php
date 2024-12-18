@@ -701,7 +701,10 @@ abstract class Player extends Model
 			}
 		}
 		if (isset($data->code)) {
-			$player->user = LigaPlayer::getByCode($data->code);
+			$user = LigaPlayer::getByCode($data->code);
+			if ($user !== null && strtolower(Strings::toAscii($user->nickname)) === strtolower(Strings::toAscii($player->name))) {
+				$player->user = $user;
+			}
 		}
 		if ($data->team instanceof TeamColorImportDto) {
 			$player->teamNum = $data->team->color;
