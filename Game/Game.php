@@ -30,6 +30,8 @@ use DateTimeInterface;
 use DateTimeZone;
 use Dibi\Row;
 use JsonException;
+use LAC\Modules\Tables\Models\Table;
+use LAC\Modules\Tournament\Models\Game as TournamentGame;
 use Lsr\Caching\Cache;
 use Lsr\Core\Config;
 use Lsr\Db\DB;
@@ -60,8 +62,8 @@ use Throwable;
  *      hash: string,
  * }
  *
- * @property LAC\Modules\Tables\Models\Table|null $table
- * @property LAC\Modules\Tournament\Models\Game|null $tournamentGame
+ * @property Table|null $table
+ * @property TournamentGame|null $tournamentGame
  * @phpstan-consistent-constructor
  * @template T of Team
  * @template P of Player
@@ -214,14 +216,19 @@ abstract class Game extends BaseModel
                 case 'gameType':
                     $game->gameType = GameModeType::from($value);
                     break;
-                case 'lives':
-                case 'ammo':
                 case 'modeName':
-                case 'fileNumber':
                 case 'code':
+                $game->{$key} = $value;
+                break;
+                case 'lives':
                 case 'respawn':
+                case 'fileNumber':
+                case 'ammo':
+                    assert($game instanceof Lasermaxx\Game);
+                    $game->{$key} = $value;
+                    break;
                 case 'sync':
-                    /* @phpstan-ignore-next-line */ $game->{$key} = $value;
+                    $game->{$key} = (bool) $value;
                     break;
                 case 'end':
                 case 'start':
@@ -234,6 +241,7 @@ abstract class Game extends BaseModel
                     $game->timing = new Timing(...$value);
                     break;
                 case 'scoring':
+                    assert($game instanceof Lasermaxx\Game);
                     $game->scoring = new Scoring(...$value);
                     break;
                 case 'mode':
@@ -271,21 +279,25 @@ abstract class Game extends BaseModel
                                 case 'hits':
                                 case 'deaths':
                                 case 'position':
-                                case 'shotPoints':
-                                case 'scoreBonus':
-                                case 'scorePowers':
-                                case 'scoreMines':
-                                case 'ammoRest':
                                 case 'minesHits':
+                                case 'teamNum':
+                                    $player->{$keyPlayer} = $valuePlayer;
+                                    break;
+                                case 'ammoRest':
                                 case 'hitsOther':
                                 case 'hitsOwn':
                                 case 'deathsOther':
                                 case 'deathsOwn':
-                                case 'teamNum':
-                                    /* @phpstan-ignore-next-line */ $player->{$keyPlayer} = $valuePlayer;
+                                case 'scoreBonus':
+                                case 'scorePowers':
+                                case 'scoreMines':
+                                case 'shotPoints':
+                                    assert($player instanceof \App\GameModels\Game\Lasermaxx\Player);
+                                    $player->{$keyPlayer} = $valuePlayer;
                                     break;
                                 case 'bonus':
-                                    /* @phpstan-ignore-next-line */ $player->bonus = new BonusCounts(...$valuePlayer);
+                                    assert($player instanceof \App\GameModels\Game\Lasermaxx\Player);
+                                    $player->bonus = new BonusCounts(...$valuePlayer);
                                     break;
                                 case 'code':
                                     $player->user = \App\Models\Auth\Player::getByCode($valuePlayer);
@@ -317,7 +329,7 @@ abstract class Game extends BaseModel
                                 case 'score':
                                 case 'color':
                                 case 'position':
-                                    /* @phpstan-ignore-next-line */ $team->{$keyTeam} = $valueTeam;
+                                $team->{$keyTeam} = $valueTeam;
                                     break;
                             }
                             $game->addTeam($team);
@@ -329,12 +341,7 @@ abstract class Game extends BaseModel
             }
         }
 
-        if (!isset($game->mode)) {
-            $game->mode;
-        }
-
         // Assign hits and teams
-        /* @phpstan-ignore-next-line */
         foreach (($data['players'] ?? []) as $playerData) {
             $id = $playerData['id'] ?? $playerData['id_player'] ?? 0;
             if (!isset($players[$id])) {
@@ -350,7 +357,7 @@ abstract class Game extends BaseModel
             // Team
             $teamId = (int) ($playerData['team'] ?? 0);
             if (isset($teams[$teamId])) {
-                $player->setTeam($teams[$teamId]);
+                $player->team = $teams[$teamId];
                 $teams[$teamId]->addPlayer($player);
             }
         }
@@ -366,11 +373,13 @@ abstract class Game extends BaseModel
             if (isset($this->relationIds['mode'])) {
                 $this->mode = GameModeFactory::getById($this->relationIds['mode']);
             }
-            else if (isset($this->modeName)) {
-                $this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
-            }
             else {
-                $this->mode = null;
+                if (isset($this->modeName)) {
+                    $this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
+                }
+                else {
+                    $this->mode = null;
+                }
             }
         }
         return $this->mode;
@@ -425,9 +434,8 @@ abstract class Game extends BaseModel
                 break;
             case 'hitsOwn':
             case 'deathsOwn':
-                /* @phpstan-ignore-next-line */ $query->addFilter(
-          new CollectionCompareFilter($property, Comparison::GREATER, 0)
-        );
+            /* @phpstan-ignore-next-line */
+            $query->addFilter(new CollectionCompareFilter($property, Comparison::GREATER, 0));
             default:
                 $query->desc();
                 break;
@@ -494,11 +502,6 @@ abstract class Game extends BaseModel
         return $data;
     }
 
-    public function getGroup() : ?GameGroup {
-        $this->group ??= isset($this->relationIds['group']) ? GameGroup::get($this->relationIds['group']) : null;
-        return $this->group;
-    }
-
     public function getMusic() : ?MusicMode {
         $this->music ??= isset($this->relationIds['music']) ? MusicMode::get($this->relationIds['music']) : null;
         return $this->music;
@@ -544,7 +547,7 @@ abstract class Game extends BaseModel
         $test = DB::select($this::TABLE, $pk.', code')->where(
           'start = %dt OR start = %dt',
           $this->start,
-          $this->start->getTimestamp() + ($this->timing?->before ?? 20)
+          $this->start->getTimestamp() + ($this->timing->before ?? 20)
         )->fetch(cache: false);
         if (isset($test)) {
             $this->id = $test->$pk;
@@ -582,9 +585,10 @@ abstract class Game extends BaseModel
 
     public static function getCodePrefix() : string {
         if (!isset(self::$codePrefix)) {
-            /** @var Config $config */
             $config = App::getService('config');
-            self::$codePrefix = $config->getConfig('ENV')['GAME_PREFIX'] ?? 'g';
+            assert($config instanceof Config);
+            $prefix = $config->getConfig('ENV')['GAME_PREFIX'] ?? 'g';
+            self::$codePrefix = is_string($prefix) ? $prefix : 'g';
         }
         return self::$codePrefix;
     }
@@ -634,6 +638,11 @@ abstract class Game extends BaseModel
         }
     }
 
+    public function getGroup() : ?GameGroup {
+        $this->group ??= isset($this->relationIds['group']) ? GameGroup::get($this->relationIds['group']) : null;
+        return $this->group;
+    }
+
     public function insert() : bool {
         if ($this->getGroup() !== null) {
             $this->getGroup()->clearCache();
@@ -668,7 +677,6 @@ abstract class Game extends BaseModel
         }
 
         // Invalidate generated results cache
-        /** @var string[]|false $files */
         $files = glob(TMP_DIR.'results/'.$this->code.'*');
         if ($files !== false) {
             foreach ($files as $file) {

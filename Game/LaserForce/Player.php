@@ -20,7 +20,7 @@ use Lsr\Orm\Exceptions\ModelNotFoundException;
 class Player extends \App\GameModels\Game\Player
 {
     public const string TABLE = 'laserforce_players';
-    public const SYSTEM = 'laserForce';
+    public const string SYSTEM = 'laserForce';
 
     public string $identifier = '';
     public int $level = 0;
@@ -103,7 +103,6 @@ class Player extends \App\GameModels\Game\Player
             }
         }
         try {
-            /** @phpstan-ignore-next-line */
             $success = $success && DB::replace($table, $values) > 0;
         } catch (Exception) {
             return false;

@@ -22,12 +22,13 @@ trait PlayerCalculatedProperties
     #[NoDB]
     public int $color {
         get {
-            return $this->team?->color ?? ($this->game->mode->isSolo() ? 2 : 0);
+            return $this->team->color ?? ($this->game->mode->isSolo() ? 2 : 0);
         }
     }
 
     #[NoDB]
     public int $miss {
+        /** @phpstan-ignore assign.propertyReadOnly */
         get => $this->shots - $this->hits;
     }
 

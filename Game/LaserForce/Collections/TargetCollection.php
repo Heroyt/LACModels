@@ -12,8 +12,6 @@ use App\GameModels\Game\LaserForce\Collections\Query\TargetQuery;
 use App\GameModels\Game\LaserForce\Target;
 
 /**
- * @property Target[] $data
- *
  * @extends AbstractCollection<Target>
  */
 class TargetCollection extends AbstractCollection

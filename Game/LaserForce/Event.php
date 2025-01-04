@@ -19,6 +19,7 @@ class Event extends BaseModel
     use WithGame;
 
     public const string TABLE = 'laserforce_events';
+    public const string SYSTEM = 'laserforce';
 
     /** @var positive-int */
     public int $time;

@@ -128,7 +128,7 @@ trait WithTargets
                 }
             }
             try {
-                $this->targets->set($target, $target->vest);
+                $this->targets->set($target, $target->identifier);
             } catch (InvalidArgumentException) {
 
             }

@@ -64,9 +64,10 @@ trait WithPlayers
      * @throws ModelNotFoundException
      */
     public function loadPlayers() : PlayerCollection {
+        /** @var array<int,P> $players */
         $players = [];
 
-        /** @var class-string<Player> $className */
+        /** @var class-string<P> $className */
         $className = preg_replace(['/(.+)Game$/', '/(.+)Team$/'], '${1}Player', $this::class);
         $primaryKey = $className::getPrimaryKey();
         $gameId = $this instanceof Game ? $this->id : $this->game->id;
@@ -85,15 +86,13 @@ trait WithPlayers
         }
         $rows = $query->fetchAll();
         foreach ($rows as $row) {
-            /** @var Player $player */
+            /** @var P $player */
             $player = $className::get($row->$primaryKey, $row);
             if ($this instanceof Game) {
                 $player->setGame($this);
             }
-            else {
-                if ($this instanceof Team) { // @phpstan-ignore-line
-                    $player->team = $this;
-                }
+            else if ($this instanceof Team) { // @phpstan-ignore-line
+                $player->team = $this;
             }
             $players[(int) $player->vest] = $player;
         }

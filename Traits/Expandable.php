@@ -11,16 +11,19 @@ trait Expandable
     /** @var GameDataExtensionInterface[] */
     protected static array $extensions;
 
-    /** @var array<string, callable> */
+    /** @var array<string, list<callable(Model $model, mixed ...$args):void>> */
     protected array $hooks = [];
 
     /** @var array<string, Model> */
     protected array $data = [];
 
+    /**
+     * @param  string  $name
+     * @param  callable(Model $model, mixed ...$args):void  $callable
+     * @return void
+     */
     public function hook(string $name, callable $callable) : void {
-        if (!isset($this->hooks[$name])) {
-            $this->hooks[$name] = [];
-        }
+        $this->hooks[$name] ??= [];
         $this->hooks[$name][] = $callable;
     }
 
@@ -63,8 +66,9 @@ trait Expandable
             static::$extensions = [];
             $names = App::getContainer()->findByTag(static::DI_TAG);
             foreach ($names as $name => $arguments) {
-                // @phpstan-ignore-next-line
-                static::$extensions[] = App::getService($name);
+                $extension = App::getService($name);
+                assert($extension instanceof GameDataExtensionInterface);
+                static::$extensions[] = $extension;
             }
         }
         return static::$extensions;
@@ -78,6 +82,10 @@ trait Expandable
         return $success;
     }
 
+    /**
+     * @param  array<string,mixed>  $data
+     * @return void
+     */
     protected function extensionJson(array &$data) : void {
         foreach (static::getExtensions() as $extension) {
             $extension->addJsonData($data, $this);
@@ -90,13 +98,17 @@ trait Expandable
         }
     }
 
+    /**
+     * @param  array<string,mixed>  $data
+     * @return void
+     */
     protected function extensionAddQueryData(array &$data) : void {
         foreach (static::getExtensions() as $extension) {
             $extension->addQueryData($data, $this);
         }
     }
 
-    protected function runHook(string $name, ...$args) : void {
+    protected function runHook(string $name, mixed ...$args) : void {
         foreach ($this->hooks[$name] ?? [] as $callable) {
             $callable($this, ...$args);
         }

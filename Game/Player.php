@@ -46,7 +46,9 @@ abstract class Player extends BaseModel
     use Expandable;
     use PlayerCalculatedProperties;
 
+    /** @var string[] */
     public const array CACHE_TAGS = ['players'];
+    /** @var string[] */
     public const array CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
     public const string SYSTEM = '';
     public const string DI_TAG = 'playerDataExtension';
@@ -119,7 +121,7 @@ abstract class Player extends BaseModel
      */
     public function getExpectedAverageDeathCount() : float {
         $enemyPlayerCount = $this->game->playerCount - ($this->game->mode?->isSolo() ? 1 : $this->team?->playerCount);
-        $teamPlayerCount = ($this->team?->playerCount ?? 1) - 1;
+        $teamPlayerCount = ($this->team->playerCount ?? 1) - 1;
         if ($this->game->mode?->isTeam()) {
             return (2.730673 * $enemyPlayerCount) + (-0.0566788 * $teamPlayerCount) + 43.203734389;
         }
@@ -202,7 +204,7 @@ abstract class Player extends BaseModel
      */
     public function getExpectedAverageHitCount() : float {
         $enemyPlayerCount = $this->game->playerCount - ($this->game->mode?->isSolo() ? 1 : $this->team?->playerCount);
-        $teamPlayerCount = ($this->team?->playerCount ?? 1) - 1;
+        $teamPlayerCount = ($this->team->playerCount ?? 1) - 1;
         if ($this->game->mode?->isTeam()) {
             return (2.5771 * $enemyPlayerCount) + (2.48007 * $teamPlayerCount) + 36.76356;
         }
@@ -281,7 +283,6 @@ abstract class Player extends BaseModel
             $values[] = $hits->getQueryData();
         }
         try {
-            /** @phpstan-ignore-next-line */
             return DB::replace($table, $values) > 0;
         } catch (Exception) {
             return false;
@@ -376,7 +377,7 @@ abstract class Player extends BaseModel
      * @return $this
      */
     public function addHits(Player $player, int $count = 1) : static {
-        /** @var PlayerHit $className */
+        /** @var class-string<PlayerHit> $className */
         $className = str_replace('Player', 'PlayerHit', $this::class);
         if (isset($this->hitPlayers[$player->vest])) {
             $this->hitPlayers[$player->vest]->count += $count;

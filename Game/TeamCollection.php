@@ -24,9 +24,11 @@ class TeamCollection extends AbstractCollection
     public string $type = Team::class;
 
     /**
-     * @return CollectionQueryInterface<T>
+     * @return TeamQuery<T>
      */
     public function query() : CollectionQueryInterface {
-        return new TeamQuery($this);
+        /** @var TeamQuery<T> $query */
+        $query = new TeamQuery($this);
+        return $query;
     }
 }

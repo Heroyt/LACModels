@@ -21,6 +21,7 @@ class PowerCount implements InsertExtendInterface
      * @inheritDoc
      */
     public static function parseRow(Row $row) : ?static {
+        /** @phpstan-ignore return.type */
         return new self(
           $row->machine_gun ?? 0,
           $row->invincibility ?? 0,

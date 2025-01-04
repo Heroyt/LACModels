@@ -27,6 +27,8 @@ class PlayerCollection extends AbstractCollection
      * @return PlayerQuery<P>
      */
     public function query() : CollectionQueryInterface {
-        return new PlayerQuery($this);
+        /** @var PlayerQuery<P> $query */
+        $query = new PlayerQuery($this);
+        return $query;
     }
 }

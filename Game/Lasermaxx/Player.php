@@ -2,7 +2,6 @@
 
 namespace App\GameModels\Game\Lasermaxx;
 
-use App\Exceptions\GameModeNotFoundException;
 use App\Exceptions\InsuficientRegressionDataException;
 use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
@@ -92,7 +91,7 @@ abstract class Player extends \App\GameModels\Game\Player
     private function calculateHitDeathModel(GameModeType $type, array $model) : float {
         $length = $this->game->getRealGameLength();
         if ($type === GameModeType::TEAM) {
-            $teamPlayerCount = $this->team?->playerCount ?? 0;
+            $teamPlayerCount = $this->team->playerCount ?? 0;
             $enemyPlayerCount = $this->game->playerCount - $teamPlayerCount - 1;
             return RegressionCalculator::calculateRegressionPrediction(
               [$teamPlayerCount, $enemyPlayerCount, $length],
@@ -122,7 +121,7 @@ abstract class Player extends \App\GameModels\Game\Player
         try {
             $model = $this->getRegressionCalculator()->getDeathsOwnModel($this->game->mode);
             $length = $this->game->getRealGameLength();
-            $enemyPlayerCount = $this->game->playerCount - ($this->team?->playerCount ?? 1);
+            $enemyPlayerCount = $this->game->playerCount - ($this->team->playerCount ?? 1);
             $teamPlayerCount = $this->team?->playerCount - 1;
             return RegressionCalculator::calculateRegressionPrediction(
               [$teamPlayerCount, $enemyPlayerCount, $length],
@@ -192,7 +191,7 @@ abstract class Player extends \App\GameModels\Game\Player
         try {
             $model = $this->getRegressionCalculator()->getHitsOwnModel($this->game->mode);
             $length = $this->game->getRealGameLength();
-            $enemyPlayerCount = $this->game->playerCount - ($this->team?->playerCount ?? 1);
+            $enemyPlayerCount = $this->game->playerCount - ($this->team->playerCount ?? 1);
             $teamPlayerCount = $this->team?->playerCount - 1;
             return RegressionCalculator::calculateRegressionPrediction(
               [$teamPlayerCount, $enemyPlayerCount, $length],
@@ -254,7 +253,7 @@ abstract class Player extends \App\GameModels\Game\Player
         try {
             return $this->game->mode?->isSolo() ? parent::getKd() :
               $this->hitsOther / ($this->deathsOther === 0 ? 1 : $this->deathsOther);
-        } catch (GameModeNotFoundException | Throwable) {
+        } catch (Throwable) {
             return parent::getKd();
         }
     }

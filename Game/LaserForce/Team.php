@@ -8,6 +8,6 @@ namespace App\GameModels\Game\LaserForce;
 class Team extends \App\GameModels\Game\Team
 {
     public const string TABLE = 'laserforce_teams';
-    public const SYSTEM = 'laserForce';
+    public const string SYSTEM = 'laserForce';
     public int $index = 0;
 }

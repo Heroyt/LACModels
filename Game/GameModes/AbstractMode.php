@@ -12,6 +12,7 @@ use App\GameModels\Game\TeamCollection;
 use App\Models\BaseModel;
 use App\Models\GameModeVariation;
 use App\Models\GameModeVariationValue;
+use Dibi\Row;
 use Lsr\Db\DB;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\ObjectValidation\Attributes\Required;
@@ -50,6 +51,7 @@ class AbstractMode extends BaseModel
     public array $variations = [] {
         get {
             if (empty($this->variations)) {
+                /** @var array<int,array<string,Row>> $rows */
                 $rows = DB::select(GameModeVariation::TABLE_VALUES, '[id_variation], [value], [suffix], [order]')
                           ->where('[id_mode] = %i', $this->id)
                           ->orderBy('[id_variation], [order]')

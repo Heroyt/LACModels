@@ -43,7 +43,6 @@ abstract class Team extends BaseModel
     use WithGame;
     use Expandable;
 
-    public const string PRIMARY_KEY = 'id_team';
     public const string SYSTEM = '';
 
     public const string DI_TAG = 'teamDataExtension';

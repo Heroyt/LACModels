@@ -22,9 +22,12 @@ trait WithGame
      * @throws Throwable
      */
     public function loadGame() : Game {
+        /** @phpstan-ignore nullsafe.neverNull */
         $gameId = $this->row?->id_game ?? $this->relationIds['game'] ?? null;
+        /** @var G|null $game */
         $game = null;
         if (isset($gameId)) {
+            /** @var G|null $game */
             $game = GameFactory::getById($gameId, ['system' => $this::SYSTEM]);
         }
         if ($game === null) {
