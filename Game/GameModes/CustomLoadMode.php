@@ -19,7 +19,7 @@ interface CustomLoadMode
      *
      * @return string Script name or empty string
      */
-    public function getNewGameScriptToRun(): string;
+    public function getNewGameScriptToRun() : string;
 
     /**
      * Modify the game data which should be passed to the load file.
@@ -29,5 +29,5 @@ interface CustomLoadMode
      *
      * @return LasermaxxLoadData Modified data
      */
-    public function modifyGameDataBeforeLoad(LasermaxxLoadData $loadData, array $data): LasermaxxLoadData;
+    public function modifyGameDataBeforeLoad(LasermaxxLoadData $loadData, array $data) : LasermaxxLoadData;
 }

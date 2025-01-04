@@ -7,11 +7,10 @@
 namespace App\GameModels\Game\Evo5;
 
 use App\GameModels\Factory\TeamFactory;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\NoDB;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\LoadingType;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\NoDB;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 
 /**
  * LaserMaxx Evo5 team model
@@ -22,14 +21,14 @@ use Lsr\Core\Models\LoadingType;
 #[PrimaryKey('id_team'), Factory(TeamFactory::class, ['system' => 'evo5'])]
 class Team extends \App\GameModels\Game\Lasermaxx\Team
 {
-    public const TABLE  = 'evo5_teams';
-    public const SYSTEM = 'evo5';
+    public const string TABLE = 'evo5_teams';
+    public const string SYSTEM = 'evo5';
 
     /** @var class-string<Player> */
     #[NoDB]
     public string $playerClass = Player::class;
 
     /** @var Game */
-    #[ManyToOne(class: Game::class, loadingType: LoadingType::LAZY)]
+    #[ManyToOne(class: Game::class)]
     public \App\GameModels\Game\Game $game;
 }

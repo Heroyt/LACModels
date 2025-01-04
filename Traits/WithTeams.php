@@ -6,88 +6,83 @@ use App\GameModels\Game\Game;
 use App\GameModels\Game\Team;
 use App\GameModels\Game\TeamCollection;
 use InvalidArgumentException;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\Instantiate;
-use Lsr\Core\Models\Attributes\NoDB;
-use Lsr\Core\Models\Attributes\OneToMany;
-use Lsr\Core\Models\LoadingType;
+use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Timer;
+use Lsr\ObjectValidation\Exceptions\ValidationException;
+use Lsr\Orm\Attributes\JsonExclude;
+use Lsr\Orm\Attributes\NoDB;
+use Lsr\Orm\Attributes\Relations\OneToMany;
 
 /**
  * @template T of Team
  */
 trait WithTeams
 {
-    private int $teamCount;
+    #[NoDB]
+    public int $teamCount {
+        get {
+            if (!isset($this->teamCount) || $this->teamCount < 1) {
+                $this->teamCount = $this->teams->count();
+            }
+            return $this->teamCount;
+        }
+    }
 
     /** @var class-string<T> */
-    #[NoDB]
+    #[NoDB, JsonExclude]
     public string $teamClass;
 
     /** @var TeamCollection<T> */
-    #[Instantiate, OneToMany(class: Team::class, loadingType: LoadingType::LAZY)]
+    #[OneToMany(class: Team::class, factoryMethod: 'loadTeams')]
     public TeamCollection $teams;
     /** @var TeamCollection<T> */
-    protected TeamCollection $teamsSorted;
+    #[NoDB, JsonExclude]
+    public TeamCollection $teamsSorted {
+        get {
+            if (empty($this->teamsSorted)) {
+                $this->teamsSorted = new TeamCollection(
+                  $this
+                    ->teams
+                    ->query()
+                    ->sortBy('score')
+                    ->desc()
+                    ->get()
+                );
+            }
+            return $this->teamsSorted;
+        }
+    }
 
     /**
-     * @param T ...$teams
+     * @param  T  ...$teams
      *
      * @return $this
      */
-    public function addTeam(Team ...$teams): static {
-        if (!isset($this->teams)) {
-            $this->teams = new TeamCollection();
+    public function addTeam(Team ...$teams) : static {
+        foreach ($teams as $team) {
+            $this->teams->add($team);
         }
-        $this->teams->add(...$teams);
         return $this;
     }
 
     /**
      * @return TeamCollection<T>
      */
-    public function getTeamsSorted(): TeamCollection {
-        if (empty($this->teamsSorted)) {
-            /* @phpstan-ignore-next-line */
-            $this->teamsSorted = $this
-                ->getTeams()
-                ->query()
-                ->sortBy('score')
-                ->desc()
-                ->get();
-        }
-        /* @phpstan-ignore-next-line */
-        return $this->teamsSorted;
-    }
-
-    /**
-     * @return TeamCollection<T>
-     */
-    public function getTeams(): TeamCollection {
-        if (!isset($this->teams)) {
-            $this->teams = new TeamCollection();
-        }
-        if ($this->teams->count() === 0) {
-            $this->loadTeams();
-        }
-        return $this->teams;
-    }
-
-    /**
-     * @return TeamCollection<T>
-     */
-    public function loadTeams(): TeamCollection {
-        if (!isset($this->teams)) {
-            $this->teams = new TeamCollection();
-        }
+    public function loadTeams() : TeamCollection {
+        $teams = [];
         /** @var class-string<Game> $className */
         $className = preg_replace('/(.+)Game$/', '${1}Team', get_class($this));
         $primaryKey = $className::getPrimaryKey();
         $rows = DB::select($className::TABLE, '*')
-                            ->where('%n = %i', $this::getPrimaryKey(), $this->id)
-                            ->cacheTags('games/' . $this::SYSTEM . '/' . $this->id, 'games/' . $this::SYSTEM . '/' . $this->id . '/teams', 'games/' . $this->start?->format('Y-m-d'), 'teams', 'teams/' . $this::SYSTEM)
-                            ->fetchAll();
+          ->where('%n = %i', $this::getPrimaryKey(), $this->id)
+          ->cacheTags(
+            'games/'.$this::SYSTEM.'/'.$this->id,
+            'games/'.$this::SYSTEM.'/'.$this->id.'/teams',
+            'games/'.$this->start?->format('Y-m-d'),
+            'teams',
+            'teams/'.$this::SYSTEM
+          )
+          ->fetchAll();
         foreach ($rows as $row) {
             /** @var Team $team */
             $team = new $className($row->$primaryKey, $row);
@@ -96,12 +91,12 @@ trait WithTeams
                 $team->setGame($this);
             }
             try {
-                $this->teams->set($team, $team->color);
+                $teams[$team->color] = $team;
             } catch (InvalidArgumentException) {
 
             }
         }
-        return $this->teams;
+        return new TeamCollection($teams, 'color');
     }
 
     /**
@@ -110,7 +105,7 @@ trait WithTeams
      * @return bool
      * @throws ValidationException
      */
-    public function saveTeams(): bool {
+    public function saveTeams() : bool {
         Timer::start('game.save.teams');
         if (!isset($this->teams)) {
             Timer::stop('game.save.teams');
@@ -124,12 +119,5 @@ trait WithTeams
         }
         Timer::stop('game.save.teams');
         return true;
-    }
-
-    public function getTeamCount(): int {
-        if (!isset($this->teamCount) || $this->teamCount < 1) {
-            $this->teamCount = $this->getTeams()->count();
-        }
-        return $this->teamCount;
     }
 }

@@ -11,5 +11,5 @@ namespace App\GameModels\Game\Evo6;
  */
 class PlayerHit extends \App\GameModels\Game\PlayerHit
 {
-    public const TABLE = 'evo6_hits';
+    public const string TABLE = 'evo6_hits';
 }

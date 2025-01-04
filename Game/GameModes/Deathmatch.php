@@ -4,8 +4,8 @@ namespace App\GameModels\Game\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\PrimaryKey;
 
 /**
  * Basic Deathmatch game mode
@@ -14,11 +14,11 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class Deathmatch extends AbstractMode
 {
-    public GameModeType $type        = GameModeType::SOLO;
-    public string $name        = 'Deathmatch';
+    public GameModeType $type = GameModeType::SOLO;
+    public string $name = 'Deathmatch';
     public ?string $description = 'Free for all game type.';
 
-    public function getTeamAlternative(): string {
+    public function getTeamAlternative() : string {
         return TeamDeathmatch::class;
     }
 }

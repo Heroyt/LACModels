@@ -11,8 +11,8 @@ use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomLoadMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\Tools\GameLoading\LasermaxxLoadData;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\PrimaryKey;
 
 /**
  * Special LaserMaxx Evo5 game mode
@@ -33,14 +33,14 @@ class Barvicky extends AbstractMode implements CustomLoadMode
      *
      * @return string Script name or empty string
      */
-    public function getNewGameScriptToRun(): string {
+    public function getNewGameScriptToRun() : string {
         return 'barvicky';
     }
 
     /**
      * @inheritDoc
      */
-    public function modifyGameDataBeforeLoad(LasermaxxLoadData $loadData, array $data): LasermaxxLoadData {
+    public function modifyGameDataBeforeLoad(LasermaxxLoadData $loadData, array $data) : LasermaxxLoadData {
         // Shuffle teams
         if (isset($data['hiddenTeams']) && $data['hiddenTeams'] === '1') {
             $teamCount = count($loadData->teams);
@@ -61,7 +61,7 @@ class Barvicky extends AbstractMode implements CustomLoadMode
 
         // Add starting team color meta
         foreach ($loadData->players as $player) {
-            $loadData->meta['p' . $player->vest . '-startTeam'] = $player->team;
+            $loadData->meta['p'.$player->vest.'-startTeam'] = $player->team;
         }
         return $loadData;
     }

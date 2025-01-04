@@ -26,7 +26,7 @@ class TeamCollection extends AbstractCollection
     /**
      * @return CollectionQueryInterface<T>
      */
-    public function query(): CollectionQueryInterface {
+    public function query() : CollectionQueryInterface {
         return new TeamQuery($this);
     }
 }

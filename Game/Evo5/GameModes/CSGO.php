@@ -15,10 +15,10 @@ use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\GameModels\Game\Team;
 use App\Gate\Screens\Results\LaserMaxxCSGOResultsScreen;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\ObjectValidation\Exceptions\ValidationException;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
 
 /**
  * Special LaserMaxx Evo5 game mode
@@ -33,14 +33,14 @@ class CSGO extends AbstractMode implements CustomResultsMode
     public string $name = 'CSGO';
 
     /**
-     * @param Evo5Game $game
+     * @param  Evo5Game  $game
      *
      * @return Evo5Team|null
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getWin(Game $game): ?Team {
-        $teams = $game->getTeams();
+    public function getWin(Game $game) : ?Team {
+        $teams = $game->teams;
         // Two teams - get the last team alive or team with most hits
         if (count($teams) === 2) {
             /** @var Evo5Team $team1 */
@@ -86,40 +86,40 @@ class CSGO extends AbstractMode implements CustomResultsMode
     }
 
     /**
-     * @param Evo5Team $team
+     * @param  Evo5Team  $team
      *
      * @return int
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getRemainingLives(Evo5Team $team): int {
+    public function getRemainingLives(Evo5Team $team) : int {
         return $this->getTotalLives($team) - $team->getDeaths();
     }
 
     /**
-     * @param Evo5Team $team
+     * @param  Evo5Team  $team
      *
      * @return int
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getTotalLives(Evo5Team $team): int {
+    public function getTotalLives(Evo5Team $team) : int {
         /** @var Evo5Game $game */
-        $game = $team->getGame();
-        return count($team->getPlayers()) * $game->lives;
+        $game = $team->game;
+        return count($team->players) * $game->lives;
     }
 
     /**
      * @inheritDoc
      */
-    public function getCustomResultsTemplate(): string {
+    public function getCustomResultsTemplate() : string {
         return '';
     }
 
     /**
      * @inheritDoc
      */
-    public function getCustomGateScreen(): string {
+    public function getCustomGateScreen() : string {
         return LaserMaxxCSGOResultsScreen::class;
     }
 }

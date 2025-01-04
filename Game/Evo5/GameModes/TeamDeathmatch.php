@@ -8,8 +8,8 @@ namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\PrimaryKey;
 
 /**
  * LaserMaxx Evo5 team Deathmatch game mode
@@ -20,7 +20,7 @@ class TeamDeathmatch extends \App\GameModels\Game\GameModes\TeamDeathmatch
 {
     use LaserMaxxScores;
 
-    public function getSoloAlternative(): string {
+    public function getSoloAlternative() : string {
         return Deathmatch::class;
     }
 }

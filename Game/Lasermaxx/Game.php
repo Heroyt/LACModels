@@ -5,8 +5,7 @@ namespace App\GameModels\Game\Lasermaxx;
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Player as BasePlayer;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
+use Lsr\ObjectValidation\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 
 /**
@@ -33,47 +32,47 @@ abstract class Game extends \App\GameModels\Game\Game
     /**
      * @return string[]
      */
-    public static function getTeamColors(): array {
+    public static function getTeamColors() : array {
         return [
-        0 => '#E00000',
-        1 => '#008500',
-        2 => '#00f',
-        3 => '#D100C7',
-        4 => '#E0A800',
-        5 => '#24AAC2',
+          0 => '#E00000',
+          1 => '#008500',
+          2 => '#00f',
+          3 => '#D100C7',
+          4 => '#E0A800',
+          5 => '#24AAC2',
         ];
     }
 
     /**
      * @return string[]
      */
-    public static function getTeamNames(): array {
+    public static function getTeamNames() : array {
         return [
-            0 => lang('Red team', context: 'team.names'),
-            1 => lang('Green team', context: 'team.names'),
-            2 => lang('Blue team', context: 'team.names'),
-            3 => lang('Pink team', context: 'team.names'),
-            4 => lang('Yellow team', context: 'team.names'),
-            5 => lang('Ocean team', context: 'team.names'),
+          0 => lang('Red team', context: 'team.names'),
+          1 => lang('Green team', context: 'team.names'),
+          2 => lang('Blue team', context: 'team.names'),
+          3 => lang('Pink team', context: 'team.names'),
+          4 => lang('Yellow team', context: 'team.names'),
+          5 => lang('Ocean team', context: 'team.names'),
         ];
     }
 
-    public function insert(): bool {
-        $this->getLogger()->info('Inserting game: ' . $this->fileNumber);
+    public function insert() : bool {
+        $this->getLogger()->info('Inserting game: '.$this->fileNumber);
         return parent::insert();
     }
 
-    public function save(): bool {
+    public function save() : bool {
         return parent::save() && $this->saveTeams() && $this->savePlayers();
     }
 
     /**
      * @return array<string,string>
      */
-    public function getBestsFields(): array {
+    public function getBestsFields() : array {
         $info = parent::getBestsFields();
         try {
-            $mode = $this->getMode();
+            $mode = $this->mode;
             if (!isset($mode)) {
                 return $info;
             }
@@ -100,11 +99,11 @@ abstract class Game extends \App\GameModels\Game\Game
      *
      * @return bool
      */
-    public function isMinesOn(): bool {
+    public function isMinesOn() : bool {
         if (!isset($this->minesOn)) {
             $this->minesOn = false;
             /** @var Player $player */
-            foreach ($this->getPlayers() as $player) {
+            foreach ($this->players as $player) {
                 if ($player->minesHits !== 0 || $player->scoreMines !== 0 || $player->bonus->getSum() > 0) {
                     $this->minesOn = true;
                     break;
@@ -115,13 +114,12 @@ abstract class Game extends \App\GameModels\Game\Game
     }
 
     /**
-     * @param string $property
+     * @param  string  $property
      *
      * @return BasePlayer<static,T>|null
-     * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getBestPlayer(string $property): ?BasePlayer {
+    public function getBestPlayer(string $property) : ?BasePlayer {
         if ($property === 'mines' && !$this->isMinesOn()) {
             return null;
         }

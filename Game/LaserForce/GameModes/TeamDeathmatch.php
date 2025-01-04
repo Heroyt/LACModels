@@ -7,8 +7,8 @@
 namespace App\GameModels\Game\LaserForce\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\PrimaryKey;
 
 /**
  * LaserForce team Deathmatch game mode
@@ -17,7 +17,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class TeamDeathmatch extends \App\GameModels\Game\GameModes\TeamDeathmatch
 {
-    public function getSoloAlternative(): string {
+    public function getSoloAlternative() : string {
         return Deathmatch::class;
     }
 }

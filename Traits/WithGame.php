@@ -4,8 +4,7 @@ namespace App\GameModels\Traits;
 
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\LoadingType;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 use RuntimeException;
 use Throwable;
 
@@ -15,31 +14,31 @@ use Throwable;
 trait WithGame
 {
     /** @var G */
-    #[ManyToOne(loadingType: LoadingType::LAZY)]
+    #[ManyToOne(factoryMethod: 'loadGame')]
     public Game $game;
 
     /**
      * @return G
      * @throws Throwable
      */
-    public function getGame(): Game {
-        if (!isset($this->game)) {
-            $gameId = $this->row?->id_game ?? $this->relationIds['game'];
-            if (isset($gameId)) {
-                $this->game = GameFactory::getById($gameId, ['system' => $this::SYSTEM]);
-                return $this->game;
-            }
+    public function loadGame() : Game {
+        $gameId = $this->row?->id_game ?? $this->relationIds['game'] ?? null;
+        $game = null;
+        if (isset($gameId)) {
+            $game = GameFactory::getById($gameId, ['system' => $this::SYSTEM]);
+        }
+        if ($game === null) {
             throw new RuntimeException('Model has no game assigned');
         }
-        return $this->game;
+        return $game;
     }
 
     /**
-     * @param G $game
+     * @param  G  $game
      *
      * @return static
      */
-    public function setGame(Game $game): static {
+    public function setGame(Game $game) : static {
         $this->game = $game;
         return $this;
     }

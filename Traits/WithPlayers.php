@@ -10,17 +10,14 @@ use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\PlayerCollection;
 use App\GameModels\Game\Team;
-use InvalidArgumentException;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\Instantiate;
-use Lsr\Core\Models\Attributes\NoDB;
-use Lsr\Core\Models\Attributes\OneToMany;
-use Lsr\Core\Models\LoadingType;
-use Lsr\Core\Models\Model;
+use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\ObjectValidation\Exceptions\ValidationException;
+use Lsr\Orm\Attributes\JsonExclude;
+use Lsr\Orm\Attributes\NoDB;
+use Lsr\Orm\Attributes\Relations\OneToMany;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Throwable;
 
 /**
@@ -28,56 +25,63 @@ use Throwable;
  */
 trait WithPlayers
 {
-    /** @var int */
     #[NoDB]
-    public int $playerCount = 0;
+    public int $playerCount {
+        get {
+            if (!isset($this->playerCount) || $this->playerCount < 1) {
+                $this->playerCount = $this->players->count();
+            }
+            return $this->playerCount;
+        }
+    }
     /** @var class-string<P> */
-    #[NoDB]
+    #[NoDB, JsonExclude]
     public string $playerClass;
     /** @var PlayerCollection<P> */
-    #[Instantiate, OneToMany(class: Player::class, loadingType: LoadingType::LAZY)]
+    #[OneToMany(class: Player::class, factoryMethod: 'loadPlayers')]
     public PlayerCollection $players;
     /** @var PlayerCollection<P> */
-    protected PlayerCollection $playersSorted;
-
-    /**
-     * @return PlayerCollection<P>
-     */
-    public function getPlayers(): PlayerCollection {
-        if (!isset($this->players)) {
-            $this->players = new PlayerCollection();
-        }
-        if (!empty($this->id) && $this->players->count() === 0) {
-            try {
-                $this->loadPlayers();
-            } catch (Throwable $e) {
-                // Do nothing
+    #[NoDB, JsonExclude]
+    public PlayerCollection $playersSorted {
+        get {
+            if (!isset($this->playersSorted)) {
+                $this->playersSorted = new PlayerCollection(
+                  $this
+                    ->players
+                    ->query()
+                    ->sortBy('score')
+                    ->desc()
+                    ->get()
+                );
             }
+            return $this->playersSorted;
         }
-        return $this->players;
     }
 
     /**
      * @return PlayerCollection<P>
-     * @throws DirectoryCreationException
-     * @throws ModelNotFoundException
-     * @throws ValidationException
      * @throws Throwable
+     * @throws ModelNotFoundException
      */
-    public function loadPlayers(): PlayerCollection {
-        if (!isset($this->players)) {
-            $this->players = new PlayerCollection();
-        }
-        /** @var Model|string $className */
-        $className = preg_replace(['/(.+)Game$/', '/(.+)Team$/'], '${1}Player', get_class($this));
+    public function loadPlayers() : PlayerCollection {
+        $players = [];
+
+        /** @var class-string<Player> $className */
+        $className = preg_replace(['/(.+)Game$/', '/(.+)Team$/'], '${1}Player', $this::class);
         $primaryKey = $className::getPrimaryKey();
-        $gameId = $this instanceof Game ? $this->id : $this->getGame()->id;
-        $date = $this instanceof Game ? $this->start?->format('Y-m-d') : $this->getGame()->start?->format('Y-m-d');
+        $gameId = $this instanceof Game ? $this->id : $this->game->id;
+        $date = $this instanceof Game ? $this->start?->format('Y-m-d') : $this->game->start?->format('Y-m-d');
         $query = DB::select($className::TABLE, '*')
-                             ->where('%n = %i', $this::getPrimaryKey(), $this->id)
-                             ->cacheTags('games/' . $this::SYSTEM . '/' . $gameId, 'games/' . $this::SYSTEM . '/' . $gameId . '/players', 'games/' . $date, 'players', 'players/' . $this::SYSTEM);
+          ->where('%n = %i', $this::getPrimaryKey(), $this->id)
+          ->cacheTags(
+            'games/'.$this::SYSTEM.'/'.$gameId,
+            'games/'.$this::SYSTEM.'/'.$gameId.'/players',
+            'games/'.$date,
+            'players',
+            'players/'.$this::SYSTEM
+          );
         if ($this instanceof Team) {
-            $query->cacheTags('teams/' . $this::SYSTEM . '/' . $this->id, 'teams/' . $this::SYSTEM . '/' . $this->id . '/players');
+            $query->cacheTags('teams/'.$this::SYSTEM.'/'.$this->id, 'teams/'.$this::SYSTEM.'/'.$this->id.'/players');
         }
         $rows = $query->fetchAll();
         foreach ($rows as $row) {
@@ -85,16 +89,15 @@ trait WithPlayers
             $player = $className::get($row->$primaryKey, $row);
             if ($this instanceof Game) {
                 $player->setGame($this);
-            } else if ($this instanceof Team) { // @phpstan-ignore-line
-                $player->setTeam($this);
             }
-            try {
-                $this->players->set($player, $player->vest);
-            } catch (InvalidArgumentException) {
-
+            else {
+                if ($this instanceof Team) { // @phpstan-ignore-line
+                    $player->team = $this;
+                }
             }
+            $players[(int) $player->vest] = $player;
         }
-        return $this->players;
+        return new PlayerCollection($players, 'vest');
     }
 
     /**
@@ -104,9 +107,9 @@ trait WithPlayers
      * @throws Throwable
      * @throws ValidationException
      */
-    public function getMinScore(): int {
+    public function getMinScore() : int {
         /** @var Player|null $player */
-        $player = $this->getPlayers()->query()->sortBy('score')->asc()->first();
+        $player = $this->players->query()->sortBy('score')->asc()->first();
         if (isset($player)) {
             return $player->score;
         }
@@ -120,9 +123,9 @@ trait WithPlayers
      * @throws Throwable
      * @throws ValidationException
      */
-    public function getMaxScore(): int {
+    public function getMaxScore() : int {
         /** @var Player|null $player */
-        $player = $this->getPlayers()->query()->sortBy('score')->desc()->first();
+        $player = $this->players->query()->sortBy('score')->desc()->first();
         if (isset($player)) {
             return $player->score;
         }
@@ -130,45 +133,27 @@ trait WithPlayers
     }
 
     /**
-     * @param P ...$players
+     * @param  P  ...$players
      *
      * @return $this
      */
-    public function addPlayer(Player ...$players): static {
-        if (!isset($this->players)) {
-            $this->players = new PlayerCollection();
+    public function addPlayer(Player ...$players) : static {
+        foreach ($players as $player) {
+            $this->players->add($player);
         }
-        $this->players->add(...$players);
         if ($this instanceof Team) {
             foreach ($players as $player) {
-                $player->setTeam($this);
+                $player->team = $this;
             }
         }
         return $this;
     }
 
     /**
-     * @return PlayerCollection<P>|Player[]
-     */
-    public function getPlayersSorted(): PlayerCollection {
-        if (!isset($this->playersSorted)) {
-            /* @phpstan-ignore-next-line */
-            $this->playersSorted = $this
-                ->getPlayers()
-                ->query()
-                ->sortBy('score')
-                ->desc()
-                ->get();
-        }
-        /* @phpstan-ignore-next-line */
-        return $this->playersSorted;
-    }
-
-    /**
      * @return bool
      * @throws ValidationException
      */
-    public function savePlayers(): bool {
+    public function savePlayers() : bool {
         if (!isset($this->players)) {
             return true;
         }
@@ -193,15 +178,5 @@ trait WithPlayers
         Timer::stop('game.save.players.hits');
         Timer::stop('game.save.players');
         return true;
-    }
-
-    /**
-     * @return int
-     */
-    public function getPlayerCount(): int {
-        if (!isset($this->playerCount) || $this->playerCount < 1) {
-            $this->playerCount = $this->getPlayers()->count();
-        }
-        return $this->playerCount;
     }
 }

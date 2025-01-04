@@ -10,8 +10,8 @@ use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\Gate\Screens\Results\LaserMaxx100NabojuResultsScreen;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\PrimaryKey;
 
 /**
  * Special LaserMaxx Evo5 game mode
@@ -30,7 +30,7 @@ class M100Naboju extends \App\GameModels\Game\GameModes\Deathmatch implements Cu
      *
      * @return string Path to template file
      */
-    public function getCustomResultsTemplate(): string {
+    public function getCustomResultsTemplate() : string {
         return 'naboju';
     }
 
@@ -39,7 +39,7 @@ class M100Naboju extends \App\GameModels\Game\GameModes\Deathmatch implements Cu
      *
      * @return string Path to template file
      */
-    public function getCustomGateScreen(): string {
+    public function getCustomGateScreen() : string {
         return LaserMaxx100NabojuResultsScreen::class;
     }
 }

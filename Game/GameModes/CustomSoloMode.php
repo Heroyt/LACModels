@@ -4,8 +4,8 @@ namespace App\GameModels\Game\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Enums\GameModeType;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\PrimaryKey;
 
 /**
  * Basic solo game mode model
@@ -16,7 +16,7 @@ class CustomSoloMode extends AbstractMode
 {
     public GameModeType $type = GameModeType::SOLO;
 
-    public function getTeamAlternative(): string {
+    public function getTeamAlternative() : string {
         return CustomTeamMode::class;
     }
 }

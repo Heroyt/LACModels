@@ -11,13 +11,13 @@ use Throwable;
  */
 trait LaserMaxxScores
 {
-    protected function recalculateScoresPlayers(Game $game): void {
+    protected function recalculateScoresPlayers(Game $game) : void {
         if (!isset($game->scoring)) {
             return;
         }
         try {
             /** @var Player $player */
-            foreach ($game->getPlayers() as $player) {
+            foreach ($game->players as $player) {
                 // Sum powers score
                 $player->scorePowers = ($player->bonus->agent * $game->scoring->agent) + ($player->bonus->shield * $game->scoring->shield) + ($player->bonus->invisibility * $game->scoring->invisibility) + ($player->bonus->machineGun * $game->scoring->machineGun);
 
@@ -30,7 +30,8 @@ trait LaserMaxxScores
                 // Add score for hits
                 if ($this->isSolo()) {
                     $player->score += ($player->hits * $game->scoring->hitOther) + ($player->deaths * $game->scoring->deathOther);
-                } else {
+                }
+                else {
                     $player->score += ($player->hitsOther * $game->scoring->hitOther) + ($player->hitsOwn * $game->scoring->hitOwn) + ($player->deathsOther * $game->scoring->deathOther) + ($player->deathsOwn * $game->scoring->deathOwn);
                 }
 

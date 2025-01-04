@@ -6,35 +6,35 @@
 
 namespace App\GameModels\Game;
 
+use App\Models\BaseModel;
 use App\Tools\Color;
 use Dibi\DateTime;
-use Lsr\Core\DB;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\NoDB;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use Lsr\Db\DB;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\ObjectValidation\Exceptions\ValidationException;
+use Lsr\Orm\Attributes\NoDB;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
 
 /**
  * Model for print style settings
  */
 #[PrimaryKey('id_style')]
-class PrintStyle extends Model
+class PrintStyle extends BaseModel
 {
     public const string TABLE = 'print_styles';
 
-    public const array COLORS  = ['dark', 'light', 'primary'];
+    public const array COLORS = ['dark', 'light', 'primary'];
     public const array CLASSES = ['text', 'bg', ''];
     #[NoDB]
-    public static bool $gotVars      = false;
-    public string $name         = '';
-    public string $colorDark    = '';
-    public string $colorLight   = '';
+    public static bool $gotVars = false;
+    public string $name = '';
+    public string $colorDark = '';
+    public string $colorLight = '';
     public string $colorPrimary = '';
-    public string $bg           = '';
-    public string $bgLandscape  = '';
-    public bool $default      = false;
+    public string $bg = '';
+    public string $bgLandscape = '';
+    public bool $default = false;
 
     /**
      * @return PrintStyle|null
@@ -42,7 +42,7 @@ class PrintStyle extends Model
      * @throws ValidationException
      * @throws DirectoryCreationException
      */
-    public static function getActiveStyle(): ?PrintStyle {
+    public static function getActiveStyle() : ?PrintStyle {
         $id = self::getActiveStyleId();
         if ($id > 0) {
             return new self($id);
@@ -54,11 +54,11 @@ class PrintStyle extends Model
     /**
      * @return int
      */
-    public static function getActiveStyleId(): int {
+    public static function getActiveStyleId() : int {
         /** @var int|null $currentStyle */
-        $currentStyle = DB::select(self::TABLE . '_dates', 'id_style')
-                                            ->where('DAYOFYEAR(CURDATE()) BETWEEN DAYOFYEAR(date_from) AND DAYOFYEAR(date_to)')
-                                            ->fetchSingle();
+        $currentStyle = DB::select(self::TABLE.'_dates', 'id_style')
+                          ->where('DAYOFYEAR(CURDATE()) BETWEEN DAYOFYEAR(date_from) AND DAYOFYEAR(date_to)')
+                          ->fetchSingle();
         if (isset($currentStyle)) {
             return $currentStyle;
         }
@@ -71,39 +71,39 @@ class PrintStyle extends Model
     /**
      * @return array{style:PrintStyle,from:DateTime,to:DateTime}[]
      * @throws DirectoryCreationException
-     * @throws ModelNotFoundException
      * @throws ValidationException
+     * @throws ModelNotFoundException
      */
-    public static function getAllStyleDates(): array {
-        $styles = DB::select(self::TABLE . '_dates', '*')->fetchAll();
+    public static function getAllStyleDates() : array {
+        $styles = DB::select(self::TABLE.'_dates', '*')->fetchAll();
         $return = [];
         foreach ($styles as $style) {
             $return[] = [
-                'style' => self::get($style->id_style),
-                'from'  => $style->date_from,
-                'to'    => $style->date_to,
+              'style' => self::get($style->id_style),
+              'from'  => $style->date_from,
+              'to'    => $style->date_to,
             ];
         }
         return $return;
     }
 
     /**
-     * @param bool $tag
+     * @param  bool  $tag
      *
      * @return string
      */
-    public function getCssClasses(bool $tag = true): string {
+    public function getCssClasses(bool $tag = true) : string {
         $return = '';
         if ($tag) {
             $return .= '<style>';
         }
         if (!self::$gotVars) {
-            $return .= ':root {' . $this->getCssVars(false) . '}';
+            $return .= ':root {'.$this->getCssVars(false).'}';
         }
         foreach (self::COLORS as $color) {
-            $return .= '.print-' . $color . ' {--text-color: var(--print-' . $color . '-text); background-color: var(--print-' . $color . ') !important; color: var(--print-' . $color . '-text) !important;}';
-            $return .= '.bg-print-' . $color . ' {background-color: var(--print-' . $color . ') !important;}';
-            $return .= '.text-print-' . $color . ' {--text-color: var(--print-' . $color . '-text); color: var(--print-' . $color . ') !important;}';
+            $return .= '.print-'.$color.' {--text-color: var(--print-'.$color.'-text); background-color: var(--print-'.$color.') !important; color: var(--print-'.$color.'-text) !important;}';
+            $return .= '.bg-print-'.$color.' {background-color: var(--print-'.$color.') !important;}';
+            $return .= '.text-print-'.$color.' {--text-color: var(--print-'.$color.'-text); color: var(--print-'.$color.') !important;}';
         }
         if ($tag) {
             $return .= '</style>';
@@ -112,17 +112,21 @@ class PrintStyle extends Model
     }
 
     /**
-     * @param bool $tag
+     * @param  bool  $tag
      *
      * @return string
      */
-    public function getCssVars(bool $tag = true): string {
+    public function getCssVars(bool $tag = true) : string {
         $return = '';
         if ($tag) {
             $return .= '<style>:root {';
         }
-        $return .= '--print-dark: ' . $this->colorDark . ';--print-light: ' . $this->colorLight . ';--print-primary: ' . $this->colorPrimary . ';';
-        $return .= '--print-dark-text: ' . Color::getFontColor($this->colorDark) . ';--print-light-text: ' . Color::getFontColor($this->colorLight) . ';--print-primary-text: ' . Color::getFontColor($this->colorPrimary) . ';';
+        $return .= '--print-dark: '.$this->colorDark.';--print-light: '.$this->colorLight.';--print-primary: '.$this->colorPrimary.';';
+        $return .= '--print-dark-text: '.Color::getFontColor(
+            $this->colorDark
+          ).';--print-light-text: '.Color::getFontColor(
+            $this->colorLight
+          ).';--print-primary-text: '.Color::getFontColor($this->colorPrimary).';';
         if ($tag) {
             $return .= '}</style>';
         }

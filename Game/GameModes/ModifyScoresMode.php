@@ -6,5 +6,5 @@ use App\GameModels\Game\Game;
 
 interface ModifyScoresMode
 {
-    public function modifyResults(Game $game): void;
+    public function modifyResults(Game $game) : void;
 }

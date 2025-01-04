@@ -3,8 +3,8 @@
 namespace App\GameModels\Game\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\PrimaryKey;
 
 /**
  * Basic team game mode
@@ -13,7 +13,7 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class CustomTeamMode extends AbstractMode
 {
-    public function getSoloAlternative(): string {
+    public function getSoloAlternative() : string {
         return CustomSoloMode::class;
     }
 }

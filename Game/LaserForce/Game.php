@@ -3,7 +3,7 @@
 namespace App\GameModels\Game\LaserForce;
 
 use App\GameModels\Game\LaserForce\Traits\WithTargets;
-use Lsr\Core\Models\Attributes\NoDB;
+use Lsr\Orm\Attributes\NoDB;
 
 /**
  * @extends \App\GameModels\Game\Game<Team, Player>
@@ -12,7 +12,7 @@ class Game extends \App\GameModels\Game\Game
 {
     use WithTargets;
 
-    public const string TABLE  = 'laserforce_games';
+    public const string TABLE = 'laserforce_games';
     public const string SYSTEM = 'laserForce';
 
     /** @var Event[] */
@@ -24,16 +24,17 @@ class Game extends \App\GameModels\Game\Game
     public int $normalTeamCount = 0;
 
     /**
-     * @param Event $event
+     * @param  Event  $event
      *
      * @return $this
      */
-    public function addEvent(Event $event): static {
+    public function addEvent(Event $event) : static {
         if (!isset($this->events[$event->time])) {
             $this->events[$event->time] = $event;
-        } else {
+        }
+        else {
             for ($i = 0; $i < 10; $i++) {
-                $key = $event->time . '-' . $i;
+                $key = $event->time.'-'.$i;
                 if (!isset($this->events[$key])) {
                     $this->events[$key] = $event;
                     return $this;

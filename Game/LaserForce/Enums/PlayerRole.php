@@ -2,7 +2,7 @@
 
 namespace App\GameModels\Game\LaserForce\Enums;
 
-enum PlayerRole: string
+enum PlayerRole : string
 {
     case PLAYER = 'player';
 
@@ -10,9 +10,9 @@ enum PlayerRole: string
     case SCOUT = 'scout';
     case CAPTAIN = 'captain';
     case MEDIC = 'medic';
-    case AMMO = 'ammo';
+    case AMMO  = 'ammo';
 
-    public static function getForSpaceMarines(int $role): PlayerRole {
+    public static function getForSpaceMarines(int $role) : PlayerRole {
         return match ($role) {
             1 => self::CAPTAIN,
             2 => self::SCOUT,

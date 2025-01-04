@@ -13,7 +13,7 @@ namespace App\GameModels\Game\Enums;
  * @method static GameModeType from(mixed $value)
  * @property string $value
  */
-enum GameModeType: string
+enum GameModeType : string
 {
     case TEAM = 'TEAM';
     case SOLO = 'SOLO';

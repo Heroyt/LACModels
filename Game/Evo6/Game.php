@@ -3,10 +3,10 @@
 namespace App\GameModels\Game\Evo6;
 
 use App\GameModels\Factory\GameFactory;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\Instantiate;
-use Lsr\Core\Models\Attributes\NoDB;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\Instantiate;
+use Lsr\Orm\Attributes\NoDB;
+use Lsr\Orm\Attributes\PrimaryKey;
 
 /**
  * LaserMaxx Evo6 game model
@@ -18,12 +18,12 @@ use Lsr\Core\Models\Attributes\PrimaryKey;
 class Game extends \App\GameModels\Game\Lasermaxx\Game
 {
     public const string SYSTEM = 'evo6';
-    public const string TABLE  = 'evo6_games';
+    public const string TABLE = 'evo6_games';
 
     #[NoDB]
     public string $playerClass = Player::class;
     #[NoDB]
-    public string $teamClass   = Team::class;
+    public string $teamClass = Team::class;
     #[Instantiate]
     public Scoring $scoring;
 }

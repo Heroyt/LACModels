@@ -7,7 +7,7 @@ namespace App\GameModels\Game\Enums;
  *
  * @method static PrintOrientation|null tryFrom(string $value)
  */
-enum PrintOrientation: string
+enum PrintOrientation : string
 {
     case portrait = 'portrait';
     case landscape = 'landscape';

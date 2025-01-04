@@ -8,14 +8,14 @@ use DateTime;
 use DateTimeInterface;
 use Dibi\Row;
 use InvalidArgumentException;
-use Lsr\Core\Caching\Cache;
+use Lsr\Caching\Cache;
 use Lsr\Core\Config;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Models\Interfaces\FactoryInterface;
+use Lsr\Db\DB;
+use Lsr\Db\Dibi\Fluent;
 use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\Interfaces\FactoryInterface;
 use Nette\Caching\Cache as CacheBase;
 use Throwable;
 
@@ -34,12 +34,12 @@ class GameFactory implements FactoryInterface
     /**
      * Get game by its unique code
      *
-     * @param string $code
+     * @param  string  $code
      *
      * @return Game|null
      * @throws Throwable
      */
-    public static function getByCode(string $code): ?Game {
+    public static function getByCode(string $code) : ?Game {
         $game = null;
         Timer::startIncrementing('factory.game');
         /**
@@ -52,7 +52,7 @@ class GameFactory implements FactoryInterface
          *   sync: int
          * } $gameRow
          */
-        $gameRow = self::queryGames()->where('[code] = %s', $code)->cacheTags('games/' . $code)->fetch();
+        $gameRow = self::queryGames()->where('[code] = %s', $code)->cacheTags('games/'.$code)->fetch();
         if (isset($gameRow)) {
             /** @noinspection PhpUndefinedFieldInspection */
             /** @var Game|null $game */
@@ -65,14 +65,18 @@ class GameFactory implements FactoryInterface
     /**
      * Prepare a SQL query for all games (from all systems)
      *
-     * @param bool                      $excludeNotFinished
-     * @param DateTimeInterface|null $date
-     * @param array<string|int, string> $fields
+     * @param  bool  $excludeNotFinished
+     * @param  DateTimeInterface|null  $date
+     * @param  array<string|int, string>  $fields
      *
      * @return Fluent
      */
-    public static function queryGames(bool $excludeNotFinished = false, ?DateTimeInterface $date = null, array $fields = []): Fluent {
-        $query = DB::getConnection()->select('*');
+    public static function queryGames(
+      bool               $excludeNotFinished = false,
+      ?DateTimeInterface $date = null,
+      array              $fields = []
+    ) : Fluent {
+        $query = DB::select();
         $queries = [];
         $defaultFields = ['id_game', 'system', 'code', 'start', 'end'];
         foreach (self::getSupportedSystems() as $key => $system) {
@@ -85,14 +89,19 @@ class GameFactory implements FactoryInterface
                     }
                     if (is_string($name)) {
                         // Allows setting alias
-                        $addFields .= ', [g' . $key . '].[' . $name . '] as [' . $field . ']';
-                    } else {
+                        $addFields .= ', [g'.$key.'].['.$name.'] as ['.$field.']';
+                    }
+                    else {
                         // No alias
-                        $addFields .= ', [g' . $key . '].[' . $field . ']';
+                        $addFields .= ', [g'.$key.'].['.$field.']';
                     }
                 }
             }
-            $q = DB::select(["[{$system}_games]", "[g$key]"], "[g$key].[id_game], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end]" . $addFields, $system);
+            $q = DB::select(
+              ["[{$system}_games]", "[g$key]"],
+              "[g$key].[id_game], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end]".$addFields,
+              $system
+            );
             if ($excludeNotFinished) {
                 $q->where("[g$key].[end] IS NOT NULL");
             }
@@ -101,8 +110,8 @@ class GameFactory implements FactoryInterface
             }
             $queries[] = (string) $q;
         }
-        $query->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]');
-        return (new Fluent($query))->cacheTags('games');
+        $query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
+        return $query->cacheTags('games');
     }
 
     /**
@@ -110,7 +119,7 @@ class GameFactory implements FactoryInterface
      *
      * @return non-empty-string[]
      */
-    public static function getSupportedSystems(): array {
+    public static function getSupportedSystems() : array {
         if (!isset(self::$supportedSystems)) {
             /** @var Config $config */
             $config = App::getServiceByType(Config::class);
@@ -118,7 +127,7 @@ class GameFactory implements FactoryInterface
             $systems = $config->getConfig('ENV')['SUPPORTED_SYSTEMS'] ?? null;
             if (!isset($systems)) {
                 // Default config
-                self::$supportedSystems = require ROOT . 'config/supportedSystems.php';
+                self::$supportedSystems = require ROOT.'config/supportedSystems.php';
                 return self::$supportedSystems;
             }
             self::$supportedSystems = array_filter(array_map('trim', explode(';', $systems)));
@@ -129,22 +138,22 @@ class GameFactory implements FactoryInterface
     /**
      * Get a game model
      *
-     * @param int                   $id
-     * @param array{system?:string} $options
+     * @param  int  $id
+     * @param  array{system?:string}  $options
      *
      * @return Game|null
      * @throws Throwable
      */
-    public static function getById(int $id, array $options = []): ?Game {
+    public static function getById(int $id, array $options = []) : ?Game {
         $system = $options['system'] ?? '';
         if (empty($system)) {
             throw new InvalidArgumentException('System name is required.');
         }
         Timer::startIncrementing('factory.game');
         try {
-            $className = '\\App\\GameModels\\Game\\' . Strings::toPascalCase($system) . '\\Game';
+            $className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Game';
             if (!class_exists($className)) {
-                throw new InvalidArgumentException('Game model of does not exist: ' . $className);
+                throw new InvalidArgumentException('Game model of does not exist: '.$className);
             }
             /** @var Game $game */
             $game = $className::get($id);
@@ -159,16 +168,17 @@ class GameFactory implements FactoryInterface
     /**
      * Get the last played game
      *
-     * @param string $system             System filter
-     * @param bool   $excludeNotFinished By default, filter unfinished games
+     * @param  string  $system  System filter
+     * @param  bool  $excludeNotFinished  By default, filter unfinished games
      *
      * @return Game|null
      * @throws Throwable
      */
-    public static function getLastGame(string $system = 'all', bool $excludeNotFinished = true): ?Game {
+    public static function getLastGame(string $system = 'all', bool $excludeNotFinished = true) : ?Game {
         if ($system === 'all') {
             $query = self::queryGames(true);
-        } else {
+        }
+        else {
             $query = self::queryGamesSystem($system, $excludeNotFinished);
         }
         /**
@@ -192,14 +202,19 @@ class GameFactory implements FactoryInterface
     /**
      * Prepare a SQL query for all games (from one system)
      *
-     * @param string        $system
-     * @param bool          $excludeNotFinished
-     * @param DateTime|null $date
-     * @param array         $fields
+     * @param  string  $system
+     * @param  bool  $excludeNotFinished
+     * @param  DateTime|null  $date
+     * @param  array  $fields
      *
      * @return Fluent
      */
-    public static function queryGamesSystem(string $system, bool $excludeNotFinished = false, ?DateTime $date = null, array $fields = []): Fluent {
+    public static function queryGamesSystem(
+      string    $system,
+      bool      $excludeNotFinished = false,
+      ?DateTime $date = null,
+      array     $fields = []
+    ) : Fluent {
         $defaultFields = ['id_game', 'system', 'code', 'start', 'end', 'sync'];
         $addFields = '';
         if (!empty($fields)) {
@@ -210,15 +225,20 @@ class GameFactory implements FactoryInterface
                 }
                 if (is_string($name)) {
                     // Allows setting alias
-                    $addFields .= ', [' . $name . '] as [' . $field . ']';
-                } else {
+                    $addFields .= ', ['.$name.'] as ['.$field.']';
+                }
+                else {
                     // No alias
-                    $addFields .= ', [' . $field . ']';
+                    $addFields .= ', ['.$field.']';
                 }
             }
         }
-        $query = DB::select(["[{$system}_games]"], "[id_game], %s as [system], [code], [start], [end]" . $addFields, $system)
-                             ->cacheTags('games', 'games/' . $system);
+        $query = DB::select(
+          ["[{$system}_games]"],
+          "[id_game], %s as [system], [code], [start], [end]".$addFields,
+          $system
+        )
+                   ->cacheTags('games', 'games/'.$system);
         if ($excludeNotFinished) {
             $query->where("[end] IS NOT NULL");
         }
@@ -231,30 +251,33 @@ class GameFactory implements FactoryInterface
     /**
      * Get games for the day
      *
-     * @param DateTimeInterface $date
-     * @param bool              $excludeNotFinished
+     * @param  DateTimeInterface  $date
+     * @param  bool  $excludeNotFinished
      *
      * @return Game[]
      * @throws Throwable
      */
-    public static function getByDate(DateTimeInterface $date, bool $excludeNotFinished = false): array {
+    public static function getByDate(DateTimeInterface $date, bool $excludeNotFinished = false) : array {
         Timer::startIncrementing('factory.game');
         /** @var Cache $cache */
         $cache = App::getService('cache');
         /** @var Row[]|null $rows */
-        $rows = $cache->load('games/' . $date->format('Y-m-d') . ($excludeNotFinished ? '/finished' : ''), static function (array &$dependencies) use ($date, $excludeNotFinished) {
-            $dependencies[CacheBase::EXPIRE] = '7 days';
-            $dependencies[CacheBase::Tags] = [
+        $rows = $cache->load(
+          'games/'.$date->format('Y-m-d').($excludeNotFinished ? '/finished' : ''),
+          static function (array &$dependencies) use ($date, $excludeNotFinished) {
+              $dependencies[CacheBase::EXPIRE] = '7 days';
+              $dependencies[CacheBase::Tags] = [
                 'games',
                 'models',
-                'games/' . $date->format('Y-m-d'),
-            ];
-            $query = self::queryGames($excludeNotFinished)
-                                     ->cacheTags('games', 'games/' . $date->format('Y-m-d'))
-                                     ->where('DATE([start]) = %d', $date)
-                                     ->orderBy('start')->desc();
-            return $query->fetchAll();
-        });
+                'games/'.$date->format('Y-m-d'),
+              ];
+              $query = self::queryGames($excludeNotFinished)
+                           ->cacheTags('games', 'games/'.$date->format('Y-m-d'))
+                           ->where('DATE([start]) = %d', $date)
+                           ->orderBy('start')->desc();
+              return $query->fetchAll();
+          }
+        );
         $games = [];
         foreach ($rows ?? [] as $row) {
             $game = self::getById((int) $row->id_game, ['system' => $row->system]);
@@ -269,13 +292,13 @@ class GameFactory implements FactoryInterface
     /**
      * Get game counts for each dates
      *
-     * @param string $format
-     * @param bool   $excludeNotFinished
+     * @param  string  $format
+     * @param  bool  $excludeNotFinished
      *
      * @return array<string,int>
      * @noinspection PhpUndefinedFieldInspection
      */
-    public static function getGamesCountPerDay(string $format = 'Y-m-d', bool $excludeNotFinished = false): array {
+    public static function getGamesCountPerDay(string $format = 'Y-m-d', bool $excludeNotFinished = false) : array {
         $rows = self::queryGameCountPerDay($excludeNotFinished)->fetchAll();
         $return = [];
         foreach ($rows as $row) {
@@ -292,12 +315,12 @@ class GameFactory implements FactoryInterface
     }
 
     /**
-     * @param bool $excludeNotFinished
+     * @param  bool  $excludeNotFinished
      *
      * @return Fluent
      */
-    public static function queryGameCountPerDay(bool $excludeNotFinished = false): Fluent {
-        $query = DB::getConnection()->select('[date], count(*) as [count]');
+    public static function queryGameCountPerDay(bool $excludeNotFinished = false) : Fluent {
+        $query = DB::select(null, '[date], count(*) as [count]');
         $queries = [];
         foreach (self::getSupportedSystems() as $key => $system) {
             $q = DB::select(["[{$system}_games]", "[g$key]"], "[g$key].[code], DATE([g$key].[start]) as [date]");
@@ -307,9 +330,9 @@ class GameFactory implements FactoryInterface
             $queries[] = (string) $q;
         }
         $query
-            ->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]')
-            ->groupBy('date');
-        return (new Fluent($query))->cacheTags('games', 'games/counts');
+          ->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]')
+          ->groupBy('date');
+        return $query->cacheTags('games', 'games/counts');
     }
 
     /**
@@ -317,11 +340,11 @@ class GameFactory implements FactoryInterface
      *
      * @return string[][]
      */
-    public static function getAllTeamsColors(): array {
+    public static function getAllTeamsColors() : array {
         $colors = [];
         foreach (self::getSupportedSystems() as $system) {
             /** @var Game $className */
-            $className = 'App\GameModels\Game\\' . ucfirst($system) . '\Game';
+            $className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
             if (method_exists($className, 'getTeamColors')) {
                 $colors[$system] = $className::getTeamColors();
             }
@@ -334,11 +357,11 @@ class GameFactory implements FactoryInterface
      *
      * @return string[][]
      */
-    public static function getAllTeamsNames(): array {
+    public static function getAllTeamsNames() : array {
         $colors = [];
         foreach (self::getSupportedSystems() as $system) {
             /** @var Game $className */
-            $className = 'App\GameModels\Game\\' . ucfirst($system) . '\Game';
+            $className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
             if (method_exists($className, 'getTeamColors')) {
                 $colors[$system] = $className::getTeamNames();
             }
@@ -349,28 +372,28 @@ class GameFactory implements FactoryInterface
     /**
      * Get available filters for game query based on selected system
      *
-     * @param string|null $system
+     * @param  string|null  $system
      *
      * @return array|string[]
      */
-    public static function getAvailableFilters(?string $system = null): array {
+    public static function getAvailableFilters(?string $system = null) : array {
         $fields = [
-            'id_game',
-            'id_arena',
-            'system',
-            'code',
-            'start',
-            'end',
+          'id_game',
+          'id_arena',
+          'system',
+          'code',
+          'start',
+          'end',
         ];
         if (empty($system)) {
             return $fields;
         }
         if (!in_array($system, self::getSupportedSystems(), true)) {
-            throw new InvalidArgumentException('Unsupported or unknown system: ' . $system);
+            throw new InvalidArgumentException('Unsupported or unknown system: '.$system);
         }
-        $className = 'App\GameModels\Game\\' . ucfirst($system) . '\Game';
+        $className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
         if (!class_exists($className)) {
-            throw new InvalidArgumentException('Cannot find Game class for system: ' . $system);
+            throw new InvalidArgumentException('Cannot find Game class for system: '.$system);
         }
 
         foreach (get_class_vars($className) as $field => $definition) {
@@ -381,16 +404,21 @@ class GameFactory implements FactoryInterface
     }
 
     /**
-     * @param array{system?:string, excludeNotFinished?: bool} $options
+     * @param  array{system?:string, excludeNotFinished?: bool}  $options
      *
      * @return Game[]
      * @throws Throwable
      */
-    public static function getAll(array $options = []): array {
+    public static function getAll(array $options = []) : array {
         if (!empty($options['system'])) {
-            $rows = self::queryGamesSystem($options['system'], isset($options['excludeNotFinished']) && $options['excludeNotFinished'])->fetchAll();
-        } else {
-            $rows = self::queryGames(isset($options['excludeNotFinished']) && $options['excludeNotFinished'])->fetchAll();
+            $rows = self::queryGamesSystem(
+              $options['system'],
+              isset($options['excludeNotFinished']) && $options['excludeNotFinished']
+            )->fetchAll();
+        }
+        else {
+            $rows = self::queryGames(isset($options['excludeNotFinished']) && $options['excludeNotFinished'])->fetchAll(
+            );
         }
         $models = [];
         foreach ($rows as $row) {

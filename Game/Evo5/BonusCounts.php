@@ -7,7 +7,7 @@
 namespace App\GameModels\Game\Evo5;
 
 use Dibi\Row;
-use Lsr\Core\Models\Interfaces\InsertExtendInterface;
+use Lsr\Orm\Interfaces\InsertExtendInterface;
 
 /**
  * Structure containing player's bonuses
@@ -15,35 +15,33 @@ use Lsr\Core\Models\Interfaces\InsertExtendInterface;
 class BonusCounts implements InsertExtendInterface
 {
     public function __construct(
-        public int $agent = 0,
-        public int $invisibility = 0,
-        public int $machineGun = 0,
-        public int $shield = 0,
-    ) {
-    }
+      public int $agent = 0,
+      public int $invisibility = 0,
+      public int $machineGun = 0,
+      public int $shield = 0,
+    ) {}
 
     /**
      * @inheritDoc
      */
-    public static function parseRow(Row $row): static {
+    public static function parseRow(Row $row) : static {
         /**
-         * @noinspection ProperNullCoalescingOperatorUsageInspection
          * @phpstan-ignore-next-line
          */
         return new self(
-            $row->bonus_agent ?? 0,
-            $row->bonus_invisibility ?? 0,
-            $row->bonus_machine_gun ?? 0,
-            $row->bonus_shield ?? 0,
+          $row->bonus_agent ?? 0,
+          $row->bonus_invisibility ?? 0,
+          $row->bonus_machine_gun ?? 0,
+          $row->bonus_shield ?? 0,
         );
     }
 
     /**
      * Add data from the object into the data array for DB INSERT/UPDATE
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
-    public function addQueryData(array &$data): void {
+    public function addQueryData(array &$data) : void {
         $data['bonus_agent'] = $this->agent;
         $data['bonus_invisibility'] = $this->invisibility;
         $data['bonus_machine_gun'] = $this->machineGun;
@@ -53,7 +51,7 @@ class BonusCounts implements InsertExtendInterface
     /**
      * @return array<string,mixed>
      */
-    public function getArray(): array {
+    public function getArray() : array {
         $data = [];
         $data['agent'] = $this->agent;
         $data['invisibility'] = $this->invisibility;
@@ -62,7 +60,7 @@ class BonusCounts implements InsertExtendInterface
         return $data;
     }
 
-    public function getSum(): int {
+    public function getSum() : int {
         return $this->agent + $this->invisibility + $this->machineGun + $this->shield;
     }
 }

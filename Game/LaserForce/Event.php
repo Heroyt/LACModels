@@ -6,28 +6,28 @@ use App\Exceptions\ResultsParseException;
 use App\GameModels\Game\LaserForce\Enums\EventType;
 use App\GameModels\Game\LaserForce\Interfaces\CustomEventsInterface;
 use App\GameModels\Traits\WithGame;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
+use App\Models\BaseModel;
+use Lsr\Orm\Attributes\PrimaryKey;
 
 /**
  * @use WithGame<Game>
  */
 #[PrimaryKey('id_event')]
-class Event extends Model
+class Event extends BaseModel
 {
     /** @phpstan-use WithGame<Game> */
     use WithGame;
 
-    public const TABLE = 'laserforce_events';
+    public const string TABLE = 'laserforce_events';
 
     /** @var positive-int */
     public int $time;
     public ?int $score1 = null;
     public ?int $score2 = null;
     public string $typeId = '';
-    public ?EventType $type   = null;
+    public ?EventType $type = null;
     public Player $actor1;
-    public null|Player|Target $actor2;
+    public null | Player | Target $actor2;
 
     /**
      * Process anything related to the event
@@ -39,11 +39,11 @@ class Event extends Model
      * @return void
      * @throws ResultsParseException
      */
-    public function process(): void {
+    public function process() : void {
         switch ($this->type) {
             case EventType::HIT:
                 if (!isset($this->actor2)) {
-                    throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
+                    throw new ResultsParseException('Hit event must have both actors - event time: '.$this->time);
                 }
                 if ($this->actor2 instanceof Player) {
                     $this->actor1->shots++;
@@ -52,14 +52,15 @@ class Event extends Model
                     $this->actor2->deaths++;
                     $this->actor2->deathsOther++;
                     $this->actor1->addHits($this->actor2);
-                } else {
+                }
+                else {
                     $this->actor1->targetHitsCount++;
                     $this->actor1->addTargetHits($this->actor2);
                 }
                 break;
             case EventType::HIT_OWN:
                 if (!isset($this->actor2)) {
-                    throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
+                    throw new ResultsParseException('Hit event must have both actors - event time: '.$this->time);
                 }
                 if ($this->actor2 instanceof Player) {
                     $this->actor1->shots++;
@@ -72,7 +73,7 @@ class Event extends Model
                 break;
             case EventType::TARGET_HIT:
                 if (!isset($this->actor2)) {
-                    throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
+                    throw new ResultsParseException('Hit event must have both actors - event time: '.$this->time);
                 }
                 if ($this->actor2 instanceof Target) {
                     $this->actor1->shots++;
@@ -83,7 +84,7 @@ class Event extends Model
             case EventType::TARGET_ROCKET_DESTROYED:
             case EventType::TARGET_DESTROYED:
                 if (!isset($this->actor2)) {
-                    throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
+                    throw new ResultsParseException('Hit event must have both actors - event time: '.$this->time);
                 }
                 if ($this->actor2 instanceof Target) {
                     $this->actor1->shots++;
@@ -100,7 +101,7 @@ class Event extends Model
                 break;
             case EventType::ROCKET:
                 if (!isset($this->actor2)) {
-                    throw new ResultsParseException('Rocket event must have both actors - event time: ' . $this->time);
+                    throw new ResultsParseException('Rocket event must have both actors - event time: '.$this->time);
                 }
                 $this->actor1->rocketCount++;
                 if ($this->actor2 instanceof Player) {
@@ -111,7 +112,8 @@ class Event extends Model
                     $this->actor2->deathsOther++;
                     $this->actor2->rocketDeathCount++;
                     $this->actor1->addHits($this->actor2);
-                } else {
+                }
+                else {
                     $this->actor1->targetHitsCount++;
                     $this->actor1->addTargetHits($this->actor2);
                 }
@@ -148,7 +150,7 @@ class Event extends Model
                 break;
             case EventType::ADD_LIVES:
                 if (!isset($this->actor2) || !($this->actor2 instanceof Player)) {
-                    throw new ResultsParseException('Add lives event must have both actors - event time: ' . $this->time);
+                    throw new ResultsParseException('Add lives event must have both actors - event time: '.$this->time);
                 }
                 $this->actor1->addedLives++;
                 $this->actor2->livesAddedTo++;
@@ -158,7 +160,7 @@ class Event extends Model
                 break;
             case EventType::ADD_AMMO:
                 if (!isset($this->actor2) || !($this->actor2 instanceof Player)) {
-                    throw new ResultsParseException('Add ammo event must have both actors - event time: ' . $this->time);
+                    throw new ResultsParseException('Add ammo event must have both actors - event time: '.$this->time);
                 }
                 $this->actor1->addedAmmo++;
                 $this->actor2->ammoAddedTo++;
@@ -176,8 +178,8 @@ class Event extends Model
             case EventType::MODE_ACTION_8:
             case EventType::MODE_ACTION_9:
             case EventType::MODE_ACTION_10:
-                if ($this->getGame()->getMode() instanceof CustomEventsInterface) {
-                    $this->getGame()->getMode()->processEvent($this);
+            if ($this->game->mode instanceof CustomEventsInterface) {
+                $this->game->mode->processEvent($this);
                 }
                 break;
             case EventType::BEACON:

@@ -15,10 +15,10 @@ use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\GameModels\Game\Lasermaxx\Team as LasermaxxTeam;
 use App\GameModels\Game\Team;
 use App\Gate\Screens\Results\LaserMaxxZakladnyResultsScreen;
-use Lsr\Core\Exceptions\ModelNotFoundException;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\ObjectValidation\Exceptions\ValidationException;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
 
 /**
  * Special LaserMaxx Evo5 game mode
@@ -33,18 +33,18 @@ class Zakladny extends AbstractMode implements CustomResultsMode
     public string $name = 'Základny';
 
     /**
-     * @param Game $game
+     * @param  Game  $game
      *
      * @return \App\GameModels\Game\Evo5\Team|null
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getWin(Game $game): ?Team {
+    public function getWin(Game $game) : ?Team {
         /** @var \App\GameModels\Game\Evo5\Team $team1 */
-        $team1 = $game->getTeams()->first();
+        $team1 = $game->teams->first();
         $zakladny1 = $this->getBasesDestroyed($team1);
         /** @var \App\GameModels\Game\Evo5\Team $team2 */
-        $team2 = $game->getTeams()->last();
+        $team2 = $game->teams->last();
         $zakladny2 = $this->getBasesDestroyed($team2);
         if ($zakladny1 > $zakladny2) {
             return $team2;
@@ -58,18 +58,21 @@ class Zakladny extends AbstractMode implements CustomResultsMode
     /**
      * Get number of bases destroyed
      *
-     * @param \App\GameModels\Game\Evo5\Team $team
+     * @param  \App\GameModels\Game\Evo5\Team  $team
      *
      * @return int
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getBasesDestroyed(\App\GameModels\Game\Evo5\Team $team): int {
+    public function getBasesDestroyed(\App\GameModels\Game\Evo5\Team $team) : int {
         $max = max(
-            array_map(static function (\App\GameModels\Game\Player $player): int {
+          array_map(
+            static function (\App\GameModels\Game\Player $player) : int {
                 /** @var Player $player */
                 return $player->bonus->shield;
-            }, $team->getPlayers()->getAll())
+            },
+            $team->players->getAll()
+          )
         );
         if ($max === false) {
             return 0;
@@ -80,24 +83,24 @@ class Zakladny extends AbstractMode implements CustomResultsMode
     /**
      * @inheritDoc
      */
-    public function getCustomResultsTemplate(): string {
+    public function getCustomResultsTemplate() : string {
         return 'zakladny';
     }
 
     /**
      * @inheritDoc
      */
-    public function getCustomGateScreen(): string {
+    public function getCustomGateScreen() : string {
         return LaserMaxxZakladnyResultsScreen::class;
     }
 
-    public function getBaseNameForTeam(LasermaxxTeam $team): string {
+    public function getBaseNameForTeam(LasermaxxTeam $team) : string {
         // TODO: rewrite this to be more modular
 
         // The only variants are MZ and ZM
-        $topTeam = str_ends_with($team->getGame()->modeName, 'ZM') ? 1 : 2; // 1 = green, 2 = blue
+        $topTeam = str_ends_with($team->game->modeName, 'ZM') ? 1 : 2; // 1 = green, 2 = blue
 
-        if ($team->getTeamColor() === $topTeam) {
+        if ($team->color === $topTeam) {
             return lang('Horní základna', context: 'mode.zakladny', domain: 'results');
         }
         return lang('Dolní základna', context: 'mode.zakladny', domain: 'results');

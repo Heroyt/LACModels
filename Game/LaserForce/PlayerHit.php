@@ -11,5 +11,5 @@ namespace App\GameModels\Game\LaserForce;
  */
 class PlayerHit extends \App\GameModels\Game\PlayerHit
 {
-    public const TABLE = 'laserforce_hits';
+    public const string TABLE = 'laserforce_hits';
 }
