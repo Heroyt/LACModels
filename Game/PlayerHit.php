@@ -7,23 +7,24 @@
 namespace App\GameModels\Game;
 
 use Dibi\Exception;
-use JsonSerializable;
 use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Timer;
+use Lsr\Lg\Results\Interface\Models\PlayerHitInterface;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
 
 /**
  * Data model for player hits
  *
  * N:M relation between players indicating how many times did player1 hit player 2
  */
-class PlayerHit implements JsonSerializable
+class PlayerHit implements PlayerHitInterface
 {
     public const string TABLE = '';
 
     public function __construct(
-      public Player $playerShot,
-      public Player $playerTarget,
-      public int    $count = 0
+      public PlayerInterface $playerShot,
+      public PlayerInterface $playerTarget,
+      public int             $count = 0
     ) {}
 
     /**
@@ -80,9 +81,11 @@ class PlayerHit implements JsonSerializable
      */
     public function jsonSerialize() : array {
         return [
-          'shot'   => $this->playerShot->id,
-          'target' => $this->playerTarget->id,
-          'count'  => $this->count,
+          'shot'       => $this->playerShot->id,
+          'shotVest'   => $this->playerShot->vest,
+          'target'     => $this->playerTarget->id,
+          'targetVest' => $this->playerTarget->vest,
+          'count'      => $this->count,
         ];
     }
 }

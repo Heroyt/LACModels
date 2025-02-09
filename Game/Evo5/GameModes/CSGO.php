@@ -9,12 +9,12 @@ namespace App\GameModels\Game\Evo5\GameModes;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\Evo5\Game as Evo5Game;
 use App\GameModels\Game\Evo5\Team as Evo5Team;
-use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\GameModels\Game\Team;
 use App\Gate\Screens\Results\LaserMaxxCSGOResultsScreen;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
@@ -39,7 +39,7 @@ class CSGO extends AbstractMode implements CustomResultsMode
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getWin(Game $game) : ?Team {
+    public function getWin(GameInterface $game) : ?Team {
         $teams = $game->teams;
         // Two teams - get the last team alive or team with most hits
         if (count($teams) === 2) {

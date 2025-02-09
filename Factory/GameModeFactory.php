@@ -3,11 +3,11 @@
 namespace App\GameModels\Factory;
 
 use App\Exceptions\GameModeNotFoundException;
-use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\GameModes\AbstractMode;
 use Dibi\Row;
 use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Timer;
+use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Orm\Interfaces\FactoryInterface;
 use Nette\Utils\Strings;
 

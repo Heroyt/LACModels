@@ -3,9 +3,10 @@
 namespace App\GameModels\Game\Lasermaxx;
 
 use App\Exceptions\InsuficientRegressionDataException;
-use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
 use App\Services\RegressionCalculator;
+use Lsr\Lg\Results\Enums\GameModeType;
+use Lsr\Lg\Results\LaserMaxx\LaserMaxxPlayerInterface;
 use Throwable;
 
 /**
@@ -16,7 +17,7 @@ use Throwable;
  *
  * @extends \App\GameModels\Game\Player<G, T>
  */
-abstract class Player extends \App\GameModels\Game\Player
+abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPlayerInterface
 {
     public const array CLASSIC_BESTS = [
       'score',
@@ -34,6 +35,7 @@ abstract class Player extends \App\GameModels\Game\Player
     public int $scoreBonus = 0;
     public int $scorePowers = 0;
     public int $scoreMines = 0;
+    public int $scoreAccuracy = 0;
     public int $ammoRest = 0;
     public int $minesHits = 0;
 

@@ -3,12 +3,12 @@
 namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
-use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\CustomResultsMode;
-use App\GameModels\Game\GameModes\ModifyScoresMode;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\GameModels\Game\Lasermaxx\Player;
 use App\Gate\Screens\Results\LaserMaxxSurvivalResultsScreen;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
+use Lsr\Lg\Results\Interface\Models\ModifyScoresMode;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
@@ -46,7 +46,7 @@ class Survival extends \App\GameModels\Game\GameModes\Deathmatch implements Cust
      * @param  \App\GameModels\Game\Lasermaxx\Game  $game
      * @return void
      */
-    public function modifyResults(Game $game) : void {
+    public function modifyResults(GameInterface $game) : void {
         // Add 1000 score to surviving players
         /** @var Player $player */
         foreach ($game->players as $player) {

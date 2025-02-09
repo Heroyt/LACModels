@@ -8,10 +8,11 @@ namespace App\GameModels\Traits;
 
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Player;
-use App\GameModels\Game\PlayerCollection;
 use App\GameModels\Game\Team;
 use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Timer;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
+use Lsr\Lg\Results\PlayerCollection;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\JsonExclude;
@@ -39,10 +40,10 @@ trait WithPlayers
     public string $playerClass;
     /** @var PlayerCollection<P> */
     #[OneToMany(class: Player::class, factoryMethod: 'loadPlayers')]
-    public PlayerCollection $players;
+    public \Lsr\Lg\Results\PlayerCollection $players;
     /** @var PlayerCollection<P> */
     #[NoDB, JsonExclude]
-    public PlayerCollection $playersSorted {
+    public \Lsr\Lg\Results\PlayerCollection $playersSorted {
         get {
             if (!isset($this->playersSorted)) {
                 $this->playersSorted = new PlayerCollection(
@@ -136,7 +137,7 @@ trait WithPlayers
      *
      * @return $this
      */
-    public function addPlayer(Player ...$players) : static {
+    public function addPlayer(PlayerInterface ...$players) : static {
         foreach ($players as $player) {
             $this->players->add($player);
         }
@@ -157,9 +158,10 @@ trait WithPlayers
             return true;
         }
         Timer::start('game.save.players');
+        $players = $this->players->getAll();
         /** @var Player $player */
         // Save players first
-        foreach ($this->players as $player) {
+        foreach ($players as $player) {
             if (!$player->save()) {
                 Timer::stop('game.save.players');
                 return false;
@@ -167,7 +169,7 @@ trait WithPlayers
         }
         // Save player hits
         Timer::start('game.save.players.hits');
-        foreach ($this->players as $player) {
+        foreach ($players as $player) {
             if (!$player->saveHits()) {
                 Timer::stop('game.save.players');
                 Timer::stop('game.save.players.hits');

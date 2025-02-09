@@ -3,7 +3,7 @@
 namespace App\GameModels\Game\Lasermaxx\GameModes;
 
 use App\GameModels\Game\Evo5\Player;
-use App\GameModels\Game\Game;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Throwable;
 
 /**
@@ -11,7 +11,7 @@ use Throwable;
  */
 trait LaserMaxxScores
 {
-    protected function recalculateScoresPlayers(Game $game) : void {
+    protected function recalculateScoresPlayers(GameInterface $game) : void {
         if (!isset($game->scoring)) {
             return;
         }

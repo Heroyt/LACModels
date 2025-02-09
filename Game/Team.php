@@ -13,6 +13,7 @@ use App\GameModels\Traits\WithPlayers;
 use App\Models\BaseModel;
 use Dibi\Row;
 use Lsr\Db\DB;
+use Lsr\Lg\Results\Interface\Models\TeamInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\ObjectValidation\Attributes\Required;
 use Lsr\ObjectValidation\Attributes\StringLength;
@@ -34,7 +35,7 @@ use Throwable;
  */
 #[PrimaryKey('id_team')]
 #[Factory(TeamFactory::class)] // @phpstan-ignore-line
-abstract class Team extends BaseModel
+abstract class Team extends BaseModel implements TeamInterface
 {
     /** @phpstan-use WithPlayers<P> */
     use WithPlayers;

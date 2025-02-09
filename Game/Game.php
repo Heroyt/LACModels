@@ -7,14 +7,9 @@
 namespace App\GameModels\Game;
 
 use App\Core\App;
-use App\Core\Collections\CollectionCompareFilter;
-use App\Core\Collections\Comparison;
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
-use App\GameModels\Game\Enums\GameModeType;
-use App\GameModels\Game\Evo5\BonusCounts;
-use App\GameModels\Game\Evo5\Scoring;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\Expandable;
 use App\GameModels\Traits\WithPlayers;
@@ -36,6 +31,16 @@ use Lsr\Caching\Cache;
 use Lsr\Core\Config;
 use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Strings;
+use Lsr\Lg\Results\Collections\CollectionCompareFilter;
+use Lsr\Lg\Results\Enums\Comparison;
+use Lsr\Lg\Results\Enums\GameModeType;
+use Lsr\Lg\Results\Interface\Models\GameGroupInterface;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
+use Lsr\Lg\Results\Interface\Models\GameModeInterface;
+use Lsr\Lg\Results\Interface\Models\MusicModeInterface;
+use Lsr\Lg\Results\LaserMaxx\Evo5\BonusCounts;
+use Lsr\Lg\Results\LaserMaxx\Evo5\Scoring;
+use Lsr\Lg\Results\Timing;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\ObjectValidation\Attributes\NoValidate;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
@@ -78,7 +83,7 @@ use Throwable;
 #[PrimaryKey('id_game')]
 #[OA\Schema(schema: 'Game')]
 #[Factory(GameFactory::class)] // @phpstan-ignore-line
-abstract class Game extends BaseModel
+abstract class Game extends BaseModel implements GameInterface
 {
     use WithPlayers;
     use WithTeams;
@@ -108,16 +113,16 @@ abstract class Game extends BaseModel
     public ?Timing $timing = null;
     #[OA\Property]
     public string $code;
-    #[ManyToOne(loadingType: LoadingType::EAGER, factoryMethod: 'loadMode'), OA\Property, NoValidate]
-    public ?AbstractMode $mode;
+    #[ManyToOne(class: AbstractMode::class, loadingType: LoadingType::EAGER, factoryMethod: 'loadMode'), OA\Property, NoValidate]
+    public ?GameModeInterface $mode;
     #[OA\Property]
     public GameModeType $gameType = GameModeType::TEAM;
     /** @var bool Indicates if the game is synchronized to public API */
     public bool $sync = false;
-    #[ManyToOne, OA\Property, NoValidate]
-    public ?MusicMode $music;
-    #[ManyToOne, OA\Property, NoValidate]
-    public ?GameGroup $group;
+    #[ManyToOne(class: MusicMode::class), OA\Property, NoValidate]
+    public ?MusicModeInterface $music;
+    #[ManyToOne(class: GameGroup::class), OA\Property, NoValidate]
+    public ?GameGroupInterface $group;
     #[NoDB, OA\Property]
     public bool $started = false;
     #[NoDB, OA\Property]
@@ -242,7 +247,8 @@ abstract class Game extends BaseModel
                     break;
                 case 'scoring':
                     assert($game instanceof Lasermaxx\Game);
-                    $game->scoring = new Scoring(...$value);
+                    $game->scoring = $game instanceof Evo5\Game ? new Scoring(...$value) :
+                      new \Lsr\Lg\Results\LaserMaxx\Evo6\Scoring(...$value);
                     break;
                 case 'mode':
                     if (!isset($value['type'])) {
@@ -449,12 +455,12 @@ abstract class Game extends BaseModel
      */
     public function getBestsFields() : array {
         $fields = [
-          'hits'     => lang('Největší terminátor', domain: 'results', context: 'bests'),
-          'deaths'   => lang('Objekt největšího zájmu', domain: 'results', context: 'bests'),
-          'score'    => lang('Absolutní vítěz', domain: 'results', context: 'bests'),
-          'accuracy' => lang('Hráč s nejlepší muškou', domain: 'results', context: 'bests'),
-          'shots'    => lang('Nejúspornější střelec', domain: 'results', context: 'bests'),
-          'miss'     => lang('Největší mimoň', domain: 'results', context: 'bests'),
+          'hits'     => lang('Největší terminátor', context: 'bests', domain: 'results'),
+          'deaths'   => lang('Objekt největšího zájmu', context: 'bests', domain: 'results'),
+          'score'    => lang('Absolutní vítěz', context: 'bests', domain: 'results'),
+          'accuracy' => lang('Hráč s nejlepší muškou', context: 'bests', domain: 'results'),
+          'shots'    => lang('Nejúspornější střelec', context: 'bests', domain: 'results'),
+          'miss'     => lang('Největší mimoň', context: 'bests', domain: 'results'),
         ];
         foreach ($fields as $key => $value) {
             $settingName = Strings::toCamelCase('best_'.$key);
@@ -595,8 +601,7 @@ abstract class Game extends BaseModel
 
     /**
      * @return void
-     * @throws DirectoryCreationException
-     * @throws ValidationException
+     * @throws Throwable
      */
     public function calculateSkills() : void {
         /** @var Player[] $players */
@@ -720,7 +725,7 @@ abstract class Game extends BaseModel
         try {
             /** @var float[] $kds */
             $kds = $this->players->query()->map(fn(Player $player) => $player->getKd())->get();
-        } catch (ValidationException | DirectoryCreationException $e) {
+        } catch (ValidationException | DirectoryCreationException) {
             return 1;
         }
         return empty($kds) ? 1 : array_sum($kds) / count($kds);
@@ -735,9 +740,7 @@ abstract class Game extends BaseModel
     }
 
     public function reorder() : void {
-        if ($this->mode !== null) {
-            $this->mode->reorderGame($this);
-        }
+        $this->mode?->reorderGame($this);
         $this->runHook('reorder');
     }
 }

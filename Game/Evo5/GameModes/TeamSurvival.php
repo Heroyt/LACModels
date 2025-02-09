@@ -7,8 +7,8 @@
 namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
-use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
+use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 

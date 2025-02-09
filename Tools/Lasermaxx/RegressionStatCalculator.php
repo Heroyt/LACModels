@@ -4,13 +4,13 @@ namespace App\GameModels\Tools\Lasermaxx;
 
 use App\Core\Info;
 use App\Exceptions\InsuficientRegressionDataException;
-use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Services\RegressionCalculator;
 use Dibi\Exception;
 use Dibi\Row;
 use Lsr\Db\DB;
 use Lsr\Db\Dibi\Fluent;
+use Lsr\Lg\Results\Enums\GameModeType;
 
 /**
  * Regression calculator class used for predicting player's hits, deaths, team hits and team deaths

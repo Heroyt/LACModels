@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\GameModels\Game;
 
 use App\Exceptions\InsuficientRegressionDataException;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
 use Lsr\Orm\Attributes\JsonExclude;
 use Lsr\Orm\Attributes\NoDB;
 
@@ -44,7 +45,7 @@ trait PlayerCalculatedProperties
 
     /** @var Player<G,T>|null */
     #[NoDB, JsonExclude]
-    public ?Player $favouriteTarget = null {
+    public ?PlayerInterface $favouriteTarget = null {
         get {
             if (!isset($this->favouriteTarget)) {
                 $max = 0;
@@ -60,7 +61,7 @@ trait PlayerCalculatedProperties
     }
     /** @var Player<G,T>|null */
     #[NoDB, JsonExclude]
-    public ?Player $favouriteTargetOf = null {
+    public ?PlayerInterface $favouriteTargetOf = null {
         get {
             if (!isset($this->favouriteTargetOf)) {
                 $max = 0;

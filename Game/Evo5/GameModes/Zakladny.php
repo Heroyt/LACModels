@@ -15,6 +15,7 @@ use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use App\GameModels\Game\Lasermaxx\Team as LasermaxxTeam;
 use App\GameModels\Game\Team;
 use App\Gate\Screens\Results\LaserMaxxZakladnyResultsScreen;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
@@ -39,7 +40,7 @@ class Zakladny extends AbstractMode implements CustomResultsMode
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getWin(Game $game) : ?Team {
+    public function getWin(GameInterface $game) : ?Team {
         /** @var \App\GameModels\Game\Evo5\Team $team1 */
         $team1 = $game->teams->first();
         $zakladny1 = $this->getBasesDestroyed($team1);

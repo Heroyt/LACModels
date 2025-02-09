@@ -4,6 +4,7 @@ namespace App\GameModels\Traits;
 
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
 use RuntimeException;
 use Throwable;
@@ -14,8 +15,8 @@ use Throwable;
 trait WithGame
 {
     /** @var G */
-    #[ManyToOne(factoryMethod: 'loadGame')]
-    public Game $game;
+    #[ManyToOne(class: Game::class, factoryMethod: 'loadGame')]
+    public GameInterface $game;
 
     /**
      * @return G
@@ -41,8 +42,12 @@ trait WithGame
      *
      * @return static
      */
-    public function setGame(Game $game) : static {
+    public function setGame(GameInterface $game) : static {
         $this->game = $game;
         return $this;
+    }
+
+    public function saveGame() : bool {
+        return $this->game->save();
     }
 }

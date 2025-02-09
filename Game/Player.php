@@ -16,6 +16,9 @@ use Dibi\Exception;
 use Dibi\Row;
 use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Strings;
+use Lsr\LaserLiga\PlayerInterface as UserInterface;
+use Lsr\Lg\Results\Interface\Models\PlayerInterface;
+use Lsr\Lg\Results\Interface\Models\TeamInterface;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\ObjectValidation\Attributes\Required;
 use Lsr\ObjectValidation\Attributes\StringLength;
@@ -39,7 +42,7 @@ use Throwable;
  */
 #[PrimaryKey('id_player')]
 #[Factory(PlayerFactory::class)] // @phpstan-ignore-line
-abstract class Player extends BaseModel
+abstract class Player extends BaseModel implements PlayerInterface
 {
     /** @phpstan-use WithGame<G> */
     use WithGame;
@@ -70,11 +73,11 @@ abstract class Player extends BaseModel
     public ?array $hitPlayers = [];
 
     /** @var T|null */
-    #[ManyToOne(foreignKey: 'id_team')]
-    public ?Team $team = null;
+    #[ManyToOne(class: Team::class, foreignKey: 'id_team')]
+    public ?TeamInterface $team = null;
 
-    #[ManyToOne]
-    public ?User $user = null;
+    #[ManyToOne(class: User::class)]
+    public ?UserInterface $user = null;
 
     public function __construct(?int $id = null, ?Row $dbRow = null) {
         $this->cacheTags[] = 'games/'.$this::SYSTEM;
@@ -284,7 +287,10 @@ abstract class Player extends BaseModel
         }
         try {
             return DB::replace($table, $values) > 0;
-        } catch (Exception) {
+        } catch (Exception $e) {
+            $this->logger->debug(json_encode($this->hitPlayers));
+            $this->logger->debug(json_encode($values));
+            $this->getLogger()->exception($e);
             return false;
         }
     }
@@ -339,7 +345,7 @@ abstract class Player extends BaseModel
      * @throws DirectoryCreationException
      * @throws ValidationException
      */
-    public function getHitsPlayer(Player $player) : int {
+    public function getHitsPlayer(PlayerInterface $player) : int {
         return $this->getHitsPlayers()[$player->vest]->count ?? 0;
     }
 
@@ -376,7 +382,7 @@ abstract class Player extends BaseModel
      *
      * @return $this
      */
-    public function addHits(Player $player, int $count = 1) : static {
+    public function addHits(PlayerInterface $player, int $count = 1) : static {
         /** @var class-string<PlayerHit> $className */
         $className = str_replace('Player', 'PlayerHit', $this::class);
         if (isset($this->hitPlayers[$player->vest])) {

@@ -7,7 +7,10 @@
 namespace App\GameModels\Game\Evo5;
 
 use App\GameModels\Factory\PlayerFactory;
-use App\GameModels\Game\Game as BaseGame;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
+use Lsr\Lg\Results\Interface\Models\TeamInterface;
+use Lsr\Lg\Results\LaserMaxx\Evo5\BonusCounts;
+use Lsr\Lg\Results\LaserMaxx\Evo5\Evo5PlayerInterface;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\Instantiate;
 use Lsr\Orm\Attributes\PrimaryKey;
@@ -20,16 +23,16 @@ use Lsr\Orm\Attributes\Relations\ManyToOne;
  * @phpstan-ignore-next-line
  */
 #[PrimaryKey('id_player'), Factory(PlayerFactory::class, ['system' => 'evo5'])]
-class Player extends \App\GameModels\Game\Lasermaxx\Player
+class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo5PlayerInterface
 {
     public const string TABLE = 'evo5_players';
     public const string SYSTEM = 'evo5';
     #[Instantiate]
     public BonusCounts $bonus;
     #[ManyToOne(class: Game::class)]
-    public BaseGame $game;
+    public GameInterface $game;
     #[ManyToOne(foreignKey: 'id_team', class: Team::class)]
-    public ?\App\GameModels\Game\Team $team = null;
+    public ?TeamInterface $team = null;
 
     public function getMines() : int {
         return $this->bonus->getSum();

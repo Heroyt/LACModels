@@ -4,10 +4,11 @@ namespace App\GameModels\Traits;
 
 use App\GameModels\Game\Game;
 use App\GameModels\Game\Team;
-use App\GameModels\Game\TeamCollection;
 use InvalidArgumentException;
 use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Timer;
+use Lsr\Lg\Results\Interface\Models\TeamInterface;
+use Lsr\Lg\Results\TeamCollection;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\JsonExclude;
 use Lsr\Orm\Attributes\NoDB;
@@ -58,7 +59,7 @@ trait WithTeams
      *
      * @return $this
      */
-    public function addTeam(Team ...$teams) : static {
+    public function addTeam(TeamInterface ...$teams) : static {
         foreach ($teams as $team) {
             $this->teams->add($team);
         }

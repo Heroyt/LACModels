@@ -7,6 +7,8 @@
 namespace App\GameModels\Game\Evo5;
 
 use App\GameModels\Factory\TeamFactory;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
+use Lsr\Lg\Results\LaserMaxx\Evo5\Evo5TeamInterface;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
@@ -19,7 +21,7 @@ use Lsr\Orm\Attributes\Relations\ManyToOne;
  * @phpstan-ignore-next-line
  */
 #[PrimaryKey('id_team'), Factory(TeamFactory::class, ['system' => 'evo5'])]
-class Team extends \App\GameModels\Game\Lasermaxx\Team
+class Team extends \App\GameModels\Game\Lasermaxx\Team implements Evo5TeamInterface
 {
     public const string TABLE = 'evo5_teams';
     public const string SYSTEM = 'evo5';
@@ -30,5 +32,5 @@ class Team extends \App\GameModels\Game\Lasermaxx\Team
 
     /** @var Game */
     #[ManyToOne(class: Game::class)]
-    public \App\GameModels\Game\Game $game;
+    public GameInterface $game;
 }

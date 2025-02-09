@@ -5,6 +5,7 @@ namespace App\GameModels\Game\Lasermaxx;
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Player as BasePlayer;
+use Lsr\Lg\Results\LaserMaxx\LaserMaxxGameInterface;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use OpenApi\Attributes as OA;
 
@@ -17,7 +18,7 @@ use OpenApi\Attributes as OA;
  * @extends \App\GameModels\Game\Game<T, P>
  */
 #[OA\Schema(schema: 'GameLmx')]
-abstract class Game extends \App\GameModels\Game\Game
+abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameInterface
 {
     public int $fileNumber;
     /** @var int Initial lives */
@@ -26,6 +27,9 @@ abstract class Game extends \App\GameModels\Game\Game
     public int $ammo = 9999;
     /** @var int Respawn time in seconds */
     public int $respawn = 5;
+    public int $reloadClips = 0;
+    public bool $allowFriendlyFire = true;
+    public bool $antiStalking = false;
 
     protected bool $minesOn;
 
@@ -104,7 +108,7 @@ abstract class Game extends \App\GameModels\Game\Game
             $this->minesOn = false;
             /** @var Player $player */
             foreach ($this->players as $player) {
-                if ($player->minesHits !== 0 || $player->scoreMines !== 0 || $player->bonus->getSum() > 0) {
+                if ($player->minesHits !== 0 || $player->scoreMines !== 0 || $player->getBonusCount() > 0) {
                     $this->minesOn = true;
                     break;
                 }

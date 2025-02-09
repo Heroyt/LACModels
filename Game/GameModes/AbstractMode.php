@@ -3,17 +3,20 @@
 namespace App\GameModels\Game\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
-use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\ModeSettings;
 use App\GameModels\Game\Player;
 use App\GameModels\Game\Team;
-use App\GameModels\Game\TeamCollection;
 use App\Models\BaseModel;
 use App\Models\GameModeVariation;
 use App\Models\GameModeVariationValue;
 use Dibi\Row;
 use Lsr\Db\DB;
+use Lsr\Lg\Results\Enums\GameModeType;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
+use Lsr\Lg\Results\Interface\Models\GameModeInterface;
+use Lsr\Lg\Results\LaserMaxx\LaserMaxxGameInterface;
+use Lsr\Lg\Results\TeamCollection;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\ObjectValidation\Attributes\Required;
 use Lsr\ObjectValidation\Attributes\StringLength;
@@ -29,7 +32,7 @@ use Lsr\Orm\Exceptions\ModelNotFoundException;
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class AbstractMode extends BaseModel
+class AbstractMode extends BaseModel implements GameModeInterface
 {
     public const string TABLE = 'game_modes';
 
@@ -90,9 +93,9 @@ class AbstractMode extends BaseModel
      * @return Player|Team|null null = draw
      * @throws ValidationException
      */
-    public function getWin(Game $game) : Player | Team | null {
+    public function getWin(GameInterface $game) : Player | Team | null {
         if ($this->isTeam()) {
-            /** @var Team[]|TeamCollection $teams */
+            /** @var TeamCollection $teams */
             $teams = $game->teamsSorted;
             /** @var Team $team */
             $team = $teams->first();
@@ -110,28 +113,30 @@ class AbstractMode extends BaseModel
         return $this->type === GameModeType::TEAM;
     }
 
-    public function recalculateScores(Game $game) : void {
+    public function recalculateScores(GameInterface $game) : void {
         $this->recalculateScoresPlayers($game);
         $this->recalculateScoresTeams($game);
     }
 
-    protected function recalculateScoresPlayers(Game $game) : void {
+    protected function recalculateScoresPlayers(GameInterface $game) : void {
         if (!isset($game->scoring)) {
             return;
         }
         try {
-            /** @var Player $player */
-            foreach ($game->players as $player) {
-                $player->score =
-                  ($player->hits * $game->scoring->hitOther) +
-                  ($player->deaths * $game->scoring->deathOther) +
-                  ($player->shots * $game->scoring->shot);
+            if ($game instanceof LaserMaxxGameInterface) {
+                /** @var Player $player */
+                foreach ($game->players as $player) {
+                    $player->score =
+                      ($player->hits * $game->scoring->hitOther) +
+                      ($player->deaths * $game->scoring->deathOther) +
+                      ($player->shots * $game->scoring->shot);
+                }
             }
-        } catch (ModelNotFoundException | ValidationException | DirectoryCreationException $e) {
+        } catch (ValidationException | DirectoryCreationException $e) {
         }
     }
 
-    protected function recalculateScoresTeams(Game $game) : void {
+    protected function recalculateScoresTeams(GameInterface $game) : void {
         try {
             /** @var Team $team */
             foreach ($game->teams as $team) {
@@ -141,11 +146,11 @@ class AbstractMode extends BaseModel
                     $team->score += $player->score;
                 }
             }
-        } catch (ModelNotFoundException | ValidationException | DirectoryCreationException $e) {
+        } catch (ValidationException | DirectoryCreationException $e) {
         }
     }
 
-    public function reorderGame(Game $game) : void {
+    public function reorderGame(GameInterface $game) : void {
         // Reorder players
         $players = $game->playersSorted;
         $i = 1;
