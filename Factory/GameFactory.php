@@ -362,7 +362,7 @@ class GameFactory implements FactoryInterface
         foreach (self::getSupportedSystems() as $system) {
             /** @var Game $className */
             $className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
-            if (method_exists($className, 'getTeamColors')) {
+            if (method_exists($className, 'getTeamNames')) {
                 $colors[$system] = $className::getTeamNames();
             }
         }

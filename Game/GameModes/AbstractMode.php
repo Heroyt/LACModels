@@ -10,6 +10,8 @@ use App\GameModels\Game\Team;
 use App\Models\BaseModel;
 use App\Models\GameModeVariation;
 use App\Models\GameModeVariationValue;
+use App\Models\System;
+use App\Models\SystemType;
 use Dibi\Row;
 use Lsr\Db\DB;
 use Lsr\Lg\Results\Enums\GameModeType;
@@ -43,6 +45,7 @@ class AbstractMode extends BaseModel implements GameModeInterface
     public ?string $description = '';
     public GameModeType $type = GameModeType::TEAM;
     public ?string $loadName = '';
+    public ?string $systems = null;
     public string $teams = '';
     #[Instantiate]
     public ModeSettings $settings;
@@ -76,6 +79,57 @@ class AbstractMode extends BaseModel implements GameModeInterface
                 }
             }
             return $this->variations;
+        }
+    }
+
+    /** @var System[] */
+    #[NoDB]
+    public array $allowedSystems {
+        get {
+            if ($this->systems === null) {
+                return System::getAll();
+            }
+            $systems = [];
+            foreach (explode(',', $this->systems) as $system) {
+                if (is_numeric($system)) {
+                    $systems[] = System::get((int) $system);
+                    continue;
+                }
+                $type = SystemType::tryFrom($system);
+                if ($type === null) {
+                    continue;
+                }
+                foreach (System::getForType($type) as $s) {
+                    $systems[] = $s;
+                }
+            }
+            return $systems;
+        }
+        /**
+         * @param  System[]  $systems
+         */
+        set(array $systems) {
+            $this->systems = implode(
+              ',',
+              array_unique(
+                array_map(
+                  static fn(System $system) => $system->type->value,
+                  $systems
+                )
+              )
+            );
+        }
+    }
+
+    /** @var numeric[] */
+    #[NoDB]
+    public array $allowedTeams {
+        get => json_decode($this->teams) ?? [];
+        /**
+         * @param  numeric[]  $teams
+         */
+        set(array $teams) {
+            $this->teams = json_encode($teams);
         }
     }
 
