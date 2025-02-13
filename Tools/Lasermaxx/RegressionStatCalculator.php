@@ -3,7 +3,7 @@
 namespace App\GameModels\Tools\Lasermaxx;
 
 use App\Core\Info;
-use App\Exceptions\InsuficientRegressionDataException;
+use App\Exceptions\InsufficientRegressionDataException;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Services\RegressionCalculator;
 use Dibi\Exception;
@@ -30,7 +30,7 @@ class RegressionStatCalculator
      * @param  AbstractMode|null  $mode
      *
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
      */
     public function getDeathsModel(GameModeType $type, ?AbstractMode $mode = null) : array {
@@ -54,7 +54,7 @@ class RegressionStatCalculator
      * @param  AbstractMode|null  $mode
      *
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      */
     public function calculateDeathRegression(GameModeType $type, ?AbstractMode $mode = null) : array {
         $query = DB::select(
@@ -71,7 +71,7 @@ class RegressionStatCalculator
         $data = $query->fetchAll();
 
         if (count($data) < 10) {
-            throw new InsuficientRegressionDataException();
+            throw new InsufficientRegressionDataException();
         }
 
         $inputsLinear = [];
@@ -230,7 +230,7 @@ class RegressionStatCalculator
      * @param  AbstractMode|null  $mode
      *
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
      */
     public function updateDeathsModel(GameModeType $type, ?AbstractMode $mode = null) : array {
@@ -251,7 +251,7 @@ class RegressionStatCalculator
      * @param  AbstractMode|null  $mode
      *
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
      */
     public function getHitsModel(GameModeType $type, ?AbstractMode $mode = null) : array {
@@ -275,7 +275,7 @@ class RegressionStatCalculator
      * @param  AbstractMode|null  $mode
      *
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      */
     public function calculateHitRegression(GameModeType $type, ?AbstractMode $mode = null) : array {
         $query = DB::select(
@@ -292,7 +292,7 @@ class RegressionStatCalculator
         $data = $query->fetchAll();
 
         if (count($data) < 10) {
-            throw new InsuficientRegressionDataException();
+            throw new InsufficientRegressionDataException();
         }
 
         $inputsLinear = [];
@@ -319,7 +319,7 @@ class RegressionStatCalculator
      * Recalculate a regression model for player's teammate deaths
      *
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
      */
     public function updateDeathsOwnModel(?AbstractMode $mode = null) : array {
@@ -335,7 +335,7 @@ class RegressionStatCalculator
 
     /**
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      */
     public function calculateDeathOwnRegression(?AbstractMode $mode = null) : array {
         $query = DB::select('vEvo5RegressionData', 'AVG(deaths_own) as value, enemies, teammates, game_length')
@@ -347,7 +347,7 @@ class RegressionStatCalculator
         $data = $query->fetchAll();
 
         if (count($data) < 10) {
-            throw new InsuficientRegressionDataException();
+            throw new InsufficientRegressionDataException();
         }
 
         $inputsLinear = [];
@@ -366,7 +366,7 @@ class RegressionStatCalculator
      * Recalculate a regression model for player's teammate hits
      *
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
      */
     public function updateHitsOwnModel(?AbstractMode $mode = null) : array {
@@ -382,7 +382,7 @@ class RegressionStatCalculator
 
     /**
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      */
     public function calculateHitOwnRegression(?AbstractMode $mode = null) : array {
         $query = DB::select('vEvo5RegressionData', 'AVG(hits_own) as [value], enemies, teammates, game_length')
@@ -394,7 +394,7 @@ class RegressionStatCalculator
         $data = $query->fetchAll();
 
         if (count($data) < 10) {
-            throw new InsuficientRegressionDataException();
+            throw new InsufficientRegressionDataException();
         }
 
         $inputsLinear = [];
@@ -417,7 +417,7 @@ class RegressionStatCalculator
      * @param  AbstractMode|null  $mode
      *
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
      */
     public function updateHitsModel(GameModeType $type, ?AbstractMode $mode = null) : array {
@@ -435,7 +435,7 @@ class RegressionStatCalculator
      * Get a regression model for player's teammate hits
      *
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
      */
     public function getHitsOwnModel(?AbstractMode $mode = null) : array {
@@ -458,7 +458,7 @@ class RegressionStatCalculator
      * Get a regression mode for player's teammate deaths
      *
      * @return numeric[]
-     * @throws InsuficientRegressionDataException
+     * @throws InsufficientRegressionDataException
      * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
      */
     public function getDeathsOwnModel(?AbstractMode $mode = null) : array {

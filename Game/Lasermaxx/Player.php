@@ -2,7 +2,7 @@
 
 namespace App\GameModels\Game\Lasermaxx;
 
-use App\Exceptions\InsuficientRegressionDataException;
+use App\Exceptions\InsufficientRegressionDataException;
 use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
 use App\Services\RegressionCalculator;
 use Lsr\Lg\Results\Enums\GameModeType;
@@ -67,7 +67,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
         try {
             $model = $this->getRegressionCalculator()->getDeathsModel($type, $this->game->mode);
             return $this->calculateHitDeathModel($type, $model);
-        } catch (InsuficientRegressionDataException $e) {
+        } catch (InsufficientRegressionDataException $e) {
             $this->getLogger()->exception($e);
             return parent::getExpectedAverageDeathCount();
         }
@@ -129,7 +129,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
               [$teamPlayerCount, $enemyPlayerCount, $length],
               $model
             );
-        } catch (InsuficientRegressionDataException $e) {
+        } catch (InsufficientRegressionDataException $e) {
             $this->getLogger()->exception($e);
             return 0.0;
         }
@@ -139,7 +139,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
         $parts = parent::getSkillParts();
         try {
             $parts['teamHits'] = $this->calculateSkillFromTeamHits();
-        } catch (InsuficientRegressionDataException) {
+        } catch (InsufficientRegressionDataException) {
             // Ignore
         }
         $parts['bonuses'] = $this->calculateSkillFromBonuses();
@@ -199,7 +199,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
               [$teamPlayerCount, $enemyPlayerCount, $length],
               $model
             );
-        } catch (InsuficientRegressionDataException $e) {
+        } catch (InsufficientRegressionDataException $e) {
             $this->getLogger()->exception($e);
             return 0.0;
         }
@@ -276,7 +276,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
             $type = $this->game->gameType;
             $model = $this->getRegressionCalculator()->getHitsModel($type, $this->game->mode);
             return $this->calculateHitDeathModel($type, $model);
-        } catch (InsuficientRegressionDataException $e) {
+        } catch (InsufficientRegressionDataException $e) {
             $this->getLogger()->exception($e);
             return parent::getExpectedAverageHitCount();
         }

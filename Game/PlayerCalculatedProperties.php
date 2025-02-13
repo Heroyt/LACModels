@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\GameModels\Game;
 
-use App\Exceptions\InsuficientRegressionDataException;
+use App\Exceptions\InsufficientRegressionDataException;
 use Lsr\Lg\Results\Interface\Models\PlayerInterface;
 use Lsr\Orm\Attributes\JsonExclude;
 use Lsr\Orm\Attributes\NoDB;
@@ -87,7 +87,7 @@ trait PlayerCalculatedProperties
                     $expected = $this->getExpectedAverageHitCount();
                     $diff = $this->hits - $expected;
                     $this->relativeHits = 1 + ($diff / $expected);
-                } catch (InsuficientRegressionDataException) {
+                } catch (InsufficientRegressionDataException) {
                     $this->relativeHits = null;
                 }
             }
@@ -101,7 +101,7 @@ trait PlayerCalculatedProperties
                     $expected = $this->getExpectedAverageDeathCount();
                     $diff = $this->deaths - $expected;
                     $this->relativeDeaths = 1 + ($diff / $expected);
-                } catch (InsuficientRegressionDataException) {
+                } catch (InsufficientRegressionDataException) {
                     $this->relativeDeaths = null;
                 }
             }

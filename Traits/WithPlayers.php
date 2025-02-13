@@ -40,10 +40,10 @@ trait WithPlayers
     public string $playerClass;
     /** @var PlayerCollection<P> */
     #[OneToMany(class: Player::class, factoryMethod: 'loadPlayers')]
-    public \Lsr\Lg\Results\PlayerCollection $players;
+    public PlayerCollection $players;
     /** @var PlayerCollection<P> */
     #[NoDB, JsonExclude]
-    public \Lsr\Lg\Results\PlayerCollection $playersSorted {
+    public PlayerCollection $playersSorted {
         get {
             if (!isset($this->playersSorted)) {
                 $this->playersSorted = new PlayerCollection(
@@ -92,8 +92,10 @@ trait WithPlayers
             if ($this instanceof Game) {
                 $player->setGame($this);
             }
-            else if ($this instanceof Team) { // @phpstan-ignore-line
-                $player->team = $this;
+            else {
+                if ($this instanceof Team) { // @phpstan-ignore-line
+                    $player->team = $this;
+                }
             }
             $players[(int) $player->vest] = $player;
         }

@@ -6,7 +6,7 @@
 
 namespace App\GameModels\Game;
 
-use App\Exceptions\InsuficientRegressionDataException;
+use App\Exceptions\InsufficientRegressionDataException;
 use App\GameModels\Factory\PlayerFactory;
 use App\GameModels\Traits\Expandable;
 use App\GameModels\Traits\WithGame;
@@ -163,7 +163,7 @@ abstract class Player extends BaseModel implements PlayerInterface
         // Add points for hits - average hits <=> 300 points
         try {
             $skill += $this->calculateSkillForHits();
-        } catch (InsuficientRegressionDataException) {
+        } catch (InsufficientRegressionDataException) {
             // Ignore error
         }
 
@@ -439,7 +439,7 @@ abstract class Player extends BaseModel implements PlayerInterface
         $hits = 0.0;
         try {
             $hits = $this->calculateSkillForHits();
-        } catch (InsuficientRegressionDataException) {
+        } catch (InsufficientRegressionDataException) {
             // Ignore
         }
         return [
