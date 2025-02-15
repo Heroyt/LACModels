@@ -57,7 +57,8 @@ class Tip extends BaseModel
     public function getTranslations() : array {
         if (!isset($this->translationsParsed)) {
             if ($this->translations !== null) {
-                $this->translationsParsed = igbinary_unserialize($this->translations);
+                $parsed = igbinary_unserialize($this->translations);
+                $this->translationsParsed = $parsed === false ? [] : $parsed;
             }
             else {
                 $this->translationsParsed = [];
