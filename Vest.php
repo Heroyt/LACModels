@@ -6,13 +6,13 @@
 
 namespace App\GameModels;
 
-use App\GameModels\Game\Enums\VestStatus;
 use App\Models\BaseModel;
 use App\Models\System;
 use App\Models\SystemType;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Lsr\Db\DB;
+use Lsr\LaserLiga\Enums\VestStatus;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
