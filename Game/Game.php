@@ -108,7 +108,7 @@ abstract class Game extends BaseModel implements GameInterface
     #[Instantiate, OA\Property]
     public ?Timing $timing = null;
     #[OA\Property]
-    public string $code;
+    public string $code = '';
     #[ManyToOne(class: AbstractMode::class, loadingType: LoadingType::EAGER, factoryMethod: 'loadMode'), OA\Property, NoValidate]
     public ?GameModeInterface $mode;
     #[OA\Property]
