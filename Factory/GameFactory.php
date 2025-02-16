@@ -16,7 +16,6 @@ use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Interfaces\FactoryInterface;
-use Nette\Caching\Cache as CacheBase;
 use Throwable;
 
 /**
@@ -264,19 +263,19 @@ class GameFactory implements FactoryInterface
         /** @var Row[]|null $rows */
         $rows = $cache->load(
           'games/'.$date->format('Y-m-d').($excludeNotFinished ? '/finished' : ''),
-          static function (array &$dependencies) use ($date, $excludeNotFinished) {
-              $dependencies[CacheBase::EXPIRE] = '7 days';
-              $dependencies[CacheBase::Tags] = [
-                'games',
-                'models',
-                'games/'.$date->format('Y-m-d'),
-              ];
-              $query = self::queryGames($excludeNotFinished)
-                           ->cacheTags('games', 'games/'.$date->format('Y-m-d'))
-                           ->where('DATE([start]) = %d', $date)
-                           ->orderBy('start')->desc();
-              return $query->fetchAll();
-          }
+          static fn() => self::queryGames($excludeNotFinished)
+                             ->cacheTags('games', 'games/'.$date->format('Y-m-d'))
+                             ->where('DATE([start]) = %d', $date)
+                             ->orderBy('start')->desc()
+                             ->fetchAll(),
+          [
+            $cache::Expire => '7 days',
+            $cache::Tags   => [
+              'games',
+              'models',
+              'games/'.$date->format('Y-m-d'),
+            ],
+          ]
         );
         $games = [];
         foreach ($rows ?? [] as $row) {
