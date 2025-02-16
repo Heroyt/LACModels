@@ -64,22 +64,70 @@ class Vest extends BaseModel
     }
 
     public static function getGridCols(string | SystemType | System $system) : int {
-        return DB::select(self::TABLE, 'MAX(grid_col)')->where('system = %s', $system)->fetchSingle();
+        if ($system instanceof SystemType) {
+            $system = System::getForType($system);
+        }
+        else {
+            if (is_string($system)) {
+                $type = SystemType::tryFrom($system);
+                if ($type !== null) {
+                    $system = System::getForType($type);
+                }
+            }
+        }
+
+        if (!($system instanceof System)) {
+            $system = System::getDefault();
+        }
+        return DB::select(self::TABLE, 'MAX(grid_col)')->where('id_system = %i', $system->id)->fetchSingle();
     }
 
     public static function getGridRows(string | SystemType | System $system) : int {
-        return DB::select(self::TABLE, 'MAX(grid_row)')->where('system = %s', $system)->fetchSingle();
+        if ($system instanceof SystemType) {
+            $system = System::getForType($system);
+        }
+        else {
+            if (is_string($system)) {
+                $type = SystemType::tryFrom($system);
+                if ($type !== null) {
+                    $system = System::getForType($type);
+                }
+            }
+        }
+
+        if (!($system instanceof System)) {
+            $system = System::getDefault();
+        }
+        return DB::select(self::TABLE, 'MAX(grid_row)')->where('id_system = %i', $system->id)->fetchSingle();
     }
 
     /**
      * @return object{cols:int,rows:int}|null
      */
     public static function getGridDimensions(string | SystemType | System $system) : ?object {
+        if ($system instanceof SystemType) {
+            $system = System::getForType($system);
+        }
+        else {
+            if (is_string($system)) {
+                $type = SystemType::tryFrom($system);
+                if ($type !== null) {
+                    $system = System::getForType($type);
+                }
+            }
+        }
+
+        if (!($system instanceof System)) {
+            $system = System::getDefault();
+        }
+
         /* @phpstan-ignore-next-line */
-        return DB::select(self::TABLE, 'MAX([grid_col]) as [cols], MAX([grid_row]) as [rows]')->where(
-          '[system] = %s',
-          $system
-        )->fetch();
+        return DB::select(self::TABLE, 'MAX([grid_col]) as [cols], MAX([grid_row]) as [rows]')
+                 ->where(
+                   '[id_system] = %i',
+                   $system->id
+                 )
+                 ->fetch();
     }
 
     public function update() : bool {
