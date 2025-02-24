@@ -7,7 +7,6 @@
 namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
-use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
@@ -16,10 +15,6 @@ use Lsr\Orm\Attributes\PrimaryKey;
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class Tma extends TeamDeathmatch
+class Tma extends \App\GameModels\Game\Lasermaxx\GameModes\Tma
 {
-    use LaserMaxxScores;
-
-
-    public string $name = 'T.M.A.';
 }

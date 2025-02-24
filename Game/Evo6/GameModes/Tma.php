@@ -4,7 +4,7 @@
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
 
-namespace App\GameModels\Game\Evo5\GameModes;
+namespace App\GameModels\Game\Evo6\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
 use Lsr\Orm\Attributes\Factory;
@@ -15,6 +15,6 @@ use Lsr\Orm\Attributes\PrimaryKey;
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class TmaSolo extends \App\GameModels\Game\Lasermaxx\GameModes\TmaSolo
+class Tma extends \App\GameModels\Game\Lasermaxx\GameModes\Tma
 {
 }

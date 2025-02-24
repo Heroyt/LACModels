@@ -4,17 +4,20 @@
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
 
-namespace App\GameModels\Game\Evo5\GameModes;
+namespace App\GameModels\Game\Evo6\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
 /**
- * Special LaserMaxx Evo5 game mode
+ * LaserMaxx Evo5 team Deathmatch game mode
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class TmaSolo extends \App\GameModels\Game\Lasermaxx\GameModes\TmaSolo
+class TeamDeathmatch extends \App\GameModels\Game\Lasermaxx\GameModes\TeamDeathmatch
 {
+    public function getSoloAlternative() : string {
+        return Deathmatch::class;
+    }
 }

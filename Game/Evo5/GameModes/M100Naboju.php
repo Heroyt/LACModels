@@ -7,9 +7,6 @@
 namespace App\GameModels\Game\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
-use App\GameModels\Game\GameModes\CustomResultsMode;
-use App\GameModels\Game\Lasermaxx\GameModes\LaserMaxxScores;
-use App\Gate\Screens\Results\LaserMaxx100NabojuResultsScreen;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
@@ -18,28 +15,6 @@ use Lsr\Orm\Attributes\PrimaryKey;
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class M100Naboju extends \App\GameModels\Game\GameModes\Deathmatch implements CustomResultsMode
+class M100Naboju extends \App\GameModels\Game\Lasermaxx\GameModes\Deathmatch
 {
-    use LaserMaxxScores;
-
-
-    public string $name = '100 nábojů';
-
-    /**
-     * Get a template file containing custom results
-     *
-     * @return string Path to template file
-     */
-    public function getCustomResultsTemplate() : string {
-        return 'naboju';
-    }
-
-    /**
-     * Get a template file containing the custom gate results
-     *
-     * @return string Path to template file
-     */
-    public function getCustomGateScreen() : string {
-        return LaserMaxx100NabojuResultsScreen::class;
-    }
 }
