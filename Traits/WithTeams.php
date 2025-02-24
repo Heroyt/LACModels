@@ -35,7 +35,15 @@ trait WithTeams
 
     /** @var TeamCollection<T> */
     #[OneToMany(class: Team::class, factoryMethod: 'loadTeams')]
-    public TeamCollection $teams;
+    public TeamCollection $teams {
+        get {
+            if (!isset($this->teams)) {
+                $this->teams = $this->loadTeams();
+            }
+            return $this->teams;
+        }
+        set(\Lsr\Lg\Results\TeamCollection $value) => $this->teams = $value;
+    }
     /** @var TeamCollection<T> */
     #[NoDB, JsonExclude]
     public TeamCollection $teamsSorted {
