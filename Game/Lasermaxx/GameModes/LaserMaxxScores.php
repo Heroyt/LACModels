@@ -36,7 +36,7 @@ trait LaserMaxxScores
                 }
 
                 // Add score for other stuff
-                $player->score += ($player->shots * $game->scoring->shot) + $player->scoreMines + $player->scorePowers;
+                $player->score += ($player->shots * $game->scoring->shot) + $player->scoreMines + $player->scorePowers + $player->scoreBonus + $player->scoreAccuracy;
             }
         } catch (Throwable) {
         }
