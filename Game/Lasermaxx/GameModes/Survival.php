@@ -53,7 +53,7 @@ abstract class Survival extends \App\GameModels\Game\GameModes\Deathmatch implem
                 $player->scoreBonus += 1000;
                 $player->score += 1000;
             }
-            $player->ammoRest = $game->ammo - $player->shots;
+            $player->ammoRest = max(0, $game->ammo - $player->shots);
         }
     }
 }
