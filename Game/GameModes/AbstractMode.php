@@ -52,6 +52,7 @@ class AbstractMode extends BaseModel implements GameModeInterface
     public bool $rankable = true;
     public bool $active = true;
     public bool $public = true;
+    public int $order = 0;
     /** @var GameModeVariationValue[][] */
     #[NoDB]
     public array $variations = [] {
