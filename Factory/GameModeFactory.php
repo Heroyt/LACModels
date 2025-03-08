@@ -161,7 +161,7 @@ class GameModeFactory implements FactoryInterface
             if (is_numeric($name[0])) {
                 $name = 'M'.$name;
             }
-            $dbName = str_replace([' ', '.', '_', '-'], '', Strings::toAscii(Strings::capitalize($name)));
+            $dbName = str_replace([' ', '.', '_', '-', ','], '', Strings::toAscii(Strings::capitalize($name)));
             $class = $classBase.$classSystem.$classNamespace.$dbName;
             if (class_exists($class)) {
                 self::$gameModeClasses[$key] = $class;
