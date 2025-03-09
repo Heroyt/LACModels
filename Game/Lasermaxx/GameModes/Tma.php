@@ -32,6 +32,7 @@ abstract class Tma extends TeamDeathmatch implements CustomLoadMode
         foreach ($loadData->players as $player) {
             $player->team = '0'; // Red team
         }
+        $loadData->soloTeam = 0;
         return $loadData;
     }
 }
