@@ -4,8 +4,8 @@ namespace App\GameModels\Traits;
 
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\Game;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\LoadingType;
+use Lsr\Lg\Results\Interface\Models\GameInterface;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
 use RuntimeException;
 use Throwable;
 
@@ -14,41 +14,40 @@ use Throwable;
  */
 trait WithGame
 {
+    /** @var G */
+    #[ManyToOne(class: Game::class, factoryMethod: 'loadGame')]
+    public GameInterface $game;
 
-	/** @var G */
-	#[ManyToOne(loadingType: LoadingType::LAZY)]
-	public Game $game;
+    /**
+     * @return G
+     * @throws Throwable
+     */
+    public function loadGame() : Game {
+        /** @phpstan-ignore nullsafe.neverNull */
+        $gameId = $this->row?->id_game ?? $this->relationIds['game'] ?? null;
+        /** @var G|null $game */
+        $game = null;
+        if (isset($gameId)) {
+            /** @var G|null $game */
+            $game = GameFactory::getById($gameId, ['system' => $this::SYSTEM]);
+        }
+        if ($game === null) {
+            throw new RuntimeException('Model has no game assigned');
+        }
+        return $game;
+    }
 
-	/**
-	 * @return G
-	 * @throws Throwable
-	 */
-	public function getGame() : Game {
-		/** @phpstan-ignore isset.variable */
-		if (!isset($this->game)) {
-			$gameId = $this->row->id_game ?? $this->relationIds['game'] ?? null;
-			if (isset($gameId)) {
-				/** @var G|null $game */
-				$game = GameFactory::getById($gameId, ['system' => $this::SYSTEM]);
-				if ($game !== null) {
-					$this->game = $game;
-					return $this->game;
-				}
-			}
-			throw new RuntimeException('Model has no game assigned');
-		}
-		return $this->game;
-	}
+    /**
+     * @param  G  $game
+     *
+     * @return static
+     */
+    public function setGame(GameInterface $game) : static {
+        $this->game = $game;
+        return $this;
+    }
 
-	/**
-	 * @param G $game
-	 *
-	 * @return static
-	 */
-	public function setGame(Game $game) : static {
-		$this->game = $game;
-		return $this;
-	}
-
-
+    public function saveGame() : bool {
+        return $this->game->save();
+    }
 }

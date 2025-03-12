@@ -5,10 +5,10 @@ namespace App\GameModels\Game\Enums;
 /**
  * Paper orientation for result printing
  *
- * @method static tryFrom(string $value)
+ * @method static PrintOrientation|null tryFrom(string $value)
  */
-enum PrintOrientation: string
+enum PrintOrientation : string
 {
-	case portrait = 'portrait';
-	case landscape = 'landscape';
+    case portrait = 'portrait';
+    case landscape = 'landscape';
 }

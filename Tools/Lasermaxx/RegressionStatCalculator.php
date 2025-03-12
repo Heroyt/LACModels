@@ -4,28 +4,28 @@ namespace App\GameModels\Tools\Lasermaxx;
 
 use App\Core\Info;
 use App\Exceptions\InsufficientRegressionDataException;
-use App\GameModels\Game\Enums\GameModeType;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Models\Arena;
 use App\Models\DataObjects\RegressionRow;
 use App\Services\Maths\RegressionCalculator;
 use Dibi\Exception;
-use Lsr\Core\DB;
-use Lsr\Core\Dibi\Fluent;
+use Lsr\Db\DB;
+use Lsr\Db\Dibi\Fluent;
+use Lsr\Lg\Results\Enums\GameModeType;
 
 /**
  * Regression calculator class used for predicting player's hits, deaths, team hits and team deaths
  */
 class RegressionStatCalculator
 {
-	private RegressionCalculator $regressionCalculator;
+    private RegressionCalculator $regressionCalculator;
 
-	public function __construct(private readonly ?Arena $arena = null) {
-		$this->regressionCalculator = new RegressionCalculator();
-	}
+    public function __construct(private readonly ?Arena $arena = null) {
+        $this->regressionCalculator = new RegressionCalculator();
+    }
 
-	/**
-	 * @param Arena[]        $arenas
+    /**
+     * @param Arena[]        $arenas
 	 * @param AbstractMode[] $modes
 	 *
 	 * @return void
@@ -99,30 +99,32 @@ class RegressionStatCalculator
 	/**
 	 *
 	 * Recalculate a regression model for player's hits based on the game type
-	 *
-	 * @return array<int|float>
-	 * @throws InsufficientRegressionDataException
-	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
-	 */
-	public function updateHitsModel(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
+     *
+     * @return array<int|float>
+     * @throws InsufficientRegressionDataException
+     * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
+     */
+    public function updateHitsModel(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
 		$infoKey = ($this->arena->id ?? '') . 'hitModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 		$model = $this->calculateHitRegression($type, $mode, $teamCount);
 		try {
 			Info::set($infoKey, $model);
 		} catch (Exception) {
 			// Failed to save the value - ignore
-		}
-		return $model;
-	}
+        }
+        return $model;
+    }
 
 	/**
-	 * @return array<int|float>
-	 * @throws InsufficientRegressionDataException
-	 */
-	private function calculateHitRegression(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
+     * @return array<int|float>
+     * @throws InsufficientRegressionDataException
+     */
+    private function calculateHitRegression(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
 		$query = DB::select(
 			'mvEvo5RegressionData',
-			$type === GameModeType::TEAM ? 'MEDIAN(hits_other) OVER (PARTITION BY id_game, enemies, teammates) as [value], enemies, teammates, game_length' : 'MEDIAN(hits) OVER (PARTITION BY id_game, enemies, teammates) as [value], teammates, game_length'
+			$type === GameModeType::TEAM ? 'MEDIAN(hits_other) OVER (PARTITION BY id_game, enemies, teammates) as [value], enemies, teammates, game_length' :
+            'MEDIAN(hits) OVER (PARTITION BY id_game, enemies, teammates) as [value], teammates, game_length'
+
 		)
 		           ->where('game_type = %s', $type->value)
 		           ->groupBy('id_game, enemies, teammates');
@@ -140,25 +142,25 @@ class RegressionStatCalculator
 	private function calculateRegressionModel(?AbstractMode $mode, Fluent $query, GameModeType $type, string $modelName): array {
 		$data = $this->queryRegressionData($mode, $query, $modelName);
 
-		$inputsLinear = [];
-		$inputsMultiplication = [];
-		$inputsSquared = [];
-		$matY = [];
-		$actual = [];
+        $inputsLinear = [];
+        $inputsMultiplication = [];
+        $inputsSquared = [];
+        $matY = [];
+        $actual = [];
 
-		if ($type === GameModeType::TEAM) {
-			foreach ($data as $row) {
-				$this->prepareDataTeam($row, $inputsLinear, $inputsMultiplication, $inputsSquared, $matY, $actual);
-			}
-		}
-		else {
-			foreach ($data as $row) {
-				$this->prepareDataSolo($row, $inputsLinear, $inputsMultiplication, $inputsSquared, $matY, $actual);
-			}
-		}
+        if ($type === GameModeType::TEAM) {
+            foreach ($data as $row) {
+                $this->prepareDataTeam($row, $inputsLinear, $inputsMultiplication, $inputsSquared, $matY, $actual);
+            }
+        }
+        else {
+            foreach ($data as $row) {
+                $this->prepareDataSolo($row, $inputsLinear, $inputsMultiplication, $inputsSquared, $matY, $actual);
+            }
+        }
 
-		return $this->createAndCompareModels($matY, $actual, $inputsLinear, $inputsMultiplication, $inputsSquared);
-	}
+        return $this->createAndCompareModels($matY, $actual, $inputsLinear, $inputsMultiplication, $inputsSquared);
+    }
 
 	/**
 	 * @return RegressionRow[]
@@ -197,15 +199,16 @@ class RegressionStatCalculator
 		}
 	}
 
-	/**
-	 * @param RegressionRow      $row
-	 * @param array<int|float>[] $inputsLinear
-	 * @param array<int|float>[] $inputsMultiplication
-	 * @param array<int|float>[] $inputsSquared
-	 * @param array<int|float>[] $matY
-	 * @param array<int|float>   $actual
-	 */
-	private function prepareDataTeam(RegressionRow $row, array &$inputsLinear, array &$inputsMultiplication, array &$inputsSquared, array &$matY, array &$actual): void {
+    /**
+     * @param  RegressionRow      $row
+	 * @param array<int|float>[]  $inputsLinear
+     * @param  array<int|float>[]  $inputsMultiplication
+     * @param  array<int|float>[]  $inputsSquared
+     * @param  array<int|float>[]  $matY
+     * @param  array<int|float>  $actual
+     */
+    private function prepareDataTeam(
+      RegressionRow $row, array &$inputsLinear, array &$inputsMultiplication, array &$inputsSquared, array &$matY, array &$actual): void {
 		$inputsLinear[] = [1, $row->enemies, $row->teammates, $row->game_length];
 		$inputsMultiplication[] = [
 			1,
@@ -232,15 +235,16 @@ class RegressionStatCalculator
 		$actual[] = $row->value;
 	}
 
-	/**
-	 * @param RegressionRow      $row
-	 * @param array<int|float>[] $inputsLinear
-	 * @param array<int|float>[] $inputsMultiplication
-	 * @param array<int|float>[] $inputsSquared
-	 * @param array<int|float>[] $matY
-	 * @param array<int|float>   $actual
-	 */
-	private function prepareDataSolo(RegressionRow $row, array &$inputsLinear, array &$inputsMultiplication, array &$inputsSquared, array &$matY, array &$actual): void {
+    /**
+     * @param  RegressionRow      $row
+	 * @param array<int|float>[]  $inputsLinear
+     * @param  array<int|float>[]  $inputsMultiplication
+     * @param  array<int|float>[]  $inputsSquared
+     * @param  array<int|float>[]  $matY
+     * @param  array<int|float>  $actual
+     */
+    private function prepareDataSolo(
+      RegressionRow $row, array &$inputsLinear, array &$inputsMultiplication, array &$inputsSquared, array &$matY, array &$actual): void {
 		$inputsLinear[] = [1, $row->teammates, $row->game_length];
 		$inputsMultiplication[] = [1, $row->teammates, $row->game_length, $row->teammates * $row->game_length,];
 		$inputsSquared[] = [
@@ -255,27 +259,27 @@ class RegressionStatCalculator
 		$actual[] = $row->value;
 	}
 
-	/**
-	 * @param array<int|float>[] $matY
-	 * @param array<int|float>   $actual
-	 * @param array<int|float>[] $inputsLinear
-	 * @param array<int|float>[] $inputsMultiplication
-	 * @param array<int|float>[] $inputsSquared
-	 *
-	 * @return array<int|float>
-	 */
-	private function createAndCompareModels(array $matY, array $actual, array $inputsLinear, array $inputsMultiplication, array $inputsSquared): array {
+    /**
+     * @param  array<int|float>[]  $matY
+     * @param  array<int|float>  $actual
+     * @param  array<int|float>[]  $inputsLinear
+     * @param  array<int|float>[]  $inputsMultiplication
+     * @param  array<int|float>[]  $inputsSquared
+     *
+     * @return array<int|float>
+     */
+    private function createAndCompareModels(array $matY, array $actual, array $inputsLinear, array $inputsMultiplication, array $inputsSquared): array {
 		$linearModel = $this->regressionCalculator->regression($inputsLinear, $matY);
 		$predictions = $this->regressionCalculator->calculatePredictions($inputsLinear, $linearModel);
 		$r2Linear = $this->regressionCalculator->calculateRSquared($predictions, $actual);
 
-		$multiplicationModel = $this->regressionCalculator->regression($inputsMultiplication, $matY);
-		$predictions = $this->regressionCalculator->calculatePredictions($inputsMultiplication, $multiplicationModel);
-		$r2Multiplication = $this->regressionCalculator->calculateRSquared($predictions, $actual);
+        $multiplicationModel = $this->regressionCalculator->regression($inputsMultiplication, $matY);
+        $predictions = $this->regressionCalculator->calculatePredictions($inputsMultiplication, $multiplicationModel);
+        $r2Multiplication = $this->regressionCalculator->calculateRSquared($predictions, $actual);
 
-		$combinedModel = $this->regressionCalculator->regression($inputsSquared, $matY);
-		$predictions = $this->regressionCalculator->calculatePredictions($inputsSquared, $combinedModel);
-		$r2Combined = $this->regressionCalculator->calculateRSquared($predictions, $actual);
+        $combinedModel = $this->regressionCalculator->regression($inputsSquared, $matY);
+        $predictions = $this->regressionCalculator->calculatePredictions($inputsSquared, $combinedModel);
+        $r2Combined = $this->regressionCalculator->calculateRSquared($predictions, $actual);
 
 		// Return the best model
 		$maxR2 = max($r2Linear, $r2Combined, $r2Multiplication);
@@ -286,28 +290,28 @@ class RegressionStatCalculator
 		};
 	}
 
-	/**
-	 * Recalculate a regression model for player's deaths based on the game type
-	 *
-	 * @return array<int|float>
-	 * @throws InsufficientRegressionDataException
-	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
-	 */
-	public function updateDeathsModel(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
+    /**
+     * Recalculate a regression model for player's deaths based on the game type
+     *
+     * @return array<int|float>
+     * @throws InsufficientRegressionDataException
+     * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
+     */
+    public function updateDeathsModel(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
 		$infoKey = ($this->arena->id ?? '') . 'deathModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
-		$model = $this->calculateDeathRegression($type, $mode, $teamCount);
-		try {
-			Info::set($infoKey, $model);
-		} catch (Exception) {
-			// Failed to save the value - ignore
-		}
-		return $model;
-	}
+        $model = $this->calculateDeathRegression($type, $mode, $teamCount);
+        try {
+            Info::set($infoKey, $model);
+        } catch (Exception) {
+            // Failed to save the value - ignore
+        }
+        return $model;
+    }
 
-	/**
-	 * @param GameModeType      $type
+    /**
+     * @param GameModeType      $type
 	 * @param AbstractMode|null $mode
-	 * @param int               $teamCount
+     * @param  int               $teamCount
 	 *
 	 * @return array<int|float>
 	 * @throws InsufficientRegressionDataException
@@ -328,27 +332,27 @@ class RegressionStatCalculator
 
 	/**
 	 * Recalculate a regression model for player's teammate hits
-	 *
-	 * @return array<int|float>
-	 * @throws InsufficientRegressionDataException
-	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
-	 */
-	public function updateHitsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
+     *
+     * @return array<int|float>
+     * @throws InsufficientRegressionDataException
+     * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
+     */
+    public function updateHitsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
 		$infoKey = ($this->arena->id ?? '') . 'hitsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 		$model = $this->calculateHitOwnRegression($mode, $teamCount);
 		try {
 			Info::set($infoKey, $model);
 		} catch (Exception) {
 			// Failed to save the value - ignore
-		}
-		return $model;
-	}
+        }
+        return $model;
+    }
 
 	/**
-	 * @return array<int|float>
-	 * @throws InsufficientRegressionDataException
-	 */
-	private function calculateHitOwnRegression(?AbstractMode $mode = null, int $teamCount = 2): array {
+     * @return array<int|float>
+     * @throws InsufficientRegressionDataException
+     */
+    private function calculateHitOwnRegression(?AbstractMode $mode = null, int $teamCount = 2): array {
 		$query = DB::select(
 			'mvEvo5RegressionData',
 			'MEDIAN(hits_own) OVER (PARTITION BY id_game, enemies, teammates) as [value], enemies, teammates, game_length'
@@ -356,7 +360,7 @@ class RegressionStatCalculator
 		           ->where('game_type = %s and teams = %i', GameModeType::TEAM->value, $teamCount)
 		           ->groupBy('id_game, enemies, teammates');
 
-		return $this->calculateTeamOnlyRegression($mode, $query, 'Hits own');
+        return $this->calculateTeamOnlyRegression($mode, $query, 'Hits own');
 	}
 
 	/**
@@ -375,26 +379,26 @@ class RegressionStatCalculator
 			$this->prepareDataTeam($row, $inputsLinear, $inputsMultiplication, $inputsSquared, $matY, $actual);
 		}
 
-		return $this->createAndCompareModels($matY, $actual, $inputsLinear, $inputsMultiplication, $inputsSquared);
-	}
+        return $this->createAndCompareModels($matY, $actual, $inputsLinear, $inputsMultiplication, $inputsSquared);
+    }
 
-	/**
-	 * Recalculate a regression model for player's teammate deaths
-	 *
-	 * @return array<int|float>
-	 * @throws InsufficientRegressionDataException
-	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
-	 */
-	public function updateDeathsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ($this->arena->id ?? '') . 'deathsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
-		$model = $this->calculateDeathOwnRegression($mode, $teamCount);
-		try {
-			Info::set($infoKey, $model);
-		} catch (Exception) {
-			// Failed to save the value - ignore
-		}
-		return $model;
-	}
+    /**
+     * Recalculate a regression model for player's teammate deaths
+     *
+     * @return array<int|float>
+     * @throws InsufficientRegressionDataException
+     * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
+     */
+    public function updateDeathsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
+        $infoKey = ($this->arena->id ?? '') . 'deathsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+        $model = $this->calculateDeathOwnRegression($mode, $teamCount);
+        try {
+            Info::set($infoKey, $model);
+        } catch (Exception) {
+            // Failed to save the value - ignore
+        }
+        return $model;
+    }
 
 	/**
 	 * @return array<int|float>
@@ -410,21 +414,21 @@ class RegressionStatCalculator
 			$teamCount
 		)->groupBy('id_game, enemies, teammates');
 
-		return $this->calculateTeamOnlyRegression($mode, $query, 'Deaths Own');
-	}
+        return $this->calculateTeamOnlyRegression($mode, $query, 'Deaths Own');
+    }
 
-	/**
-	 * Get a regression model for player's deaths based on the game type
+    /**
+     * Get a regression model for player's deaths based on the game type
 	 *
 	 * @param GameModeType      $type
 	 * @param AbstractMode|null $mode
 	 * @param int               $teamCount
-	 *
-	 * @return array<int|float>
-	 * @throws InsufficientRegressionDataException
-	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
-	 */
-	public function getDeathsModel(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
+     *
+     * @return array<int|float>
+     * @throws InsufficientRegressionDataException
+     * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
+     */
+    public function getDeathsModel(GameModeType $type, ?AbstractMode $mode = null, int $teamCount = 2): array {
 		$infoKey = ((string)($this->arena->id ?? '')) . 'deathModel' . $type->value . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 
 		/** @var array<int|float>|null $model */
@@ -436,9 +440,9 @@ class RegressionStatCalculator
 			} catch (Exception) {
 				// Failed to save the value - ignore
 			}
-		}
-		return $model;
-	}
+        }
+        return $model;
+    }
 
 	/**
 	 * Get a regression model for player's hits based on the game type
@@ -463,49 +467,49 @@ class RegressionStatCalculator
 		return $model;
 	}
 
-	/**
-	 * Get a regression model for player's teammate hits
-	 *
-	 * @return array<int|float>
-	 * @throws InsufficientRegressionDataException
-	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
-	 */
-	public function getHitsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ($this->arena->id ?? '') . 'hitsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+    /**
+     * Get a regression model for player's teammate hits
+     *
+     * @return array<int|float>
+     * @throws InsufficientRegressionDataException
+     * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
+     */
+    public function getHitsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
+        $infoKey = ($this->arena->id ?? '') . 'hitsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 
-		/** @var array<int|float>|null $model */
-		$model = Info::get($infoKey);
-		if (empty($model)) {
-			$model = $this->calculateHitOwnRegression($mode, $teamCount);
-			try {
-				Info::set($infoKey, $model);
-			} catch (Exception) {
-				// Failed to save the value - ignore
-			}
-		}
-		return $model;
-	}
+        /** @var array<int|float>|null $model */
+        $model = Info::get($infoKey);
+        if (empty($model)) {
+            $model = $this->calculateHitOwnRegression($mode, $teamCount);
+            try {
+                Info::set($infoKey, $model);
+            } catch (Exception) {
+                // Failed to save the value - ignore
+            }
+        }
+        return $model;
+    }
 
-	/**
-	 * Get a regression mode for player's teammate deaths
-	 *
-	 * @return array<int|float>
-	 * @throws InsufficientRegressionDataException
-	 * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
-	 */
-	public function getDeathsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
-		$infoKey = ($this->arena->id ?? '') . 'deathsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
+    /**
+     * Get a regression mode for player's teammate deaths
+     *
+     * @return array<int|float>
+     * @throws InsufficientRegressionDataException
+     * @see RegressionCalculator::calculateRegressionPrediction() To calculate a value from this model
+     */
+    public function getDeathsOwnModel(?AbstractMode $mode = null, int $teamCount = 2): array {
+        $infoKey = ($this->arena->id ?? '') . 'deathsOwnModel' . (isset($mode) && !$mode->rankable ? $mode->id : '') . ($teamCount > 2 ? '-' . $teamCount : '');
 
-		/** @var array<int|float>|null $model */
-		$model = Info::get($infoKey);
-		if (empty($model)) {
-			$model = $this->calculateDeathOwnRegression($mode, $teamCount);
-			try {
-				Info::set($infoKey, $model);
-			} catch (Exception) {
-				// Failed to save the value - ignore
-			}
-		}
-		return $model;
-	}
+        /** @var array<int|float>|null $model */
+        $model = Info::get($infoKey);
+        if (empty($model)) {
+            $model = $this->calculateDeathOwnRegression($mode, $teamCount);
+            try {
+                Info::set($infoKey, $model);
+            } catch (Exception) {
+                // Failed to save the value - ignore
+            }
+        }
+        return $model;
+    }
 }

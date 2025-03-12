@@ -3,10 +3,18 @@
 namespace App\GameModels\Game\Evo6;
 
 use App\GameModels\Factory\GameFactory;
-use Lsr\Core\Models\Attributes\Factory;
-use Lsr\Core\Models\Attributes\Instantiate;
-use Lsr\Core\Models\Attributes\NoDB;
-use Lsr\Core\Models\Attributes\PrimaryKey;
+use Lsr\Lg\Results\LaserMaxx\Evo6\Evo6GameInterface;
+use Lsr\Lg\Results\LaserMaxx\Evo6\GameStyleType;
+use Lsr\Lg\Results\LaserMaxx\Evo6\HitGainSettings;
+use Lsr\Lg\Results\LaserMaxx\Evo6\RespawnSettings;
+use Lsr\Lg\Results\LaserMaxx\Evo6\Scoring;
+use Lsr\Lg\Results\LaserMaxx\Evo6\TriggerSpeed;
+use Lsr\Lg\Results\LaserMaxx\Evo6\VipSettings;
+use Lsr\Lg\Results\LaserMaxx\Evo6\ZombieSettings;
+use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\Instantiate;
+use Lsr\Orm\Attributes\NoDB;
+use Lsr\Orm\Attributes\PrimaryKey;
 use OpenApi\Attributes as OA;
 
 /**
@@ -16,11 +24,10 @@ use OpenApi\Attributes as OA;
  * @phpstan-ignore-next-line
  */
 #[PrimaryKey('id_game'), Factory(GameFactory::class, ['system' => 'evo6']), OA\Schema(schema: 'GameEvo6')]
-class Game extends \App\GameModels\Game\Lasermaxx\Game
+class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo6GameInterface
 {
-
-	public const string SYSTEM = 'evo6';
-	public const string TABLE  = 'evo6_games';
+    public const string SYSTEM = 'evo6';
+    public const string TABLE = 'evo6_games';
 	protected const array IMPORT_PROPERTIES = [
 		'resultsFile',
 		'fileTime',
@@ -41,8 +48,18 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game
 	public string                             $playerClass = Player::class;
 	#[NoDB]
 	public string                             $teamClass   = Team::class;
-	#[Instantiate]
-	#[OA\Property]
-	public Scoring $scoring;
+	public bool $blastShots = false;
+    #[Instantiate]
+    #[OA\Property]
+	public Scoring $scoring;public TriggerSpeed $triggerSpeed = TriggerSpeed::FAST;
+    public GameStyleType $gameStyleType = GameStyleType::TEAM;
+    #[Instantiate]
+    public VipSettings $vipSettings;
+    #[Instantiate]
+    public ZombieSettings $zombieSettings;
+    #[Instantiate]
+    public HitGainSettings $hitGainSettings;
+    #[Instantiate]
+    public RespawnSettings $respawnSettings;
 
 }

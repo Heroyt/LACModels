@@ -2,6 +2,8 @@
 
 namespace App\GameModels\Game\Lasermaxx;
 
+use Lsr\Lg\Results\LaserMaxx\LaserMaxxTeamInterface;
+
 /**
  * LaserMaxx team model
  *
@@ -10,7 +12,6 @@ namespace App\GameModels\Game\Lasermaxx;
  *
  * @extends \App\GameModels\Game\Team<P, G>
  */
-abstract class Team extends \App\GameModels\Game\Team
+abstract class Team extends \App\GameModels\Game\Team implements LaserMaxxTeamInterface
 {
-
 }

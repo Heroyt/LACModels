@@ -1,61 +1,76 @@
 <?php
+
 /**
  * @author Tomáš Vojík <xvojik00@stud.fit.vutbr.cz>, <vojik@wboy.cz>
  */
 
 namespace App\GameModels;
 
-use App\GameModels\Game\Enums\VestStatus;
+use App\Models\BaseModel;
+use App\Models\System;
+use App\Models\SystemType;
 use DateTimeImmutable;
 use DateTimeInterface;
 use App\Models\Arena;
-use Lsr\Core\Exceptions\ValidationException;
-use Lsr\Core\Models\Attributes\ManyToOne;
-use Lsr\Core\Models\Attributes\PrimaryKey;
-use Lsr\Core\Models\Model;
-use Lsr\Core\Models\ModelQuery;
+use Lsr\Db\DB;
+use Lsr\LaserLiga\Enums\VestStatus;
+use Lsr\ObjectValidation\Exceptions\ValidationException;
+use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\ModelQuery;
 use OpenApi\Attributes as OA;
 
 #[PrimaryKey('id_vest'), OA\Schema]
-class Vest extends Model
+class Vest extends BaseModel
 {
-
-	public const TABLE = 'system_vests';
+    public const string TABLE = 'system_vests';
 
 	#[OA\Property, ManyToOne]
 	public Arena $arena;
 
 	#[OA\Property(example: '1')]
 	public string             $vestNum;
+	#[ManyToOne]
+	public System $system;
 	#[OA\Property(example: 'evo5')]
 	public string             $system;
 	#[OA\Property]
 	public VestStatus         $status    = VestStatus::OK;
 	#[OA\Property(example: 'Zbraň vynechává')]
 	public ?string            $info      = null;
+	public VestType $type = VestType::VEST;
 	#[OA\Property]
 	public ?DateTimeInterface $updatedAt = null;
 
-	/**
-	 * @param string $system
-	 *
-	 * @return Vest[]
-	 * @throws ValidationException
-	 */
-	public static function getForSystem(string $system): array {
-		return self::querySystem($system)->get();
-	}
+    /**
+     * @return Vest[]
+     * @throws ValidationException
+     */
+    public static function getForSystem(string | SystemType | System $system): array {
+        return self::querySystem($system)->get();
+    }
 
-	/**
-	 * @param string $system
-	 *
-	 * @return ModelQuery<Vest>
-	 */
-	public static function querySystem(string $system): ModelQuery {
-		/** @phpstan-ignore-next-line */
-		return self::query()->where('system = %s', $system);
-	}
+    /**
+     * @return ModelQuery<Vest>
+     */
+    public static function querySystem(string | SystemType | System $system): ModelQuery {
+        if ($system instanceof System) {
+            return self::query()->where('id_system = %s', $system->id);
+        }
+        if ($system instanceof SystemType) {
+            $system = $system->value;
+        }
+        /** @phpstan-ignore-next-line */
+        return self::query()
+                   ->where(
+                     'id_system IN %sql',
+                     DB::select(System::TABLE, 'id_system')->where('type = %s', $system)
+                   );
+    }
 
+    public static function getVestCount(string | SystemType | System $system) : int {
+        return self::querySystem($system)->count();
+    }
 	/**
 	 * @param Arena $arena
 	 *
@@ -74,15 +89,6 @@ class Vest extends Model
 	public static function queryArena(Arena $arena): ModelQuery {
 		/** @phpstan-ignore-next-line */
 		return self::query()->where('id_arena = %s', $arena->id);
-	}
-
-	/**
-	 * @param string $system
-	 *
-	 * @return int
-	 */
-	public static function getVestCount(string $system): int {
-		return self::querySystem($system)->count();
 	}
 
 	public function update(): bool {
