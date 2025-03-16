@@ -136,6 +136,8 @@ abstract class Game extends BaseModel implements GameInterface
 	#[OA\Property]
 	public bool     $visited  = false;
 	protected float $realGameLength;
+	#[OA\Property]
+	public ?string $photosSecret = null;
 
 	#[NoDB]
 	public ?TournamentGame $tournamentGame = null;
