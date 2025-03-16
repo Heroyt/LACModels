@@ -5,7 +5,6 @@ namespace App\GameModels\Game\Lasermaxx\GameModes;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Lasermaxx\Player;
-use App\Gate\Screens\Results\LaserMaxxSurvivalResultsScreen;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Lsr\Lg\Results\Interface\Models\ModifyScoresMode;
 use Lsr\Orm\Attributes\Factory;
@@ -32,14 +31,6 @@ abstract class Survival extends \App\GameModels\Game\GameModes\Deathmatch implem
         return 'survival';
     }
 
-    /**
-     * Get a template file containing the custom gate results
-     *
-     * @return string Path to template file
-     */
-    public function getCustomGateScreen() : string {
-        return LaserMaxxSurvivalResultsScreen::class;
-    }
 
     /**
      * @param  \App\GameModels\Game\Lasermaxx\Game  $game

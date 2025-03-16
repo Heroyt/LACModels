@@ -12,7 +12,6 @@ use App\GameModels\Game\Evo5\Team as Evo5Team;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\Team;
-use App\Gate\Screens\Results\LaserMaxxCSGOResultsScreen;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\Factory;
@@ -113,12 +112,5 @@ abstract class CSGO extends AbstractMode implements CustomResultsMode
      */
     public function getCustomResultsTemplate() : string {
         return '';
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getCustomGateScreen() : string {
-        return LaserMaxxCSGOResultsScreen::class;
     }
 }

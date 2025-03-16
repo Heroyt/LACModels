@@ -11,8 +11,8 @@ use Dibi\DateTime;
 use Dibi\Row;
 use Generator;
 use InvalidArgumentException;
-use Lsr\Core\App;
 use Lsr\Caching\Cache;
+use Lsr\Core\App;
 use Lsr\Core\Config;
 use Lsr\Db\DB;
 use Lsr\Db\Dibi\Fluent;
@@ -20,6 +20,7 @@ use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Interfaces\FactoryInterface;
+use Lsr\Orm\ModelRepository;
 use Throwable;
 
 /**
@@ -122,6 +123,7 @@ class GameFactory implements FactoryInterface
             }
             self::$supportedSystems = array_filter(array_map('trim', explode(';', $systems)));
         }
+		/** @phpstan-ignore return.type */
         return self::$supportedSystems;
     }
 
@@ -219,8 +221,8 @@ class GameFactory implements FactoryInterface
                              ->orderBy('start')->desc()
                              ->fetchAll(),
           [
-            $cache::Expire => '7 days',
-            $cache::Tags   => [
+            'expire' => '7 days',
+            'tags'   => [
               'games',
               'models',
               'games/'.$date->format('Y-m-d'),

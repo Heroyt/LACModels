@@ -12,6 +12,7 @@ use App\GameModels\Game\Evo5\GameModes\TeamDeathmatch;
 use App\GameModels\Game\GameModes\AbstractMode;
 use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Lg\Results\LaserMaxx\Evo5\Evo5GameInterface;
+use Lsr\Lg\Results\LaserMaxx\Evo5\Scoring;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\Instantiate;
 use Lsr\Orm\Attributes\JsonExclude;
@@ -29,8 +30,8 @@ use OpenApi\Attributes as OA;
 class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo5GameInterface
 {
 
-	public const string SYSTEM = 'evo5';
-	public const string TABLE  = 'evo5_games';
+	public const string   SYSTEM            = 'evo5';
+	public const string   TABLE             = 'evo5_games';
 	protected const array IMPORT_PROPERTIES = [
 		'resultsFile',
 		'fileTime',
@@ -44,33 +45,38 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo5GameInterf
 		'lives',
 		'ammo',
 		'respawn',
+		'reloadClips',
+		'allowFriendlyFire',
+		'antiStalking',
 		'scoring',
 	];
 
 	#[NoDB, JsonExclude]
-	public string  $playerClass = Player::class;
+	public string                                 $playerClass = Player::class;
 	#[NoDB, JsonExclude]
-	public string   $teamClass   = Team::class;
+	public string                                 $teamClass   = Team::class;
 	#[Instantiate, OA\Property]
-	public \Lsr\Lg\Results\LaserMaxx\Evo5\Scoring $scoring;
+	public Scoring $scoring;
 
-    public function loadMode() : AbstractMode {
-        return parent::loadMode() ?? ($this->gameType === GameModeType::SOLO ? new Deathmatch() : new TeamDeathmatch());
-    }
+	public function loadMode(): AbstractMode {
+		return parent::loadMode() ?? ($this->gameType === GameModeType::SOLO ? new Deathmatch() : new TeamDeathmatch());
+	}
 
 	public function getAverageTeammateDeaths(): float {
 		$sum = 0;
-		foreach ($this->getPlayers() as $player) {
+		/** @var Player $player */
+		foreach ($this->players as $player) {
 			$sum += $player->deathsOwn;
 		}
-		return $sum / $this->getPlayerCount();
+		return $sum / $this->playerCount;
 	}
 
 	public function getAverageTeammateHits(): float {
 		$sum = 0;
-		foreach ($this->getPlayers() as $player) {
+		/** @var Player $player */
+		foreach ($this->players as $player) {
 			$sum += $player->hitsOwn;
 		}
-		return $sum / $this->getPlayerCount();
+		return $sum / $this->playerCount;
 	}
 }

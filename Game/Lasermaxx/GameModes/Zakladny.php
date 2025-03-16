@@ -7,13 +7,13 @@
 namespace App\GameModels\Game\Lasermaxx\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
-use App\GameModels\Game\Evo5\Player;
+use App\GameModels\Game\Evo5\Player as Evo5Player;
 use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
+use App\GameModels\Game\Lasermaxx\Player as LasermaxxPlayer;
 use App\GameModels\Game\Lasermaxx\Team as LasermaxxTeam;
 use App\GameModels\Game\Team;
-use App\Gate\Screens\Results\LaserMaxxZakladnyResultsScreen;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\Factory;
@@ -64,12 +64,18 @@ abstract class Zakladny extends AbstractMode implements CustomResultsMode
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getBasesDestroyed(\App\GameModels\Game\Evo5\Team $team) : int {
-        $shields = $team->players->map(fn(Player $player) => $player->bonus->shield);
+    public function getBasesDestroyed(LasermaxxTeam $team) : int {
+		/** @phpstan-ignore argument.type */
+        $shields = $team->players->map(function(LasermaxxPlayer $player) {
+			if ($player instanceof Evo5Player) {
+				return $player->bonus->shield;
+			}
+			return $player->getBonusCount();
+		});
         if (count($shields) === 0) {
             return 0;
         }
-        return max($shields);
+        return min($shields);
     }
 
     /**
@@ -77,13 +83,6 @@ abstract class Zakladny extends AbstractMode implements CustomResultsMode
      */
     public function getCustomResultsTemplate() : string {
         return 'zakladny';
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getCustomGateScreen() : string {
-        return LaserMaxxZakladnyResultsScreen::class;
     }
 
     public function getBaseNameForTeam(LasermaxxTeam $team) : string {

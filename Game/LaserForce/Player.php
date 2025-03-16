@@ -177,4 +177,8 @@ class Player extends \App\GameModels\Game\Player
         );
         return $this;
     }
+
+	public function getExpectedAverageTeammateHitCount(): float {
+		return 0.0;
+	}
 }

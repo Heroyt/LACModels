@@ -11,6 +11,7 @@ use Lsr\Lg\Results\Interface\Models\ModifyScoresMode;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
+/** @phpstan-ignore argument.type */
 #[PrimaryKey('id_mode'), Factory(GameModeFactory::class)]
 class SensorTag extends Deathmatch implements ModifyScoresMode
 {

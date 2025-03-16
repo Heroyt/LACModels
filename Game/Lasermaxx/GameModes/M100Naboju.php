@@ -8,7 +8,6 @@ namespace App\GameModels\Game\Lasermaxx\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\GameModes\CustomResultsMode;
-use App\Gate\Screens\Results\LaserMaxx100NabojuResultsScreen;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
@@ -33,12 +32,4 @@ abstract class M100Naboju extends \App\GameModels\Game\GameModes\Deathmatch impl
         return 'naboju';
     }
 
-    /**
-     * Get a template file containing the custom gate results
-     *
-     * @return string Path to template file
-     */
-    public function getCustomGateScreen() : string {
-        return LaserMaxx100NabojuResultsScreen::class;
-    }
 }

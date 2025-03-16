@@ -4,6 +4,7 @@ namespace App\GameModels\Game\Lasermaxx;
 
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Game\Evo5\Player;
+use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player as BasePlayer;
 use Lsr\Lg\Results\LaserMaxx\LaserMaxxGameInterface;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
@@ -33,17 +34,28 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
 		'lives',
 		'ammo',
 		'respawn',
+		'reloadClips',
+		'allowFriendlyFire',
+		'antiStalking',
 	];
 
+	#[OA\Property]
 	public int $fileNumber;
 	/** @var int Initial lives */
+	#[OA\Property]
 	public int $lives = 9999;
 	/** @var int Initial ammo count */
+	#[OA\Property]
 	public int $ammo = 9999;
 	/** @var int Respawn time in seconds */
-	public int $respawn = 5;public int $reloadClips = 0;
-    public bool $allowFriendlyFire = true;
-    public bool $antiStalking = false;
+	#[OA\Property]
+	public int $respawn = 5;
+	#[OA\Property]
+	public int $reloadClips = 0;
+	#[OA\Property]
+	public bool $allowFriendlyFire = true;
+	#[OA\Property]
+	public bool $antiStalking = false;
 
     protected bool $minesOn;
 
@@ -90,6 +102,7 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
     public function getBestsFields() : array {
         $info = parent::getBestsFields();
         try {
+			/** @var AbstractMode|null $mode */
             $mode = $this->mode;
             if (!isset($mode)) {
                 return $info;

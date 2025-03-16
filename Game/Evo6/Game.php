@@ -26,8 +26,8 @@ use OpenApi\Attributes as OA;
 #[PrimaryKey('id_game'), Factory(GameFactory::class, ['system' => 'evo6']), OA\Schema(schema: 'GameEvo6')]
 class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo6GameInterface
 {
-    public const string SYSTEM = 'evo6';
-    public const string TABLE = 'evo6_games';
+	public const string   SYSTEM            = 'evo6';
+	public const string   TABLE             = 'evo6_games';
 	protected const array IMPORT_PROPERTIES = [
 		'resultsFile',
 		'fileTime',
@@ -41,25 +41,37 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo6GameInterf
 		'lives',
 		'ammo',
 		'respawn',
+		'reloadClips',
+		'allowFriendlyFire',
+		'antiStalking',
 		'scoring',
+		'triggerSpeed',
+		'gameStyleType',
+		'vipSettings',
+		'zombieSettings',
+		'hitGainSettings',
+		'respawnSettings',
 	];
 
 	#[NoDB]
-	public string                             $playerClass = Player::class;
+	public string          $playerClass   = Player::class;
 	#[NoDB]
-	public string                             $teamClass   = Team::class;
-	public bool $blastShots = false;
-    #[Instantiate]
-    #[OA\Property]
-	public Scoring $scoring;public TriggerSpeed $triggerSpeed = TriggerSpeed::FAST;
-    public GameStyleType $gameStyleType = GameStyleType::TEAM;
-    #[Instantiate]
-    public VipSettings $vipSettings;
-    #[Instantiate]
-    public ZombieSettings $zombieSettings;
-    #[Instantiate]
-    public HitGainSettings $hitGainSettings;
-    #[Instantiate]
-    public RespawnSettings $respawnSettings;
+	public string          $teamClass     = Team::class;
+	public bool            $blastShots    = false;
+	#[Instantiate]
+	#[OA\Property]
+	public Scoring         $scoring;
+	#[OA\Property]
+	public TriggerSpeed    $triggerSpeed  = TriggerSpeed::FAST;
+	#[OA\Property]
+	public GameStyleType   $gameStyleType = GameStyleType::TEAM;
+	#[Instantiate]
+	public VipSettings     $vipSettings;
+	#[Instantiate]
+	public ZombieSettings  $zombieSettings;
+	#[Instantiate]
+	public HitGainSettings $hitGainSettings;
+	#[Instantiate]
+	public RespawnSettings $respawnSettings;
 
 }

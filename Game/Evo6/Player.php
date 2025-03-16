@@ -10,6 +10,7 @@ use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
+use OpenApi\Attributes as OA;
 
 /**
  * LaserMaxx Evo6 player model
@@ -17,7 +18,7 @@ use Lsr\Orm\Attributes\Relations\ManyToOne;
  * @extends \App\GameModels\Game\Lasermaxx\Player<Game, Team>
  * @phpstan-ignore-next-line
  */
-#[PrimaryKey('id_player'), Factory(PlayerFactory::class, ['system' => 'evo6'])]
+#[PrimaryKey('id_player'), Factory(PlayerFactory::class, ['system' => 'evo6']), OA\Schema(schema: 'PlayerEvo6')]
 class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6PlayerInterface
 {
     public const string TABLE = 'evo6_players';
@@ -47,32 +48,53 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6Player
 		'myLasermaxx',
 		'bonuses',
 		'calories',
+		'activity',
+		'penaltyCount',
+		'scorePenalty',
+		'scoreEncouragement',
+		'scoreActivity',
+		'scoreVip',
+		'scoreReality',
+		'scoreKnockout',
+		'birthday',
 	];
 
+	#[OA\Property]
     public int $bonuses = 0;
+	#[OA\Property]
     public int $activity = 0;
+	#[OA\Property]
     public int $calories = 0;
+	#[OA\Property]
     public int $scoreVip = 0;
+	#[OA\Property]
     public int $scoreActivity = 0;
+	#[OA\Property]
     public int $scoreEncouragement = 0;
+	#[OA\Property]
     public int $scoreKnockout = 0;
+	#[OA\Property]
     public int $scorePenalty = 0;
+	#[OA\Property]
     public int $scoreReality = 0;
+	#[OA\Property]
     public int $penaltyCount = 0;
+	#[OA\Property]
     public bool $birthday = false;
-    #[NoDB]
+    #[NoDB, OA\Property]
     public int $respawns {
         get {
+			assert($this->game instanceof Game);
             if ($this->deaths < $this->game->lives) {
                 return 0;
             }
-            return floor(($this->deaths - $this->game->lives) / $this->game->respawnSettings->respawnLives);
+            return (int) floor(($this->deaths - $this->game->lives) / $this->game->respawnSettings->respawnLives);
         }
     }
 
-    #[ManyToOne(class: Game::class)]
+    #[ManyToOne(class: Game::class), OA\Property(ref: '#/components/schemas/GameEvo6')]
     public GameInterface $game;
-    #[ManyToOne(foreignKey: 'id_team', class: Team::class)]
+    #[ManyToOne(foreignKey: 'id_team', class: Team::class), OA\Property(ref: '#/components/schemas/TeamEvo6')]
     public ?TeamInterface $team = null;
 
     /**

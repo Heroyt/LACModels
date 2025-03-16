@@ -7,6 +7,7 @@ use App\GameModels\Factory\GameModeFactory;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
+/** @phpstan-ignore argument.type */
 #[PrimaryKey('id_mode'), Factory(GameModeFactory::class)]
 class KamenNuzkyPapir extends TeamDeathmatch
 {

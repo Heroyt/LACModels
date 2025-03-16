@@ -13,7 +13,7 @@ class Game extends \App\GameModels\Game\Game
     use WithTargets;
 
     public const string TABLE = 'laserforce_games';
-    public const string SYSTEM = 'laserForce';
+    public const string SYSTEM = 'laserforce';
 
     /** @var Event[] */
     #[NoDB]

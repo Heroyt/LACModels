@@ -2,9 +2,6 @@
 
 namespace App\GameModels\Game\GameModes;
 
-use App\Gate\Screens\GateScreen;
-use App\Gate\Screens\Results\ResultsScreenInterface;
-
 /**
  * Interface for game modes which should use a different results template
  */
@@ -16,11 +13,4 @@ interface CustomResultsMode
      * @return string Path to template file
      */
     public function getCustomResultsTemplate() : string;
-
-    /**
-     * Get a custom gate screen that will show the results for this mode
-     *
-     * @return class-string<ResultsScreenInterface&GateScreen> Custom results gate screen to use
-     */
-    public function getCustomGateScreen() : string;
 }

@@ -8,6 +8,7 @@ use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
+/** @phpstan-ignore argument.type */
 #[PrimaryKey('id_mode'), Factory(GameModeFactory::class)]
 class TeamRevolver extends Revolver
 {

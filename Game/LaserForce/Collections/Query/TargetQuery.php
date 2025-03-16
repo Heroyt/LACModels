@@ -2,8 +2,8 @@
 
 namespace App\GameModels\Game\LaserForce\Collections\Query;
 
-use App\Core\Collections\AbstractCollectionQuery;
 use App\GameModels\Game\LaserForce\Target;
+use Lsr\Lg\Results\Collections\AbstractCollectionQuery;
 
 /**
  * Query object for player models

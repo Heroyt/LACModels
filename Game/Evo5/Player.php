@@ -15,6 +15,7 @@ use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\Instantiate;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
+use OpenApi\Attributes as OA;
 
 /**
  * LaserMaxx Evo5 player model
@@ -22,7 +23,7 @@ use Lsr\Orm\Attributes\Relations\ManyToOne;
  * @extends \App\GameModels\Game\Lasermaxx\Player<Game, Team>
  * @phpstan-ignore-next-line
  */
-#[PrimaryKey('id_player'), Factory(PlayerFactory::class, ['system' => 'evo5'])]
+#[PrimaryKey('id_player'), Factory(PlayerFactory::class, ['system' => 'evo5']), OA\Schema(schema: 'PlayerEvo5')]
 class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo5PlayerInterface
 {
     public const string TABLE = 'evo5_players';
@@ -53,11 +54,11 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo5Player
 		'bonus',
 	];
 
-    #[Instantiate]
+    #[Instantiate, OA\Property]
     public BonusCounts $bonus;
-    #[ManyToOne(class: Game::class)]
+    #[ManyToOne(class: Game::class), OA\Property(ref: '#/components/schemas/GameEvo5')]
     public GameInterface $game;
-    #[ManyToOne(foreignKey: 'id_team', class: Team::class)]
+    #[ManyToOne(foreignKey: 'id_team', class: Team::class), OA\Property(ref: '#/components/schemas/TeamEvo5')]
     public ?TeamInterface $team = null;
 
     public function getMines() : int {

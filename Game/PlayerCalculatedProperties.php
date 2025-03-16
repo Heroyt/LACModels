@@ -22,9 +22,7 @@ trait PlayerCalculatedProperties
 
     #[NoDB]
     public int $color {
-        get {
-            return $this->team->color ?? ($this->game->mode->isSolo() ? 2 : 0);
-        }
+        get => $this->team->color ?? ($this->game->mode->isSolo() ? 2 : 0);
     }
 
     #[NoDB]
@@ -51,6 +49,7 @@ trait PlayerCalculatedProperties
                 $max = 0;
                 foreach ($this->getHitsPlayers() as $hits) {
                     if ($hits->count > $max) {
+						/** @phpstan-ignore assign.propertyType */
                         $this->favouriteTarget = $hits->playerTarget;
                         $max = $hits->count;
                     }

@@ -6,33 +6,29 @@
 
 namespace App\GameModels\Game;
 
-use App\Core\App;
-use App\Core\Collections\CollectionCompareFilter;
-use App\Core\Collections\Comparison;
 use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Factory\GameFactory;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Traits\WithPlayers;
 use App\GameModels\Traits\WithTeams;
-use App\Models\BaseModel;
 use App\Models\Arena;
-use App\Models\Auth\LigaPlayer;
+use App\Models\BaseModel;
 use App\Models\DataObjects\Import\GameImportDto;
 use App\Models\DataObjects\Import\TeamColorImportDto;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
+use App\Models\SystemType;
 use App\Models\Tournament\Game as TournamentGame;
-use DateTimeImmutable;
 use App\Models\WithMetaData;
-use App\Services\FeatureConfig;
 use DateTimeInterface;
 use Dibi\Row;
-use LAC\Modules\Tables\Models\Table;
 use Lsr\Caching\Cache;
-use Lsr\Core\Config;
+use Lsr\Core\App;
 use Lsr\Db\DB;
 use Lsr\Helpers\Tools\Strings;
+use Lsr\Lg\Results\Collections\CollectionCompareFilter;
+use Lsr\Lg\Results\Enums\Comparison;
 use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Lg\Results\Interface\Models\GameGroupInterface;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
@@ -47,6 +43,7 @@ use Lsr\Orm\Attributes\Instantiate;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\LoadingType;
 use Nette\Caching\Cache as CacheParent;
 use OpenApi\Attributes as OA;
@@ -84,8 +81,8 @@ abstract class Game extends BaseModel implements GameInterface
 	use WithTeams;
 	use WithMetaData;
 
-	/** @var 'evo5'|'evo6'|'laserforce'|string */
-	public const string   SYSTEM            = '';
+	/** @var value-of<SystemType> */
+	public const string   SYSTEM = 'evo5';
 	public const array    CACHE_TAGS        = ['games'];
 	protected const array IMPORT_PROPERTIES = [
 		'resultsFile',
@@ -98,7 +95,9 @@ abstract class Game extends BaseModel implements GameInterface
 		'code,',
 	];
 
+	#[OA\Property]
 	public ?string $resultsFile = null;
+	#[OA\Property]
 	public string  $modeName;
 
 	#[OA\Property]
@@ -115,15 +114,18 @@ abstract class Game extends BaseModel implements GameInterface
 	#[OA\Property]
 	public string             $code;
 
-	#[OA\Property, ManyToOne(loadingType: LoadingType::LAZY)]
-	public ?AbstractMode $mode;
+	/** @var AbstractMode|null $mode  */
+	#[OA\Property, ManyToOne(class: AbstractMode::class, loadingType: LoadingType::EAGER, factoryMethod: 'loadMode'), NoValidate]
+	public ?GameModeInterface $mode;
 	#[OA\Property]
 	public GameModeType  $gameType = GameModeType::TEAM;
 	#[ManyToOne, OA\Property]
 	public ?Arena        $arena    = null;
 
+	/** @var MusicMode|null */
 	#[ManyToOne(class: MusicMode::class), OA\Property, NoValidate]
 	public ?MusicModeInterface $music = null;
+	/** @var GameGroup|null  */
 	#[ManyToOne(class: GameGroup::class), OA\Property, NoValidate]
 	public ?GameGroupInterface $group = null;
 
@@ -131,6 +133,7 @@ abstract class Game extends BaseModel implements GameInterface
 	public bool     $started  = false;
 	#[NoDB, OA\Property]
 	public bool     $finished = false;
+	#[OA\Property]
 	public bool     $visited  = false;
 	protected float $realGameLength;
 
@@ -154,286 +157,6 @@ abstract class Game extends BaseModel implements GameInterface
 	 */
 	public static function getTeamNames(): array {
 		return [];
-	}
-
-	/**
-	 * Create a new game from JSON data
-	 *
-	 * @param array{
-	 *     gameType?: string,
-	 *     lives?: int,
-	 *     ammo?: int,
-	 *     modeName?: string,
-	 *     fileNumber?: int,
-	 *     code?: string,
-	 *     respawn?: int,
-	 *     sync?: int|bool,
-	 *     start?: array{date:string,timezone?:string}|string,
-	 *     end?: array{date:string,timezone?:string}|string,
-	 *     timing?: array<string,int>,
-	 *     scoring?: array<string,int>,
-	 *     mode?: array{type?:string,name:string},
-	 *     players?: array{
-	 *         id?: int,
-	 *         id_player?: int,
-	 *         name?: string,
-	 *         code?: string,
-	 *         team?: int|array{id?:int,color?:int}|mixed,
-	 *         score?: int,
-	 *         skill?: int,
-	 *         shots?: int,
-	 *         accuracy?: int,
-	 *         vest?: int,
-	 *         hits?: int,
-	 *         deaths?: int,
-	 *         hitsOwn?: int,
-	 *         hitsOther?: int,
-	 *         hitPlayers?: array{target:int,count:int}[],
-	 *         deathsOwn?: int,
-	 *         deathsOther?: int,
-	 *         position?: int,
-	 *         shotPoints?: int,
-	 *         scoreBonus?: int,
-	 *         scoreMines?: int,
-	 *         ammoRest?: int,
-	 *         bonus?: array<string, int>,
-	 *     }[],
-	 *   teams?: array{
-	 *         id?: int,
-	 *         id_team?: int,
-	 *         name?: string,
-	 *         score?: int,
-	 *         color?: int,
-	 *         position?: int,
-	 *     }[],
-	 * } $data
-	 *
-	 * @return Game
-	 * @throws DirectoryCreationException
-	 * @throws GameModeNotFoundException
-	 * @throws ModelNotFoundException
-	 * @throws Throwable
-	 * @throws ValidationException
-	 */
-	public static function fromJson(array $data): Game {
-		$game = new static();
-		/** @var Player[] $players */
-		$players = [];
-		/** @var Team[] $teams */
-		$teams = [];
-		foreach ($data as $key => $value) {
-			if (!property_exists($game, $key)) {
-				continue;
-			}
-			switch ($key) {
-				case 'gameType':
-					$game->gameType = GameModeType::from($value);
-					break;
-				case 'lives':
-				case 'ammo':
-				case 'fileNumber':
-				case 'code':
-				case 'respawn':
-				case 'sync':
-					/* @phpstan-ignore-next-line */
-					$game->{$key} = $value;
-					break;
-				case 'end':
-				case 'start':
-					if (is_string($value)) {
-						$datetime = new DateTimeImmutable(($value));
-					}
-					else {
-						$timezone = new DateTimeZone($value['timezone'] ?? 'Europe/Prague');
-						$datetime = new DateTimeImmutable($value['date'], $timezone);
-					}
-					$game->{$key} = $datetime;
-					break;
-				case 'timing':
-					$game->timing = new Timing(...$value);
-					break;
-				case 'scoring':
-					assert(property_exists($game, 'scoring'));
-					$game->scoring = new Scoring(...$value);
-					break;
-				case 'modeName':
-					$game->modeName = $value;
-					break;
-				case 'mode':
-					if (!isset($value['type'])) {
-						$value['type'] = GameModeType::TEAM->value;
-					}
-					$game->mode = GameModeFactory::findByName(
-						$value['name'],
-						GameModeType::tryFrom(
-							$value['type']
-						) ?? GameModeType::TEAM,
-						static::SYSTEM
-					);
-					if (!empty($data['modeName'])) {
-						$mode = GameModeFactory::find(
-							$data['modeName'],
-							GameModeType::tryFrom(
-								$data['gameType'] ?? ''
-							) ?? GameModeType::TEAM,
-							static::SYSTEM
-						);
-						$game->mode = $mode;
-					}
-					break;
-				case 'players':
-				{
-					foreach ($value as $playerData) {
-						/** @var P $player */
-						$player = new ($game->playerClass);
-						$player->setGame($game);
-						$id = 0;
-						foreach ($playerData as $keyPlayer => $valuePlayer) {
-							if ($keyPlayer !== 'code' && !property_exists($player, $keyPlayer)) {
-								continue;
-							}
-							switch ($keyPlayer) {
-								case 'id':
-								case 'id_player':
-									$id = $valuePlayer;
-									break;
-								case 'name':
-								case 'score':
-								case 'skill':
-								case 'shots':
-								case 'accuracy':
-								case 'vest':
-								case 'hits':
-								case 'deaths':
-								case 'position':
-								case 'shotPoints':
-								case 'scoreBonus':
-								case 'scorePowers':
-								case 'scoreMines':
-								case 'ammoRest':
-								case 'minesHits':
-								case 'hitsOther':
-								case 'hitsOwn':
-								case 'deathsOther':
-								case 'deathsOwn':
-									/* @phpstan-ignore-next-line */
-									$player->{$keyPlayer} = $valuePlayer;
-									break;
-								case 'team':
-									if (is_numeric($valuePlayer)) {
-										$player->teamNum = (int)$valuePlayer;
-									}
-									else if (is_array($valuePlayer) && array_key_exists('color', $valuePlayer)) {
-										$player->teamNum = (int)$valuePlayer['color'];
-									}
-									break;
-								case 'bonus':
-									/* @phpstan-ignore-next-line */
-									$player->bonus = new BonusCounts(
-										$valuePlayer['agent'] ?? 0,
-										$valuePlayer['invisibility'] ?? 0,
-										$valuePlayer['machineGun'] ?? 0,
-										$valuePlayer['shield'] ?? 0,
-									);
-									break;
-								case 'code':
-									$player->user = LigaPlayer::getByCode($valuePlayer);
-									break;
-								case 'tournamentPlayer':
-									if (((int)$valuePlayer) > 0) {
-										try {
-											$player->tournamentPlayer = \App\Models\Tournament\Player::get(
-												(int)$valuePlayer
-											);
-										} catch (ModelNotFoundException) {
-										}
-									}
-									break;
-							}
-							$game->getPlayers()->add($player);
-							$players[$id] = $player;
-						}
-					}
-					break;
-				}
-				case 'teams':
-				{
-					foreach ($value as $teamData) {
-						/** @var T $team */
-						$team = new $game->teamClass;
-						$team->setGame($game);
-						$id = 0;
-						foreach ($teamData as $keyTeam => $valueTeam) {
-							if (!property_exists($team, $keyTeam)) {
-								continue;
-							}
-							switch ($keyTeam) {
-								case 'id':
-								case 'id_team':
-									$id = $valueTeam;
-									break;
-								case 'name':
-								case 'score':
-								case 'bonus':
-								case 'color':
-								case 'position':
-									$team->{$keyTeam} = $valueTeam;
-									break;
-								case 'tournamentTeam':
-									if (((int)$valueTeam) > 0) {
-										try {
-											$team->tournamentTeam = \App\Models\Tournament\Team::get(
-												(int)$valueTeam
-											);
-										} catch (ModelNotFoundException) {
-										}
-									}
-									break;
-							}
-							$game->addTeam($team);
-							$teams[$id] = $team;
-						}
-					}
-					break;
-				}
-			}
-		}
-
-		if (!isset($game->mode)) {
-			$game->getMode();
-		}
-
-		// Assign hits and teams
-		$game->getLogger()->debug('Teams - ' . json_encode($teams));
-		foreach (($data['players'] ?? []) as $playerData) {
-			$id = $playerData['id'] ?? $playerData['id_player'] ?? 0;
-			if (!isset($players[$id])) {
-				continue;
-			}
-			$player = $players[$id];
-			// Hits
-			foreach (($playerData['hitPlayers'] ?? []) as $hit) {
-				if (isset($players[$hit['target']])) {
-					$player->addHits($players[$hit['target']], $hit['count']);
-				}
-			}
-			// Team
-			$teamId = null;
-			if (isset($playerData['team'])) {
-				if (is_numeric($playerData['team'])) {
-					$teamId = (int)$playerData['team'];
-				}
-				else if (is_array($playerData['team']) && array_key_exists('id', $playerData['team'])) {
-					$teamId = (int)$playerData['team']['id'];
-				}
-			}
-			$game->getLogger()->debug('Player - ' . $player->vest . ' - team ' . json_encode($teamId));
-			if (isset($teamId, $teams[$teamId])) {
-				$player->setTeam($teams[$teamId]);
-				$teams[$teamId]->addPlayer($player);
-			}
-		}
-		return $game;
 	}
 
 	/**
@@ -474,7 +197,7 @@ abstract class Game extends BaseModel implements GameInterface
 			$player = ($game->playerClass)::fromImportDto($playerData);
 			$player->setGame($game);
 			$id = $playerData->id ?? $playerData->id_player ?? 0;
-			$game->addPlayer($player);
+			$game->players->set($player, (int) $player->vest);
 			$players[$id] = $player;
 		}
 
@@ -483,7 +206,7 @@ abstract class Game extends BaseModel implements GameInterface
 			$team = ($game->teamClass)::fromImportDto($teamData);
 			$team->setGame($game);
 			$id = $teamData->id ?? $teamData->id_player ?? 0;
-			$game->addTeam($team);
+			$game->teams->set($team, $team->color);
 			$teams[$id] = $team;
 		}
 
@@ -516,10 +239,11 @@ abstract class Game extends BaseModel implements GameInterface
 			}
 			$game->getLogger()->debug('Player - ' . $player->vest . ' - team ' . json_encode($teamId));
 			if (isset($teamId, $teams[$teamId])) {
-				$player->setTeam($teams[$teamId]);
-				$teams[$teamId]->addPlayer($player);
+				$player->team = $teams[$teamId];
+				$teams[$teamId]->players->set($player, (int) $player->vest);
 			}
 		}
+		/** @phpstan-ignore return.type */
 		return $game;
 	}
 
@@ -535,27 +259,6 @@ abstract class Game extends BaseModel implements GameInterface
 			}
 			if (!isset($this->mode) && isset($this->modeName)) {
 				$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
-			}
-		}
-		return $this->mode;
-	}
-
-	/**
-	 * @return AbstractMode|null
-	 * @throws GameModeNotFoundException
-	 */
-	public function getMode(): ?AbstractMode {
-		if (!isset($this->mode)) {
-			if (isset($this->relationIds['mode'])) {
-				$this->mode = GameModeFactory::getById($this->relationIds['mode']);
-			}
-			else {
-				if (isset($this->modeName)) {
-					$this->mode = GameModeFactory::find($this->modeName, $this->gameType, $this::SYSTEM);
-				}
-				else {
-					$this->mode = null;
-				}
 			}
 		}
 		return $this->mode;
@@ -921,18 +624,18 @@ abstract class Game extends BaseModel implements GameInterface
 
 	public function getAverageDeaths(): float {
 		$sum = 0;
-		foreach ($this->getPlayers() as $player) {
+		foreach ($this->players as $player) {
 			$sum += $player->deaths;
 		}
-		return $sum / $this->getPlayerCount();
+		return $sum / $this->playerCount;
 	}
 
 	public function getAverageHits(): float {
 		$sum = 0;
-		foreach ($this->getPlayers() as $player) {
+		foreach ($this->players as $player) {
 			$sum += $player->hits;
 		}
-		return $sum / $this->getPlayerCount();
+		return $sum / $this->playerCount;
 	}
 
 }

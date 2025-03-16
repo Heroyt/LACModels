@@ -67,6 +67,7 @@ class PlayerFactory implements FactoryInterface
      * Prepare a SQL query for all players (from all systems)
      *
      * @param  int[][]  $gameIds
+     * @param non-empty-string[] $fields
      *
      * @return Fluent
      */
@@ -79,6 +80,7 @@ class PlayerFactory implements FactoryInterface
 
     /**
      * @param  int[][]  $gameIds
+     * @param non-empty-string[] $fields
      *
      * @return string[]
      */
@@ -331,10 +333,10 @@ class PlayerFactory implements FactoryInterface
 	 * @param array<int|string, string|array{first:string,second:string,operation:string}>                                      $modeFields
 	 */
 	public static function queryPlayerGames(array $gameFields = [], array $playerFields = [], array $modeFields = []): Fluent {
-		$query = DB::getConnection()->select('*');
+		$query = DB::getConnection()->connection->select('*');
 		$queries = self::getPlayerWithGameUnionQueries($gameFields, $playerFields, $modeFields);
 		$query->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]');
-		return (new Fluent($query))->cacheTags('players');
+		return DB::getConnection()->getFluent($query)->cacheTags('players');
 	}
 
 	/**
