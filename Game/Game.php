@@ -47,6 +47,7 @@ use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\LoadingType;
 use Nette\Caching\Cache as CacheParent;
 use OpenApi\Attributes as OA;
+use Random\Randomizer;
 use Throwable;
 
 /**
@@ -138,6 +139,8 @@ abstract class Game extends BaseModel implements GameInterface
 	protected float $realGameLength;
 	#[OA\Property]
 	public ?string $photosSecret = null;
+	#[OA\Property]
+	public bool $photosPublic = false;
 
 	#[NoDB]
 	public ?TournamentGame $tournamentGame = null;
@@ -638,6 +641,16 @@ abstract class Game extends BaseModel implements GameInterface
 			$sum += $player->hits;
 		}
 		return $sum / $this->playerCount;
+	}
+
+	public function generatePhotosSecret() : string {
+		if (!empty($this->photosSecret)) {
+			return $this->photosSecret;
+		}
+
+		$this->photosSecret = rtrim(base64_encode(new Randomizer()->getBytes(32)), '=');
+		bdump($this->photosSecret);
+		return $this->photosSecret;
 	}
 
 }
