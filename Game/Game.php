@@ -112,6 +112,8 @@ abstract class Game extends BaseModel implements GameInterface
 	#[Instantiate]
 	#[OA\Property]
 	public ?Timing            $timing     = null;
+
+	/** @var non-empty-string  */
 	#[OA\Property]
 	public string             $code;
 

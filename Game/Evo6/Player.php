@@ -85,7 +85,7 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6Player
     public int $respawns {
         get {
 			assert($this->game instanceof Game);
-            if ($this->deaths < $this->game->lives) {
+            if ($this->deaths < $this->game->lives || $this->game->respawnSettings->respawnLives === 0) {
                 return 0;
             }
             return (int) floor(($this->deaths - $this->game->lives) / $this->game->respawnSettings->respawnLives);
