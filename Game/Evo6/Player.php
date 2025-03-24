@@ -26,7 +26,6 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6Player
     public int $bonuses = 0;
     public int $activity = 0;
     public int $calories = 0;
-    public int $scoreVip = 0;
     public int $scoreActivity = 0;
     public int $scoreEncouragement = 0;
     public int $scoreKnockout = 0;
