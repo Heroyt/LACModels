@@ -60,7 +60,8 @@ class GameModeFactory implements FactoryInterface
     ) : AbstractMode {
         Timer::startIncrementing('factory.gamemode');
         $output?->writeln(
-          'Finding game mode object... '.print_r(['system' => $system, 'mode' => $mode, 'type' => $modeType], true)
+          'Finding game mode object... '.print_r(['system' => $system, 'mode' => $mode, 'type' => $modeType], true),
+          OutputInterface::VERBOSITY_DEBUG,
         );
 
         // Normalize system value
@@ -96,7 +97,7 @@ class GameModeFactory implements FactoryInterface
             else {
                 $class .= (GameModeType::TEAM === $modeType ? 'TeamDeathmatch' : 'Deathmatch');
             }
-            $output?->writeln('Using generic class: '.$class);
+            $output?->writeln('Using generic class: '.$class, OutputInterface::VERBOSITY_DEBUG);
             // Cache found class
             foreach ($system as $sys) {
                 $sys = self::normalizeSystemToString($sys);
@@ -130,7 +131,7 @@ class GameModeFactory implements FactoryInterface
         if (isset($mode)) {
             $key .= '_'.$mode->id_mode;
         }
-        $output?->writeln('Using generic class: '.$class);
+        $output?->writeln('Using generic class: '.$class, OutputInterface::VERBOSITY_DEBUG);
         /** @var class-string<AbstractMode> $class */
         self::$gameModeClasses[$key] = $class;
         Timer::stop('factory.gamemode');
@@ -182,10 +183,10 @@ class GameModeFactory implements FactoryInterface
             $key .= '_'.$mode->id_mode;
         }
 
-        $output?->writeln('Finding mode class - '.$key);
+        $output?->writeln('Finding mode class - '.$key, OutputInterface::VERBOSITY_DEBUG);
 
         if (isset(self::$gameModeClasses[$key])) {
-            $output?->writeln('Cache hit');
+            $output?->writeln('Cache hit', OutputInterface::VERBOSITY_DEBUG);
             return self::$gameModeClasses[$key];
         }
 
@@ -202,15 +203,15 @@ class GameModeFactory implements FactoryInterface
                 $name = 'M'.$name;
             }
             $dbName = str_replace([' ', '.', '_', '-', ','], '', Strings::toAscii(Strings::capitalize($name)));
-            $output?->writeln('Transformed mode name: '.$name.' -> '.$dbName);
+            $output?->writeln('Transformed mode name: '.$name.' -> '.$dbName, OutputInterface::VERBOSITY_DEBUG);
             $class = $classBase.$classSystem.$classNamespace.$dbName;
-            $output?->writeln('Trying class: '.$class);
+            $output?->writeln('Trying class: '.$class, OutputInterface::VERBOSITY_DEBUG);
             if (class_exists($class)) {
                 self::$gameModeClasses[$key] = $class;
                 return $class;
             }
             $class = $classBase.$classSystem.$classNamespace.strtoupper($dbName);
-            $output?->writeln('Trying class: '.$class);
+            $output?->writeln('Trying class: '.$class, OutputInterface::VERBOSITY_DEBUG);
             if (class_exists($class)) {
                 self::$gameModeClasses[$key] = $class;
                 return $class;
@@ -235,12 +236,12 @@ class GameModeFactory implements FactoryInterface
             }
         }
         $class = $classBase.$classSystem.$classNamespace.$className;
-        $output?->writeln('Trying class: '.$class);
+        $output?->writeln('Trying class: '.$class, OutputInterface::VERBOSITY_DEBUG);
         if (class_exists($class)) {
             self::$gameModeClasses[$key] = $class;
             return $class;
         }
-        $output?->writeln('Nothing found');
+        $output?->writeln('Nothing found', OutputInterface::VERBOSITY_DEBUG);
         return null;
     }
 
