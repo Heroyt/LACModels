@@ -12,6 +12,7 @@ use App\Models\System;
 use App\Models\SystemType;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Lg\Results\Enums\GameModeType;
+use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Interfaces\FactoryInterface;
 use Nette\Utils\Strings;
 
@@ -51,9 +52,9 @@ class GameModeFactory implements FactoryInterface
      * @throws GameModeNotFoundException
      */
     public static function findModeObject(
-      string | null | System | array $system,
-      ?BaseGameModeRow $mode,
-      GameModeType                   $modeType
+      string | null | System | SystemType | int | array $system,
+      ?BaseGameModeRow                                  $mode,
+      GameModeType                                      $modeType
     ) : AbstractMode {
         Timer::startIncrementing('factory.gamemode');
 
@@ -64,23 +65,16 @@ class GameModeFactory implements FactoryInterface
                 $system = $systems;
             }
         }
-        else {
-            if ($system instanceof System) {
-                $system = $system->type->value;
-            }
-            else {
-                if ($system === null) {
-                    $system = [];
-                    foreach (System::getActive() as $s) {
-                        $system[] = $s->type->value;
-                    }
-                }
+        else if ($system === null) {
+            $system = [];
+            foreach (System::getActive() as $s) {
+                $system[] = $s->type->value;
             }
         }
-        /** @var string[]|string $system */
 
         if (is_array($system)) {
             foreach ($system as $sys) {
+                $sys = self::normalizeSystemToString($sys);
                 $class = self::tryFindingModeClass($sys, $mode, $modeType);
                 if ($class !== null) {
                     Timer::stop('factory.gamemode');
@@ -97,16 +91,19 @@ class GameModeFactory implements FactoryInterface
             }
             // Cache found class
             foreach ($system as $sys) {
+                $sys = self::normalizeSystemToString($sys);
                 $key = $sys.'_'.$modeType->value;
                 if (isset($mode)) {
                     $key .= '_'.$mode->id_mode;
                 }
+                /** @var class-string<AbstractMode> $class */
                 self::$gameModeClasses[$key] = $class;
             }
             Timer::stop('factory.gamemode');
             return self::getModeObject($class, $mode);
         }
 
+        $system = self::normalizeSystemToString($system);
         $class = self::tryFindingModeClass($system, $mode, $modeType);
         if ($class !== null) {
             Timer::stop('factory.gamemode');
@@ -125,9 +122,38 @@ class GameModeFactory implements FactoryInterface
         if (isset($mode)) {
             $key .= '_'.$mode->id_mode;
         }
+        /** @var class-string<AbstractMode> $class */
         self::$gameModeClasses[$key] = $class;
         Timer::stop('factory.gamemode');
         return self::getModeObject($class, $mode);
+    }
+
+    /**
+     * @param  int|string|System|SystemType|null  $system
+     *
+     * @return value-of<SystemType>|null
+     */
+    private static function normalizeSystemToString(int | string | SystemType | System | null $system) : ?string {
+        if (is_string($system)) {
+            // Validate
+            $type = SystemType::tryFrom($system);
+            return $type?->value;
+        }
+        if (is_int($system)) {
+            try {
+                $system = System::get($system);
+                return $system->type->value;
+            } catch (ModelNotFoundException) {
+                return null;
+            }
+        }
+        if ($system instanceof System) {
+            return $system->type->value;
+        }
+        if ($system instanceof SystemType) {
+            return $system->value;
+        }
+        return $system;
     }
 
     /**
