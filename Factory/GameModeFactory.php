@@ -15,6 +15,7 @@ use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Interfaces\FactoryInterface;
 use Nette\Utils\Strings;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Factory for game mode models
@@ -54,9 +55,13 @@ class GameModeFactory implements FactoryInterface
     public static function findModeObject(
       string | null | System | SystemType | int | array $system,
       ?BaseGameModeRow                                  $mode,
-      GameModeType                                      $modeType
+      GameModeType     $modeType,
+      ?OutputInterface $output = null,
     ) : AbstractMode {
         Timer::startIncrementing('factory.gamemode');
+        $output?->writeln(
+          'Finding game mode object... '.print_r(['system' => $system, 'mode' => $mode, 'type' => $modeType], true)
+        );
 
         // Normalize system value
         if (is_string($system)) {
@@ -65,17 +70,19 @@ class GameModeFactory implements FactoryInterface
                 $system = $systems;
             }
         }
-        else if ($system === null) {
-            $system = [];
-            foreach (System::getActive() as $s) {
-                $system[] = $s->type->value;
+        else {
+            if ($system === null) {
+                $system = [];
+                foreach (System::getActive() as $s) {
+                    $system[] = $s->type->value;
+                }
             }
         }
 
         if (is_array($system)) {
             foreach ($system as $sys) {
                 $sys = self::normalizeSystemToString($sys);
-                $class = self::tryFindingModeClass($sys, $mode, $modeType);
+                $class = self::tryFindingModeClass($sys, $mode, $modeType, $output);
                 if ($class !== null) {
                     Timer::stop('factory.gamemode');
                     return self::getModeObject($class, $mode);
@@ -89,6 +96,7 @@ class GameModeFactory implements FactoryInterface
             else {
                 $class .= (GameModeType::TEAM === $modeType ? 'TeamDeathmatch' : 'Deathmatch');
             }
+            $output?->writeln('Using generic class: '.$class);
             // Cache found class
             foreach ($system as $sys) {
                 $sys = self::normalizeSystemToString($sys);
@@ -104,7 +112,7 @@ class GameModeFactory implements FactoryInterface
         }
 
         $system = self::normalizeSystemToString($system);
-        $class = self::tryFindingModeClass($system, $mode, $modeType);
+        $class = self::tryFindingModeClass($system, $mode, $modeType, $output);
         if ($class !== null) {
             Timer::stop('factory.gamemode');
             return self::getModeObject($class, $mode);
@@ -122,6 +130,7 @@ class GameModeFactory implements FactoryInterface
         if (isset($mode)) {
             $key .= '_'.$mode->id_mode;
         }
+        $output?->writeln('Using generic class: '.$class);
         /** @var class-string<AbstractMode> $class */
         self::$gameModeClasses[$key] = $class;
         Timer::stop('factory.gamemode');
@@ -162,16 +171,21 @@ class GameModeFactory implements FactoryInterface
      * @param  GameModeType  $modeType
      * @return class-string<AbstractMode>|null
      */
-    private static function tryFindingModeClass(string           $system,
-                                                ?BaseGameModeRow $mode,
-                                                GameModeType     $modeType
+    private static function tryFindingModeClass(
+      string           $system,
+      ?BaseGameModeRow $mode,
+      GameModeType     $modeType,
+      ?OutputInterface $output = null,
     ) : ?string {
         $key = $system.'_'.$modeType->value;
         if (isset($mode)) {
             $key .= '_'.$mode->id_mode;
         }
 
+        $output?->writeln('Finding mode class - '.$key);
+
         if (isset(self::$gameModeClasses[$key])) {
+            $output?->writeln('Cache hit');
             return self::$gameModeClasses[$key];
         }
 
@@ -188,12 +202,15 @@ class GameModeFactory implements FactoryInterface
                 $name = 'M'.$name;
             }
             $dbName = str_replace([' ', '.', '_', '-', ','], '', Strings::toAscii(Strings::capitalize($name)));
+            $output?->writeln('Transformed mode name: '.$name.' -> '.$dbName);
             $class = $classBase.$classSystem.$classNamespace.$dbName;
+            $output?->writeln('Trying class: '.$class);
             if (class_exists($class)) {
                 self::$gameModeClasses[$key] = $class;
                 return $class;
             }
             $class = $classBase.$classSystem.$classNamespace.strtoupper($dbName);
+            $output?->writeln('Trying class: '.$class);
             if (class_exists($class)) {
                 self::$gameModeClasses[$key] = $class;
                 return $class;
@@ -218,10 +235,12 @@ class GameModeFactory implements FactoryInterface
             }
         }
         $class = $classBase.$classSystem.$classNamespace.$className;
+        $output?->writeln('Trying class: '.$class);
         if (class_exists($class)) {
             self::$gameModeClasses[$key] = $class;
             return $class;
         }
+        $output?->writeln('Nothing found');
         return null;
     }
 
@@ -258,7 +277,8 @@ class GameModeFactory implements FactoryInterface
     public static function find(
       string                              $modeName,
       GameModeType                        $modeType = GameModeType::TEAM,
-      null | string | SystemType | System $system = null
+      null | string | SystemType | System $system = null,
+      ?OutputInterface                    $output = null,
     ) : AbstractMode {
         $query = new FindModeByNameQuery()->consoleName($modeName)->type($modeType);
         if ($system !== null) {
@@ -268,7 +288,7 @@ class GameModeFactory implements FactoryInterface
         if ($system === null && $mode->systems !== null) {
             $system = $mode->systems;
         }
-        return self::findModeObject($system, $mode, $modeType);
+        return self::findModeObject($system, $mode, $modeType, $output);
     }
 
     /**
