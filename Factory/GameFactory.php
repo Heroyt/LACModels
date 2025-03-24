@@ -77,7 +77,7 @@ class GameFactory implements FactoryInterface
     ) : Fluent {
         $query = DB::select();
         $queries = [];
-        $defaultFields = ['id_game', 'system', 'code', 'start', 'end'];
+        $defaultFields = ['id_game', 'id_mode', 'system', 'code', 'start', 'end'];
         foreach (self::getSupportedSystems() as $key => $system) {
             $addFields = '';
             if (!empty($fields)) {
@@ -98,7 +98,7 @@ class GameFactory implements FactoryInterface
             }
             $q = DB::select(
               ["[{$system}_games]", "[g$key]"],
-              "[g$key].[id_game], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end]".$addFields,
+              "[g$key].[id_game], [g$key].[id_mode], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end]".$addFields,
               $system
             );
             if ($excludeNotFinished) {
