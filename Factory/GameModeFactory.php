@@ -31,7 +31,7 @@ class GameModeFactory implements FactoryInterface
 
     /**
      * @param  int  $id
-     * @param  array{system?:string}  $options
+     * @param  array{system?:string|System|SystemType}  $options
      *
      * @return AbstractMode|null
      * @throws GameModeNotFoundException
