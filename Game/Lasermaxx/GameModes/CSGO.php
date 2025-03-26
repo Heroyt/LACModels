@@ -11,6 +11,7 @@ use App\GameModels\Game\Evo5\Game as Evo5Game;
 use App\GameModels\Game\Evo5\Team as Evo5Team;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
+use App\GameModels\Game\Lasermaxx\Team as LmxTeam;
 use App\GameModels\Game\Team;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
@@ -90,18 +91,18 @@ abstract class CSGO extends AbstractMode implements CustomResultsMode
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getRemainingLives(Evo5Team $team) : int {
+    public function getRemainingLives(LmxTeam $team) : int {
         return $this->getTotalLives($team) - $team->getDeaths();
     }
 
     /**
-     * @param  Evo5Team  $team
+     * @param LmxTeam $team
      *
      * @return int
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getTotalLives(Evo5Team $team) : int {
+    public function getTotalLives(LmxTeam $team) : int {
         /** @var Evo5Game $game */
         $game = $team->game;
         return count($team->players) * $game->lives;

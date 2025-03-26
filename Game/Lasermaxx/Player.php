@@ -54,6 +54,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 		'ammoRest',
 		'minesHits',
 		'vip',
+		'scoreVip',
 		'myLasermaxx',
 	];
 
@@ -72,8 +73,9 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 	#[OA\Property]
 	public int $minesHits     = 0;
 	#[OA\Property]
-
 	public bool $vip = false;
+	#[OA\Property]
+	public int $scoreVip = 0;
 
 	#[OA\Property(format:'url')]
 	public string $myLasermaxx = '';

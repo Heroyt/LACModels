@@ -7,7 +7,10 @@ use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player as BasePlayer;
 use Lsr\Lg\Results\LaserMaxx\LaserMaxxGameInterface;
+use Lsr\Lg\Results\LaserMaxx\VipSettings;
+use Lsr\Lg\Results\LaserMaxx\ZombieSettings;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
+use Lsr\Orm\Attributes\Instantiate;
 use OpenApi\Attributes as OA;
 
 /**
@@ -37,6 +40,11 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
 		'reloadClips',
 		'allowFriendlyFire',
 		'antiStalking',
+		'blastShots',
+		'switchOn',
+		'switchLives',
+		'vipSettings',
+		'zombieSettings',
 	];
 
 	#[OA\Property]
@@ -56,6 +64,16 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
 	public bool $allowFriendlyFire = true;
 	#[OA\Property]
 	public bool $antiStalking = false;
+	#[OA\Property]
+	public bool $blastShots = false;
+	#[OA\Property]
+	public bool $switchOn = false;
+	#[OA\Property]
+	public int $switchLives = 0;
+	#[Instantiate]
+	public ZombieSettings $zombieSettings;
+	#[Instantiate]
+	public VipSettings $vipSettings;
 
     protected bool $minesOn;
 

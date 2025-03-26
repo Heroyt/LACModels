@@ -22,4 +22,14 @@ abstract class Barvicky extends AbstractMode
 
 
     public string $name = 'Barvičky';
+
+	public function isSolo(): bool {
+		return true;
+	}
+
+	public function isTeam(): bool {
+		return false;
+	}
+
+
 }

@@ -50,6 +50,7 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo5Player
 		'ammoRest',
 		'minesHits',
 		'vip',
+		'scoreVip',
 		'myLasermaxx',
 		'bonus',
 	];

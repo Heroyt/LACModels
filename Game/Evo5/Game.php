@@ -48,13 +48,18 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo5GameInterf
 		'reloadClips',
 		'allowFriendlyFire',
 		'antiStalking',
+		'blastShots',
+		'switchOn',
+		'switchLives',
 		'scoring',
+		'vipSettings',
+		'zombieSettings',
 	];
 
 	#[NoDB, JsonExclude]
-	public string                                 $playerClass = Player::class;
+	public string  $playerClass = Player::class;
 	#[NoDB, JsonExclude]
-	public string                                 $teamClass   = Team::class;
+	public string  $teamClass   = Team::class;
 	#[Instantiate, OA\Property]
 	public Scoring $scoring;
 

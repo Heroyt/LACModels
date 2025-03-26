@@ -44,6 +44,9 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo6GameInterf
 		'reloadClips',
 		'allowFriendlyFire',
 		'antiStalking',
+		'blastShots',
+		'switchOn',
+		'switchLives',
 		'scoring',
 		'triggerSpeed',
 		'gameStyleType',
@@ -57,7 +60,6 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo6GameInterf
 	public string          $playerClass   = Player::class;
 	#[NoDB]
 	public string          $teamClass     = Team::class;
-	public bool            $blastShots    = false;
 	#[Instantiate]
 	#[OA\Property]
 	public Scoring         $scoring;
@@ -65,10 +67,6 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo6GameInterf
 	public TriggerSpeed    $triggerSpeed  = TriggerSpeed::FAST;
 	#[OA\Property]
 	public GameStyleType   $gameStyleType = GameStyleType::TEAM;
-	#[Instantiate]
-	public VipSettings     $vipSettings;
-	#[Instantiate]
-	public ZombieSettings  $zombieSettings;
 	#[Instantiate]
 	public HitGainSettings $hitGainSettings;
 	#[Instantiate]
