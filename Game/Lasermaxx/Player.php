@@ -7,6 +7,7 @@ use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
 use App\Services\Maths\RegressionCalculator;
 use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Lg\Results\LaserMaxx\LaserMaxxPlayerInterface;
+use Lsr\Orm\Attributes\NoDB;
 use OpenApi\Attributes as OA;
 use Throwable;
 
@@ -52,6 +53,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 		'scorePowers',
 		'scoreMines',
 		'ammoRest',
+		'livesRest',
 		'minesHits',
 		'vip',
 		'scoreVip',
@@ -71,6 +73,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 	#[OA\Property]
 	public int $ammoRest      = 0;
 	#[OA\Property]
+	public int $livesRest      = 0;
+	#[OA\Property]
 	public int $minesHits     = 0;
 	#[OA\Property]
 	public bool $vip = false;
@@ -79,6 +83,11 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 
 	#[OA\Property(format:'url')]
 	public string $myLasermaxx = '';
+
+	#[NoDB]
+	public int $reloads {
+		get => $this->game->reloadClips > 0 ? (int) floor($this->shots/$this->game->ammo) : 0;
+	}
 
 	protected RegressionStatCalculator $calculator;
 
@@ -95,7 +104,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 	 * @throws Throwable
 	 */
 	public function getExpectedAverageDeathCount(): float {
-		$type = $this->game->gameType;
+		$type = $this->game->getProbableGameType();
 		try {
 			$model = $this->getRegressionCalculator()->getDeathsModel($type, $this->game->mode);
 			return $this->calculateHitDeathModel($type, $model);
@@ -110,7 +119,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 	 */
 	public function getRegressionCalculator(): RegressionStatCalculator {
 		if (!isset($this->calculator)) {
-			$this->calculator = new RegressionStatCalculator();
+			$this->calculator = new RegressionStatCalculator($this->game->arena);
 		}
 		return $this->calculator;
 	}
@@ -321,7 +330,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 
 	public function getExpectedAverageHitCount(): float {
 		try {
-			$type = $this->game->gameType;
+			$type = $this->game->getProbableGameType();
 			$model = $this->getRegressionCalculator()->getHitsModel($type, $this->game->mode);
 			return $this->calculateHitDeathModel($type, $model);
 		} catch (InsufficientRegressionDataException $e) {

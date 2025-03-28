@@ -43,6 +43,7 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6Player
 		'scorePowers',
 		'scoreMines',
 		'ammoRest',
+		'livesRest',
 		'minesHits',
 		'vip',
 		'myLasermaxx',

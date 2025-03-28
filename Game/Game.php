@@ -250,6 +250,11 @@ abstract class Game extends BaseModel implements GameInterface
 				$teams[$teamId]->players->set($player, (int) $player->vest);
 			}
 		}
+
+		if (isset($data->metaData)) {
+			$game->setMeta($data->metaData);
+		}
+
 		/** @phpstan-ignore return.type */
 		return $game;
 	}
@@ -653,6 +658,22 @@ abstract class Game extends BaseModel implements GameInterface
 		$this->photosSecret = rtrim(base64_encode(new Randomizer()->getBytes(32)), '=');
 		bdump($this->photosSecret);
 		return $this->photosSecret;
+	}
+
+	public function getProbableGameType() : GameModeType {
+		if ($this->gameType === GameModeType::TEAM) {
+			// If all players are in the same team or if each player is in a different team, it is a solo game
+			if ($this->teams->count() < 2) {
+				return GameModeType::SOLO;
+			}
+			foreach ($this->teams as $team) {
+				if ($team->players->count() > 1) {
+					return GameModeType::TEAM;
+				}
+			}
+			return GameModeType::SOLO;
+		}
+		return $this->gameType;
 	}
 
 }
