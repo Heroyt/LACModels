@@ -121,19 +121,8 @@ class RegressionStatCalculator
      * @throws InsufficientRegressionDataException
      */
     private function calculateHitRegression(GameModeType $type, ?GameModeInterface $mode = null, int $teamCount = 2): array {
-		$query = DB::select(
-			'mvEvo5RegressionData',
-			$type === GameModeType::TEAM ? 'MEDIAN(hits_other) OVER (PARTITION BY id_game, enemies, teammates) as [value], enemies, teammates, game_length' :
-            'MEDIAN(hits) OVER (PARTITION BY id_game, enemies, teammates) as [value], teammates, game_length'
-
-		)
-		           ->where('game_type = %s', $type->value)
-		           ->groupBy('id_game, enemies, teammates');
-		if ($type === GameModeType::TEAM) {
-			$query->where('teams = %i', $teamCount);
-		}
-
-		return $this->calculateRegressionModel($mode, $query, $type, 'Hits');
+	    $query = $this->prepareRegressionQuery($type, $teamCount, 'hits_other', 'hits');
+	    return $this->calculateRegressionModel($mode, $query, $type, 'Hits');
 	}
 
 	/**
@@ -177,7 +166,7 @@ class RegressionStatCalculator
 		}
 
 		if (count($data) < 10) {
-			throw new InsufficientRegressionDataException($modelName);
+			throw new InsufficientRegressionDataException($modelName, (string) $query);
 		}
 		return $data;
 	}
@@ -308,16 +297,7 @@ class RegressionStatCalculator
 	 * @throws InsufficientRegressionDataException
 	 */
 	private function calculateDeathRegression(GameModeType $type, ?GameModeInterface $mode = null, int $teamCount = 2): array {
-		$query = DB::select(
-			'mvEvo5RegressionData',
-			$type === GameModeType::TEAM ? 'MEDIAN(deaths_other) OVER (PARTITION BY id_game, enemies, teammates) as [value], enemies, teammates, game_length' : 'MEDIAN(deaths) OVER (PARTITION BY id_game, enemies, teammates) as [value], teammates, game_length'
-		)
-		           ->where('game_type = %s', $type->value)
-		           ->groupBy('id_game, enemies, teammates');
-		if ($type === GameModeType::TEAM) {
-			$query->where('teams = %i', $teamCount);
-		}
-
+		$query = $this->prepareRegressionQuery($type, $teamCount, 'deaths_other', 'deaths');
 		return $this->calculateRegressionModel($mode, $query, $type, 'Deaths');
 	}
 
@@ -344,13 +324,7 @@ class RegressionStatCalculator
      * @throws InsufficientRegressionDataException
      */
     private function calculateHitOwnRegression(?GameModeInterface $mode = null, int $teamCount = 2): array {
-		$query = DB::select(
-			'mvEvo5RegressionData',
-			'MEDIAN(hits_own) OVER (PARTITION BY id_game, enemies, teammates) as [value], enemies, teammates, game_length'
-		)
-		           ->where('game_type = %s and teams = %i', GameModeType::TEAM->value, $teamCount)
-		           ->groupBy('id_game, enemies, teammates');
-
+	    $query = $this->prepareRegressionQuery(GameModeType::TEAM, $teamCount, 'hits_own', 'hits');
         return $this->calculateTeamOnlyRegression($mode, $query, 'Hits own');
 	}
 
@@ -396,15 +370,7 @@ class RegressionStatCalculator
 	 * @throws InsufficientRegressionDataException
 	 */
 	private function calculateDeathOwnRegression(?GameModeInterface $mode = null, int $teamCount = 2): array {
-		$query = DB::select(
-			'mvEvo5RegressionData',
-			'MEDIAN(deaths_own) OVER (PARTITION BY id_game, enemies, teammates) as value, enemies, teammates, game_length'
-		)->where(
-			'game_type = %s AND teams = %i',
-			GameModeType::TEAM->value,
-			$teamCount
-		)->groupBy('id_game, enemies, teammates');
-
+		$query = $this->prepareRegressionQuery(GameModeType::TEAM, $teamCount, 'deaths_own', 'deaths');
         return $this->calculateTeamOnlyRegression($mode, $query, 'Deaths Own');
     }
 
@@ -499,4 +465,52 @@ class RegressionStatCalculator
         }
         return $model;
     }
+
+	public function prepareRegressionQuery(GameModeType $type, int $teamCount, string $teamValue, string $soloValue): Fluent {
+		$fields = [
+			'MEDIAN([].['.$soloValue.']) OVER (PARTITION BY [].[id_game], [].[enemies], [].[teammates]) as [value]',
+			'[].[enemies]',
+			'[].[teammates]',
+			'[].[game_length]',
+			'[].[rankable]',
+			'[].[id_arena]',
+			'[].[id_mode]',
+			'[].[id_game]',
+		];
+		if ($type === GameModeType::TEAM) {
+			$fields[0] = 'MEDIAN([].['.$teamValue.']) OVER (PARTITION BY [].[id_game], [].[enemies], [].[teammates]) as [value]';
+		}
+
+
+		$queryEvo5 = DB::select(
+			['mvEvo5RegressionData', 'evo5'],
+			"'evo5' as [system], " .
+			implode(', ', array_map(fn(string $field) => str_replace('[]', '[evo5]', $field), $fields))
+		)
+		               ->where('[evo5].[game_type] = %s', $type->value);
+		$queryEvo6 = DB::select(
+			['mvEvo6RegressionData', 'evo6'],
+			"'evo6' as [system], " .
+			implode(', ', array_map(fn(string $field) => str_replace('[]', '[evo6]', $field), $fields))
+
+		)
+		               ->where('[evo6].[game_type] = %s', $type->value);
+		if ($type === GameModeType::TEAM) {
+			$queryEvo5->where('[evo5].[teams] = %i', $teamCount);
+			$queryEvo6->where('[evo6].[teams] = %i', $teamCount);
+		}
+
+		$fields[0] = '[].[value]';
+		$query = DB::select(
+			args: '[a].[system], ' .
+			      implode(', ', array_map(fn(string $field) => str_replace('[]', '[a]', $field), $fields))
+		)
+		           ->from(
+			           '%sql as [a]',
+			           $queryEvo5
+				           ->unionAll($queryEvo6)
+		           )
+		           ->groupBy('system, id_game, enemies, teammates');
+		return $query;
+	}
 }
