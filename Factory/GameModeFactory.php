@@ -71,12 +71,10 @@ class GameModeFactory implements FactoryInterface
                 $system = $systems;
             }
         }
-        else {
-            if ($system === null) {
-                $system = [];
-                foreach (System::getActive() as $s) {
-                    $system[] = $s->type->value;
-                }
+        else if ($system === null) {
+            $system = [];
+            foreach (System::getActive() as $s) {
+                $system[] = $s->type->value;
             }
         }
 
@@ -113,7 +111,7 @@ class GameModeFactory implements FactoryInterface
         }
 
         $system = self::normalizeSystemToString($system);
-        $class = self::tryFindingModeClass($system, $mode, $modeType, $output);
+        $class = self::tryFindingModeClass($system ?? 'evo5', $mode, $modeType, $output);
         if ($class !== null) {
             Timer::stop('factory.gamemode');
             return self::getModeObject($class, $mode);
