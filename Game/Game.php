@@ -152,7 +152,7 @@ abstract class Game extends BaseModel implements GameInterface
     public function getMode() : ?AbstractMode {
         if (!isset($this->mode)) {
             if (isset($this->relationIds['mode'])) {
-                $this->mode = GameModeFactory::getById($this->relationIds['mode']);
+                $this->mode = GameModeFactory::getById($this->relationIds['mode'], ['system' => $this::SYSTEM]);
             }
             else {
                 if (isset($this->modeName)) {

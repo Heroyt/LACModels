@@ -43,7 +43,7 @@ class GameModeFactory implements FactoryInterface
         }
         $mode = $query->get();
 
-        $system = ($options['system'] ?? $mode->systems ?? null);
+        $system = ($mode->systems ?? $options['system'] ?? null);
         return self::findModeObject($system, $mode, $mode->type);
     }
 
