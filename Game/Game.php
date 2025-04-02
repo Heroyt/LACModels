@@ -41,6 +41,9 @@ use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\ObjectValidation\Attributes\NoValidate;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\Factory;
+use Lsr\Orm\Attributes\Hooks\AfterDelete;
+use Lsr\Orm\Attributes\Hooks\AfterInsert;
+use Lsr\Orm\Attributes\Hooks\AfterUpdate;
 use Lsr\Orm\Attributes\Instantiate;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
@@ -433,6 +436,7 @@ abstract class Game extends BaseModel implements GameInterface
         return parent::insert();
     }
 
+    #[AfterUpdate, AfterInsert, AfterDelete]
     public function clearCache() : void {
         parent::clearCache();
 
