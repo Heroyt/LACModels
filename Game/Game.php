@@ -508,6 +508,7 @@ abstract class Game extends BaseModel implements GameInterface
 		return parent::insert();
 	}
 
+	#[AfterUpdate, AfterInsert, AfterDelete]
 	public function clearCache(): void {
 		parent::clearCache();
 
