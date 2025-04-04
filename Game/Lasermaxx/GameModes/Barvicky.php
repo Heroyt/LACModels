@@ -7,7 +7,9 @@
 namespace App\GameModels\Game\Lasermaxx\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
+use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Game\GameModes\CustomizeAfterImport;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
@@ -16,7 +18,7 @@ use Lsr\Orm\Attributes\PrimaryKey;
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-abstract class Barvicky extends AbstractMode
+abstract class Barvicky extends AbstractMode implements CustomizeAfterImport
 {
     use LaserMaxxScores;
 
@@ -31,5 +33,7 @@ abstract class Barvicky extends AbstractMode
 		return false;
 	}
 
-
+	public function processImportedGame(Game $game): void {
+		$game->recalculateScores();
+	}
 }
