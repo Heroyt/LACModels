@@ -401,7 +401,8 @@ abstract class Game extends BaseModel implements GameInterface
 		/** @var Row|null $test */
 		$test = DB::select($this::TABLE, $pk . ', code')
 		          ->where(
-			          'start = %dt OR start = %dt',
+			          'id_arena = %i AND (start = %dt OR start = %dt)',
+					  $this->arena->id,
 			          $this->start,
 			          $this->start->getTimestamp() + ($this->timing->before ?? 20)
 		          )
@@ -415,6 +416,7 @@ abstract class Game extends BaseModel implements GameInterface
 		}
 		$success = parent::save();
 		if (!$success) {
+			$this->getLogger()->error('Failed to save game', ['game' => $this]);
 			return false;
 		}
 
@@ -424,6 +426,7 @@ abstract class Game extends BaseModel implements GameInterface
 			$success &= $team->save();
 		}
 		if (!$success) {
+			$this->getLogger()->error('Failed to save game teams', ['game' => $this]);
 			return false;
 		}
 		if ($this->teams->count() === 0) {
@@ -433,8 +436,16 @@ abstract class Game extends BaseModel implements GameInterface
 			}
 		}
 
+		if (!$success) {
+			$this->getLogger()->error('Failed to save game players', ['game' => $this]);
+		}
+
 		if ($this->getGroup() !== null) {
 			$success = $success && $this->getGroup()->save();
+		}
+
+		if (!$success) {
+			$this->getLogger()->error('Failed to save game group', ['game' => $this]);
 		}
 
 		if ($this->getTournamentGame() !== null) {
@@ -506,6 +517,11 @@ abstract class Game extends BaseModel implements GameInterface
 			]
 		);
 		return parent::insert();
+	}
+
+	public function update(): bool {
+		$this->getLogger()->debug(json_encode(new \Exception()->getTrace()), ['group' => $this->group]);
+		return parent::update();
 	}
 
 	#[AfterUpdate, AfterInsert, AfterDelete]

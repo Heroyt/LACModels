@@ -36,6 +36,7 @@ class Vest extends BaseModel
 	public VestStatus         $status    = VestStatus::OK;
 	#[OA\Property(example: 'Zbraň vynechává')]
 	public ?string            $info      = null;
+	#[OA\Property]
 	public VestType           $type      = VestType::VEST;
 	#[OA\Property]
 	public ?DateTimeInterface $updatedAt = null;
@@ -44,8 +45,12 @@ class Vest extends BaseModel
 	 * @return Vest[]
 	 * @throws ValidationException
 	 */
-	public static function getForSystem(string|SystemType|System $system): array {
-		return self::querySystem($system)->get();
+	public static function getForSystem(string|SystemType|System $system, ?Arena $arena = null): array {
+		$query = self::querySystem($system);
+		if ($arena !== null) {
+			$query->where('id_arena = %i', $arena->id);
+		}
+		return $query->get();
 	}
 
 	/**

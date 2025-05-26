@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace App\GameModels;
 
+use OpenApi\Attributes as OA;
+
+#[OA\Schema(type:'string')]
 enum VestType : string
 {
 
