@@ -46,12 +46,13 @@ class Vest extends BaseModel
      */
     public static function querySystem(string | SystemType | System $system) : ModelQuery {
         if ($system instanceof System) {
+            /** @phpstan-ignore return.type */
             return self::query()->where('id_system = %s', $system->id);
         }
         if ($system instanceof SystemType) {
             $system = $system->value;
         }
-        /** @phpstan-ignore-next-line */
+        /** @phpstan-ignore return.type */
         return self::query()
                    ->where(
                      'id_system IN %sql',

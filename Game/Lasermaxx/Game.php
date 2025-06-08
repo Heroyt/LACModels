@@ -6,7 +6,10 @@ use App\Exceptions\GameModeNotFoundException;
 use App\GameModels\Game\Evo5\Player;
 use App\GameModels\Game\Player as BasePlayer;
 use Lsr\Lg\Results\LaserMaxx\LaserMaxxGameInterface;
+use Lsr\Lg\Results\LaserMaxx\VipSettings;
+use Lsr\Lg\Results\LaserMaxx\ZombieSettings;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
+use Lsr\Orm\Attributes\Instantiate;
 use OpenApi\Attributes as OA;
 
 /**
@@ -27,9 +30,22 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
     public int $ammo = 9999;
     /** @var int Respawn time in seconds */
     public int $respawn = 5;
+    #[OA\Property]
     public int $reloadClips = 0;
+    #[OA\Property]
     public bool $allowFriendlyFire = true;
+    #[OA\Property]
     public bool $antiStalking = false;
+    #[OA\Property]
+    public bool $blastShots = false;
+    #[OA\Property]
+    public bool $switchOn = false;
+    #[OA\Property]
+    public int $switchLives = 0;
+    #[Instantiate]
+    public ZombieSettings $zombieSettings;
+    #[Instantiate]
+    public VipSettings $vipSettings;
 
     protected bool $minesOn;
 

@@ -49,7 +49,6 @@ abstract class Player extends BaseModel implements PlayerInterface
     use Expandable;
     use PlayerCalculatedProperties;
 
-    /** @var string[] */
     public const array CACHE_TAGS = ['players'];
     /** @var string[] */
     public const array CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
@@ -288,8 +287,7 @@ abstract class Player extends BaseModel implements PlayerInterface
         try {
             return DB::replace($table, $values) > 0;
         } catch (Exception $e) {
-            $this->logger->debug(json_encode($this->hitPlayers));
-            $this->logger->debug(json_encode($values));
+            $this->logger->debug('Failed saving hits', ['hits' => $this->hitPlayers, 'insert values' => $values]);
             $this->getLogger()->exception($e);
             return false;
         }
