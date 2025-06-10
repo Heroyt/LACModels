@@ -110,15 +110,15 @@ abstract class Game extends BaseModel implements GameInterface
     #[OA\Property]
     public string $code;
     #[ManyToOne(class: AbstractMode::class, loadingType: LoadingType::EAGER, factoryMethod: 'loadMode'), OA\Property, NoValidate]
-    public ?GameModeInterface $mode;
+    public ?GameModeInterface $mode = null;
     #[OA\Property]
     public GameModeType $gameType = GameModeType::TEAM;
     /** @var bool Indicates if the game is synchronized to public API */
     public bool $sync = false;
     #[ManyToOne(class: MusicMode::class), OA\Property, NoValidate]
-    public ?MusicModeInterface $music;
+    public ?MusicModeInterface $music = null;
     #[ManyToOne(class: GameGroup::class), OA\Property, NoValidate]
-    public ?GameGroupInterface $group;
+    public ?GameGroupInterface $group = null;
     #[NoDB, OA\Property]
     public bool $started = false;
     #[NoDB, OA\Property]
