@@ -3,6 +3,9 @@
 namespace App\GameModels\Game\Evo6;
 
 use App\GameModels\Factory\PlayerFactory;
+use App\GameModels\Vest;
+use App\GameModels\VestType;
+use App\Models\SystemType;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Lsr\Lg\Results\Interface\Models\TeamInterface;
 use Lsr\Lg\Results\LaserMaxx\Evo6\Evo6PlayerInterface;
@@ -106,5 +109,54 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6Player
     public function getBonusCount() : int {
         return $this->bonuses;
     }
+
+	public function getVestType() : VestType {
+		assert($this->game instanceof Game);
+		assert($this->game->arena !== null);
+
+		$vests = Vest::getForSystem(SystemType::EVO6, $this->game->arena);
+
+		$vest = array_find($vests, fn(Vest $vest) => $vest->vestNum === (string) $this->vest);
+		if ($vest === null) {
+			return VestType::VEST;
+		}
+		return $vest->type;
+	}
+
+	public function calculateBaseSkill(): float {
+		$skill = parent::calculateBaseSkill();
+		$skill += $this->calculateSkillForVestType();
+		return $skill;
+	}
+
+	public function calculateSkillForVestType() : int {
+		if ($this->getVestType() === VestType::VEST) {
+			return 0;
+		}
+
+		// Get ratio of players using guns and vests
+		$gunCount = 0;
+
+		assert($this->game instanceof Game);
+
+		/** @var Player $player */
+		foreach ($this->game->players as $player) {
+			if ($player->getVestType() === VestType::GUN) {
+				$gunCount++;
+			}
+		}
+
+		$playerCount = $this->game->players->count();
+		$koef = ($playerCount - $gunCount)/$playerCount;
+		return (int) round(-300 * $koef);
+	}
+
+	public function getSkillParts(): array {
+		$parts = parent::getSkillParts();
+		if ($this->getVestType() === VestType::GUN) {
+			$parts['gun_penalty'] = $this->calculateSkillForVestType();
+		}
+		return $parts;
+	}
 
 }
