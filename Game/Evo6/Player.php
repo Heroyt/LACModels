@@ -148,7 +148,7 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6Player
 
 		$playerCount = $this->game->players->count();
 		$koef = ($playerCount - $gunCount)/$playerCount;
-		return (int) round(-300 * $koef);
+		return (int) round(-600 * $koef);
 	}
 
 	public function getSkillParts(): array {
