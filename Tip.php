@@ -57,8 +57,8 @@ class Tip extends BaseModel
     public function getTranslations() : array {
         if (!isset($this->translationsParsed)) {
             if ($this->translations !== null) {
-                $parsed = igbinary_unserialize($this->translations);
-                $this->translationsParsed = $parsed === false ? [] : $parsed;
+                $translations = igbinary_unserialize($this->translations);
+                $this->translationsParsed = $translations === false ? [] : $translations;
             }
             else {
                 $this->translationsParsed = [];
@@ -76,8 +76,8 @@ class Tip extends BaseModel
         return self::query()->orderBy('RAND()')->first();
     }
 
-    public function getQueryData() : array {
-        $data = parent::getQueryData();
+    public function getQueryData(bool $filterChanged = true) : array {
+        $data = parent::getQueryData($filterChanged);
         $data['translations'] = igbinary_serialize($this->getTranslations());
         return $data;
     }

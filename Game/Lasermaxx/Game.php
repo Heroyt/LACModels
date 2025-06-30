@@ -30,11 +30,17 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
     public int $ammo = 9999;
     /** @var int Respawn time in seconds */
     public int $respawn = 5;
+    #[OA\Property]
     public int $reloadClips = 0;
+    #[OA\Property]
     public bool $allowFriendlyFire = true;
+    #[OA\Property]
     public bool $antiStalking = false;
+    #[OA\Property]
     public bool $blastShots = false;
+    #[OA\Property]
     public bool $switchOn = false;
+    #[OA\Property]
     public int $switchLives = 0;
     #[Instantiate]
     public ZombieSettings $zombieSettings;

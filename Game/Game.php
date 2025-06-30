@@ -183,8 +183,8 @@ abstract class Game extends BaseModel implements GameInterface
         return GameModeFactory::findModeObject($this::SYSTEM, null, $this->gameType);
     }
 
-    public function getQueryData() : array {
-        $data = parent::getQueryData();
+    public function getQueryData(bool $filterChanged = true) : array {
+        $data = parent::getQueryData($filterChanged);
         $this->extensionAddQueryData($data);
         return $data;
     }
@@ -267,6 +267,9 @@ abstract class Game extends BaseModel implements GameInterface
      * @throws ValidationException
      */
     public function jsonSerialize() : array {
+        if (empty($this->code)) {
+            $this->code = uniqid($this::getCodePrefix(), false);
+        }
         $data = parent::jsonSerialize();
         $data['system'] = $this::SYSTEM;
         $data['group'] = null;

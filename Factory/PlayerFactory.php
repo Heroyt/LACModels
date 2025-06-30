@@ -99,10 +99,13 @@ class PlayerFactory implements FactoryInterface
           'deaths',
           'shots',
         ];
-        $filterGameIds = !empty($gameIds);
+
+        $filterGameIds = !empty($gameIds) && array_any($gameIds, static fn(array $ids) => !empty($ids));
+
         foreach (GameFactory::getSupportedSystems() as $key => $system) {
             if ($filterGameIds && empty($gameIds[$system])) {
-                continue; // Filter out systems with no games
+                // Skip systems that have no game IDs
+                continue;
             }
 
             $addFields = '';

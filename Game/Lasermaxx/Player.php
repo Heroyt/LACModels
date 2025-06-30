@@ -38,6 +38,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
     public int $scoreAccuracy = 0;
     public int $livesRest = 0;
     public int $ammoRest = 0;
+    public int $livesRest = 0;
     public int $minesHits = 0;
     public int $scoreVip = 0;
 
@@ -47,6 +48,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
     public int $deathsOther = 0;
 
     public bool $vip = false;
+    public int $scoreVip = 0;
+
 
     public string $myLasermaxx = '';
 

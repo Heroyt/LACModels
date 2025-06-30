@@ -209,8 +209,8 @@ abstract class Team extends BaseModel implements TeamInterface
         $this->extensionFillFromRow();
     }
 
-    public function getQueryData() : array {
-        $data = parent::getQueryData();
+    public function getQueryData(bool $filterChanged = true) : array {
+        $data = parent::getQueryData($filterChanged);
         $this->extensionAddQueryData($data);
         return $data;
     }

@@ -12,6 +12,7 @@ use App\GameModels\Game\Evo5\GameModes\TeamDeathmatch;
 use App\GameModels\Game\GameModes\AbstractMode;
 use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Lg\Results\LaserMaxx\Evo5\Evo5GameInterface;
+use Lsr\Lg\Results\LaserMaxx\Evo5\Scoring;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\Instantiate;
 use Lsr\Orm\Attributes\JsonExclude;
@@ -35,7 +36,7 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo5GameInterf
     #[NoDB, JsonExclude]
     public string $teamClass = Team::class;
     #[Instantiate]
-    public \Lsr\Lg\Results\LaserMaxx\Evo5\Scoring $scoring;
+    public Scoring $scoring;
 
     public function loadMode() : AbstractMode {
         return parent::loadMode() ?? ($this->gameType === GameModeType::SOLO ? new Deathmatch() : new TeamDeathmatch());
