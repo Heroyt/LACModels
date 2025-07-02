@@ -29,7 +29,15 @@ trait WithPlayers
 {
 	#[NoDB]
 	public int $playerCount {
-		get => $this->players->count();
+		get {
+			if (!isset($this->playerCount) || $this->playerCount < 1) {
+				$this->playerCount = $this->players->count();
+			}
+			return $this->playerCount;
+		}
+		set(int $value) {
+			$this->playerCount = $value;
+		}
 	}
 	/** @var class-string<P> */
 	#[NoDB, JsonExclude]
