@@ -65,22 +65,55 @@ class Vest extends BaseModel
     }
 
     public static function getGridCols(string | SystemType | System $system) : int {
-        return DB::select(self::TABLE, 'MAX(grid_col)')->where('system = %s', $system)->fetchSingle();
+        if ($system instanceof System) {
+            /** @phpstan-ignore return.type */
+            return self::query()->where('id_system = %s', $system->id);
+        }
+        if ($system instanceof SystemType) {
+            $system = $system->value;
+        }
+        return DB::select(self::TABLE, 'MAX(grid_col)')
+                 ->where(
+                   'id_system IN %sql',
+                   DB::select(System::TABLE, 'id_system')->where('type = %s', $system)
+                 )
+                 ->fetchSingle();
     }
 
     public static function getGridRows(string | SystemType | System $system) : int {
-        return DB::select(self::TABLE, 'MAX(grid_row)')->where('system = %s', $system)->fetchSingle();
+        if ($system instanceof System) {
+            /** @phpstan-ignore return.type */
+            return self::query()->where('id_system = %s', $system->id);
+        }
+        if ($system instanceof SystemType) {
+            $system = $system->value;
+        }
+        return DB::select(self::TABLE, 'MAX(grid_row)')
+                 ->where(
+                   'id_system IN %sql',
+                   DB::select(System::TABLE, 'id_system')->where('type = %s', $system)
+                 )
+                 ->fetchSingle();
     }
 
     /**
      * @return object{cols:int,rows:int}|null
      */
     public static function getGridDimensions(string | SystemType | System $system) : ?object {
+        if ($system instanceof System) {
+            /** @phpstan-ignore return.type */
+            return self::query()->where('id_system = %s', $system->id);
+        }
+        if ($system instanceof SystemType) {
+            $system = $system->value;
+        }
         /* @phpstan-ignore-next-line */
-        return DB::select(self::TABLE, 'MAX([grid_col]) as [cols], MAX([grid_row]) as [rows]')->where(
-          '[system] = %s',
-          $system
-        )->fetch();
+        return DB::select(self::TABLE, 'MAX([grid_col]) as [cols], MAX([grid_row]) as [rows]')
+                 ->where(
+                   'id_system IN %sql',
+                   DB::select(System::TABLE, 'id_system')->where('type = %s', $system)
+                 )
+                 ->fetch();
     }
 
     public function update() : bool {
