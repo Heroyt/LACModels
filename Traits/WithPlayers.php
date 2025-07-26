@@ -14,11 +14,12 @@ use Lsr\Helpers\Tools\Timer;
 use Lsr\Lg\Results\Interface\Models\PlayerInterface;
 use Lsr\Lg\Results\PlayerCollection;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
+use Lsr\ObjectValidation\Exceptions\ValidationException;
+use Lsr\Orm\Attributes\ExtendsSerialization;
 use Lsr\Orm\Attributes\JsonExclude;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\Relations\OneToMany;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
-use Lsr\Orm\Exceptions\ValidationException;
 use Lsr\Orm\ModelCollection;
 use Throwable;
 
@@ -195,4 +196,11 @@ trait WithPlayers
 		Timer::stop('game.save.players');
 		return true;
 	}
+
+    #[ExtendsSerialization]
+    public function withPlayersJson(array $data) : array {
+        $data['playerCount'] = $this->playerCount;
+
+        return $data;
+    }
 }

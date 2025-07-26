@@ -9,8 +9,6 @@ use Lsr\Lg\Results\LaserMaxx\Evo6\HitGainSettings;
 use Lsr\Lg\Results\LaserMaxx\Evo6\RespawnSettings;
 use Lsr\Lg\Results\LaserMaxx\Evo6\Scoring;
 use Lsr\Lg\Results\LaserMaxx\Evo6\TriggerSpeed;
-use Lsr\Lg\Results\LaserMaxx\Evo6\VipSettings;
-use Lsr\Lg\Results\LaserMaxx\Evo6\ZombieSettings;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\Instantiate;
 use Lsr\Orm\Attributes\NoDB;

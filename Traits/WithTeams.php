@@ -10,6 +10,7 @@ use Lsr\Helpers\Tools\Timer;
 use Lsr\Lg\Results\Interface\Models\TeamInterface;
 use Lsr\Lg\Results\TeamCollection;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
+use Lsr\Orm\Attributes\ExtendsSerialization;
 use Lsr\Orm\Attributes\JsonExclude;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\Relations\OneToMany;
@@ -129,4 +130,10 @@ trait WithTeams
 		Timer::stop('game.save.teams');
 		return true;
 	}
+
+    #[ExtendsSerialization]
+    public function withTeamsJson(array $data) : array {
+        $data['teamCount'] = $this->teamCount;
+        return $data;
+    }
 }

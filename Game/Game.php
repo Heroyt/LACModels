@@ -364,7 +364,9 @@ abstract class Game extends BaseModel implements GameInterface
 	 * @throws ValidationException
 	 */
 	public function jsonSerialize(): array {
-		$data = parent::jsonSerialize();
+		if (empty($this->code)) {
+            $this->code = uniqid($this::getCodePrefix(), false);
+        }$data = parent::jsonSerialize();
 		$data['system'] = $this::SYSTEM;
 		$data['players'] = $this->players->getAll();
 		$data['playerCount'] = $this->playerCount;

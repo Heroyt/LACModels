@@ -75,11 +75,19 @@ class TeamFactory implements FactoryInterface
     public static function queryTeams(array $gameIds = []) : Fluent {
         $query = DB::select();
         $queries = [];
+
+        $filterGameIds = !empty($gameIds) && array_any($gameIds, static fn(array $ids) => !empty($ids));
+
         foreach (GameFactory::getSupportedSystems() as $key => $system) {
-            if (!empty($gameIds) && empty($gameIds[$system])) {
-				continue;
-			}
-			$q = DB::select(["[{$system}_teams]", "[g$key]"], "[g$key].[id_team], [g$key].[id_game], [g$key].[color], %s as [system], [g$key].[name], [g$key].[score]", $system
+            if ($filterGameIds && empty($gameIds[$system])) {
+                // Skip systems that have no game IDs
+                continue;
+            }
+
+            $q = DB::select(
+              ["[{$system}_teams]", "[g$key]"],
+              "[g$key].[id_team], [g$key].[id_game], [g$key].[color], %s as [system], [g$key].[name], [g$key].[score]",
+              $system
             );
             if (!empty($gameIds[$system])) {
                 $q->where("[g$key].[id_game] IN %in", $gameIds[$system]);
