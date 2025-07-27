@@ -113,7 +113,7 @@ abstract class Player extends BaseModel implements PlayerInterface
 	}
 
 	public static function fromImportDto(PlayerImportDto $data): static {
-		/** @var static<G, T> $player */
+				/** @var static<G, T> $player */
 		/** @phpstan-ignore new.static */
 		$player = new static();
 		foreach (static::IMPORT_PROPERTIES as $property) {
@@ -123,9 +123,10 @@ abstract class Player extends BaseModel implements PlayerInterface
 		}
 		if (isset($data->code)) {
 			$user = User::getByCode($data->code);
-			if ($user !== null && strtolower(Strings::toAscii($user->nickname)) === strtolower(
-					Strings::toAscii($player->name)
-				)) {
+			if (
+				$user !== null
+				&& strtolower(Strings::toAscii(trim($user->nickname))) === strtolower(Strings::toAscii(trim($player->name)))
+			) {
 				$player->user = $user;
 			}
 		}

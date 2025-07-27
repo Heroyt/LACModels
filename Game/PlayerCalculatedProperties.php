@@ -57,6 +57,7 @@ trait PlayerCalculatedProperties
             }
             return $this->favouriteTarget;
         }
+		set(PlayerInterface|null $value) => $this->favouriteTarget = $value;
     }
     /** @var Player<G,T>|null */
     #[NoDB, JsonExclude]
@@ -78,6 +79,7 @@ trait PlayerCalculatedProperties
             }
             return $this->favouriteTargetOf;
         }
+		set(PlayerInterface|null $value) => $this->favouriteTargetOf = $value;
     }
     public ?float $relativeHits = null {
         get {
@@ -92,6 +94,7 @@ trait PlayerCalculatedProperties
             }
             return $this->relativeHits;
         }
+		set(float|null $value) => $this->relativeHits = $value;
     }
     public ?float $relativeDeaths = null {
         get {
@@ -106,5 +109,6 @@ trait PlayerCalculatedProperties
             }
             return $this->relativeDeaths;
         }
+		set(float|null $value) => $this->relativeDeaths = $value;
     }
 }

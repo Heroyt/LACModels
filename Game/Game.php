@@ -203,8 +203,10 @@ abstract class Game extends BaseModel implements GameInterface
 		}
 
 		foreach ($data->players as $playerData) {
+			/** @var class-string<P> $playerClass */
+			$playerClass = $game->playerClass;
 			/** @var P $player */
-			$player = ($game->playerClass)::fromImportDto($playerData);
+			$player = ($playerClass)::fromImportDto($playerData);
 			$player->setGame($game);
 			$id = $playerData->id ?? $playerData->id_player ?? 0;
 			$game->players->set($player, (int) $player->vest);
@@ -212,8 +214,10 @@ abstract class Game extends BaseModel implements GameInterface
 		}
 
 		foreach ($data->teams as $teamData) {
+			/** @var class-string<T> $teamClass */
+			$teamClass = $game->teamClass;
 			/** @var T $team */
-			$team = ($game->teamClass)::fromImportDto($teamData);
+			$team = ($teamClass)::fromImportDto($teamData);
 			$team->setGame($game);
 			$id = $teamData->id ?? $teamData->id_player ?? 0;
 			$game->teams->set($team, $team->color);
