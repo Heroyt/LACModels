@@ -3,6 +3,7 @@
 namespace App\GameModels\Game\Lasermaxx\GameModes;
 
 use App\GameModels\Game\Lasermaxx\Evo5\Player;
+use App\GameModels\Game\Lasermaxx\Game;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Throwable;
 
@@ -11,6 +12,12 @@ use Throwable;
  */
 trait LaserMaxxScores
 {
+
+    /**
+     * @template G of Game
+     * @param  G  $game
+     * @return void
+     */
     protected function recalculateScoresPlayers(GameInterface $game) : void {
         if (!isset($game->scoring)) {
             return;
@@ -28,6 +35,7 @@ trait LaserMaxxScores
                 $player->score = 0;
 
                 // Add score for hits
+                /** @phpstan-ignore method.alreadyNarrowedType */
                 if ($this->isSolo()) {
                     $player->score += ($player->hits * $game->scoring->hitOther) + ($player->deaths * $game->scoring->deathOther);
                 }

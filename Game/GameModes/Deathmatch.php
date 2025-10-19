@@ -4,6 +4,7 @@ namespace App\GameModels\Game\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
 use Lsr\Lg\Results\Enums\GameModeType;
+use Lsr\Lg\Results\Interface\Models\SoloGameModeInterface;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
@@ -12,7 +13,7 @@ use Lsr\Orm\Attributes\PrimaryKey;
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class Deathmatch extends AbstractMode
+class Deathmatch extends AbstractMode implements SoloGameModeInterface
 {
     public GameModeType $type = GameModeType::SOLO;
     public string $name = 'Deathmatch';

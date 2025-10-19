@@ -19,7 +19,7 @@ class TargetCollection extends AbstractCollection
     protected string $type = Target::class;
 
     /**
-     * @return CollectionQueryInterface
+     * @return CollectionQueryInterface<Target>
      */
     public function query() : CollectionQueryInterface {
         return new TargetQuery($this);

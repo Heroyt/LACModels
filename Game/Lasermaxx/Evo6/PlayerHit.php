@@ -8,6 +8,8 @@ namespace App\GameModels\Game\Lasermaxx\Evo6;
 
 /**
  * PlayerHit class specific for LaserMaxx Evo6 system
+ *
+ * @extends \App\GameModels\Game\PlayerHit<Player>
  */
 class PlayerHit extends \App\GameModels\Game\PlayerHit
 {

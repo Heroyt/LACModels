@@ -14,10 +14,11 @@ use Lsr\Orm\Attributes\ExtendsSerialization;
 use Lsr\Orm\Attributes\JsonExclude;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\Relations\OneToMany;
+use Lsr\Orm\Model;
 use Lsr\Orm\ModelCollection;
 
 /**
- * @template T of TeamInterface
+ * @template T of Team
  */
 trait WithTeams
 {
@@ -75,7 +76,7 @@ trait WithTeams
     public function loadTeams() : TeamCollection {
         /** @var T[] $teams */
         $teams = [];
-        /** @var class-string<Game> $className */
+        /** @var class-string<Model> $className */
         $className = preg_replace('/(.+)Game$/', '${1}Team', get_class($this));
         $primaryKey = $className::getPrimaryKey();
         $rows = DB::select($className::TABLE, '*')

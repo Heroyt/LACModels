@@ -9,11 +9,12 @@ namespace App\GameModels\Game\Lasermaxx\GameModes;
 use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
-use App\GameModels\Game\Lasermaxx\Game as LmxGame;
-use App\GameModels\Game\Lasermaxx\Team as LmxTeam;
-use App\GameModels\Game\Team;
+use App\GameModels\Game\Lasermaxx\Game;
+use App\GameModels\Game\Lasermaxx\Player;
+use App\GameModels\Game\Lasermaxx\Team;
 use App\Gate\Screens\Results\LaserMaxxCSGOResultsScreen;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
+use Lsr\Lg\Results\Interface\Models\TeamGameModeInterface;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
@@ -24,7 +25,7 @@ use Lsr\Orm\Exceptions\ModelNotFoundException;
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class CSGO extends AbstractMode implements CustomResultsMode
+class CSGO extends AbstractMode implements CustomResultsMode, TeamGameModeInterface
 {
     use LaserMaxxScores;
 
@@ -32,9 +33,12 @@ class CSGO extends AbstractMode implements CustomResultsMode
     public string $name = 'CSGO';
 
     /**
-     * @param  LmxGame  $game
+     * @template T of Team
+     * @template P of Player
+     * @template  G of Game<T, P>
+     * @param  G  $game
      *
-     * @return LmxTeam|null
+     * @return T|null
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
@@ -42,10 +46,10 @@ class CSGO extends AbstractMode implements CustomResultsMode
         $teams = $game->teams;
         // Two teams - get the last team alive or team with most hits
         if (count($teams) === 2) {
-            /** @var LmxTeam $team1 */
+            /** @var T $team1 */
             $team1 = $teams->first();
             $remaining1 = $this->getRemainingLives($team1);
-            /** @var LmxTeam $team2 */
+            /** @var T $team2 */
             $team2 = $teams->last();
             $remaining2 = $this->getRemainingLives($team2);
             if ($remaining1 === 0 && $remaining2 > 0) {
@@ -70,7 +74,7 @@ class CSGO extends AbstractMode implements CustomResultsMode
         // More teams - Get alive team with the most hits
         $max = 0;
         $maxTeam = null;
-        /** @var LmxTeam $team */
+        /** @var T $team */
         foreach ($teams as $team) {
             if ($this->getRemainingLives($team) === 0) {
                 continue;
@@ -85,27 +89,32 @@ class CSGO extends AbstractMode implements CustomResultsMode
     }
 
     /**
-     * @param  LmxTeam  $team
+     * @template T of Team
+     * @param  T  $team
      *
-     * @return int
+     * @return int<0, max>
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getRemainingLives(LmxTeam $team) : int {
-        return $this->getTotalLives($team) - $team->getDeaths();
+    public function getRemainingLives(Team $team) : int {
+        $remaining = $this->getTotalLives($team) - $team->getDeaths();
+        assert($remaining >= 0);
+        return $remaining;
     }
 
     /**
-     * @param  LmxTeam  $team
+     * @template T of Team
+     * @param  T  $team
      *
-     * @return int
+     * @return int<0, max>
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getTotalLives(LmxTeam $team) : int {
-        /** @var LmxGame $game */
+    public function getTotalLives(Team $team) : int {
         $game = $team->game;
-        return count($team->players) * $game->lives;
+        $total = count($team->players) * $game->lives;
+        assert($total >= 0);
+        return $total;
     }
 
     /**

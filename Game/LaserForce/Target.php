@@ -12,6 +12,9 @@ use Lsr\Orm\Attributes\Relations\ManyToOne;
 #[PrimaryKey('id_target')]
 class Target extends BaseModel
 {
+    /**
+     * @use WithGame<Game>
+     */
     use WithGame;
 
     public const string TABLE = 'laserforce_targets';

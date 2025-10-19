@@ -6,7 +6,6 @@ use App\GameModels\Factory\GameModeFactory;
 use App\GameModels\Game\GameModes\CustomResultsMode;
 use App\GameModels\Game\GameModes\Deathmatch;
 use App\GameModels\Game\Lasermaxx\Game;
-use App\GameModels\Game\Lasermaxx\Player;
 use App\Gate\Screens\Results\LaserMaxxSurvivalResultsScreen;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Lsr\Lg\Results\Interface\Models\ModifyScoresMode;
@@ -44,14 +43,14 @@ class Survival extends Deathmatch implements CustomResultsMode, ModifyScoresMode
     }
 
     /**
-     * @param  Game  $game
+     * @template G of Game
+     * @param  G  $game
      * @return void
      */
     public function modifyResults(GameInterface $game) : void {
         // Add 1000 score to surviving players
-        /** @var Player $player */
         foreach ($game->players as $player) {
-            if (($player->ammoRest ?? 1) > 0 && $player->getRemainingLives() > 0) {
+            if ($player->ammoRest > 0 && $player->getRemainingLives() > 0) {
                 $player->scoreBonus += 1000;
                 $player->score += 1000;
             }

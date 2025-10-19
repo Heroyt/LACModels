@@ -45,6 +45,10 @@ class PlayerTrophy
     public static array $fields = [];
     public bool $solo;
 
+    /**
+     * @template P of Player
+     * @param  P  $player
+     */
     public function __construct(
       private readonly Player $player
     ) {

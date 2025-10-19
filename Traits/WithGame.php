@@ -40,7 +40,7 @@ trait WithGame
     /**
      * @param  G  $game
      *
-     * @return static
+     * @return $this
      */
     public function setGame(GameInterface $game) : static {
         $this->game = $game;

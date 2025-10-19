@@ -20,7 +20,10 @@ use Lsr\Orm\Attributes\Relations\ManyToOne;
  * @extends \App\GameModels\Game\Lasermaxx\Team<Player, Game>
  * @implements Evo5TeamInterface<Player, Game>
  */
-#[PrimaryKey('id_team'), Factory(TeamFactory::class, ['system' => 'evo5'])]
+#[
+  PrimaryKey('id_team'),
+  Factory(TeamFactory::class, ['system' => 'evo5']) // @phpstan-ignore argument.type
+]
 class Team extends \App\GameModels\Game\Lasermaxx\Team implements Evo5TeamInterface
 {
     public const string TABLE = 'evo5_teams';

@@ -7,25 +7,23 @@
 namespace App\GameModels\Game\Lasermaxx\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;
-use App\GameModels\Game\Game;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\GameModes\CustomResultsMode;
+use App\GameModels\Game\Lasermaxx\Game;
 use App\GameModels\Game\Lasermaxx\Player;
-use App\GameModels\Game\Lasermaxx\Team as LasermaxxTeam;
-use App\GameModels\Game\Team;
+use App\GameModels\Game\Lasermaxx\Team;
 use App\Gate\Screens\Results\LaserMaxxZakladnyResultsScreen;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
-use Lsr\ObjectValidation\Exceptions\ValidationException;
+use Lsr\Lg\Results\Interface\Models\TeamGameModeInterface;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
-use Lsr\Orm\Exceptions\ModelNotFoundException;
 
 /**
  * Special LaserMaxx game mode
  */
 #[PrimaryKey('id_mode')]
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
-class Zakladny extends AbstractMode implements CustomResultsMode
+class Zakladny extends AbstractMode implements CustomResultsMode, TeamGameModeInterface
 {
     use LaserMaxxScores;
 
@@ -33,17 +31,17 @@ class Zakladny extends AbstractMode implements CustomResultsMode
     public string $name = 'Základny';
 
     /**
-     * @param  Game  $game
-     *
-     * @return \App\GameModels\Game\Lasermaxx\Evo5\Team|null
-     * @throws ModelNotFoundException
-     * @throws ValidationException
+     * @template T of Team
+     * @template P of Player
+     * @template G of Game<T, P>
+     * @param  G  $game
+     * @return T|null
      */
     public function getWin(GameInterface $game) : ?Team {
-        /** @var \App\GameModels\Game\Lasermaxx\Evo5\Team $team1 */
+        /** @var T $team1 */
         $team1 = $game->teams->first();
         $zakladny1 = $this->getBasesDestroyed($team1);
-        /** @var \App\GameModels\Game\Lasermaxx\Evo5\Team $team2 */
+        /** @var T $team2 */
         $team2 = $game->teams->last();
         $zakladny2 = $this->getBasesDestroyed($team2);
         if ($zakladny1 > $zakladny2) {
@@ -58,11 +56,13 @@ class Zakladny extends AbstractMode implements CustomResultsMode
     /**
      * Get number of bases destroyed
      *
-     * @param  LasermaxxTeam  $team
+     * @template T of Team
+     *
+     * @param  T  $team
      *
      * @return int
      */
-    public function getBasesDestroyed(LasermaxxTeam $team) : int {
+    public function getBasesDestroyed(Team $team) : int {
 
         $shields = $team->players->map(
         /** @phpstan-ignore argument.type */
@@ -88,7 +88,13 @@ class Zakladny extends AbstractMode implements CustomResultsMode
         return LaserMaxxZakladnyResultsScreen::class;
     }
 
-    public function getBaseNameForTeam(LasermaxxTeam $team) : string {
+    /**
+     * @template T of Team
+     *
+     * @param  T  $team
+     * @return string
+     */
+    public function getBaseNameForTeam(Team $team) : string {
         // TODO: rewrite this to be more modular
 
         // The only variants are MZ and ZM

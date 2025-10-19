@@ -116,7 +116,6 @@ trait WithPlayers
      * @throws ValidationException
      */
     public function getMinScore() : int {
-        /** @var Player|null $player */
         $player = $this->players->query()->sortBy('score')->asc()->first();
         if (isset($player)) {
             return $player->score;
@@ -132,7 +131,6 @@ trait WithPlayers
      * @throws ValidationException
      */
     public function getMaxScore() : int {
-        /** @var Player|null $player */
         $player = $this->players->query()->sortBy('score')->desc()->first();
         if (isset($player)) {
             return $player->score;
@@ -167,7 +165,6 @@ trait WithPlayers
         }
         Timer::start('game.save.players');
         $players = $this->players->getAll();
-        /** @var Player $player */
         // Save players first
         foreach ($players as $player) {
             if (!$player->save()) {

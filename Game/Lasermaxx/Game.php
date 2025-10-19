@@ -3,7 +3,6 @@
 namespace App\GameModels\Game\Lasermaxx;
 
 use App\GameModels\Game\GameModes\AbstractMode;
-use App\GameModels\Game\Lasermaxx\Evo5\Player;
 use App\GameModels\Game\Player as BasePlayer;
 use Lsr\Lg\Results\LaserMaxx\LaserMaxxGameInterface;
 use Lsr\Lg\Results\LaserMaxx\VipSettings;
@@ -123,7 +122,6 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
     public function isMinesOn() : bool {
         if (!isset($this->minesOn)) {
             $this->minesOn = false;
-            /** @var Player $player */
             foreach ($this->players as $player) {
                 if ($player->minesHits !== 0 || $player->scoreMines !== 0 || $player->getBonusCount() > 0) {
                     $this->minesOn = true;
@@ -137,7 +135,7 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
     /**
      * @param  string  $property
      *
-     * @return BasePlayer<static,T>|null
+     * @return P|null
      * @throws ValidationException
      */
     public function getBestPlayer(string $property) : ?BasePlayer {

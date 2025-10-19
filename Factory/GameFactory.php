@@ -37,6 +37,7 @@ class GameFactory implements FactoryInterface
      *
      * @return Game|null
      * @throws Throwable
+     * @phpstan-ignore missingType.generics
      */
     public static function getByCode(string $code) : ?Game {
         $game = null;
@@ -53,7 +54,6 @@ class GameFactory implements FactoryInterface
          */
         $gameRow = self::queryGames()->where('[code] = %s', $code)->cacheTags('games/'.$code)->fetch();
         if (isset($gameRow)) {
-            /** @var Game|null $game */
             $game = self::getById((int) $gameRow->id_game, ['system' => $gameRow->system]);
         }
         Timer::stop('factory.game');
@@ -141,6 +141,7 @@ class GameFactory implements FactoryInterface
      *
      * @return Game|null
      * @throws Throwable
+     * @phpstan-ignore missingType.generics
      */
     public static function getById(int $id, array $options = []) : ?Game {
         $system = $options['system'] ?? '';
@@ -149,11 +150,14 @@ class GameFactory implements FactoryInterface
         }
         Timer::startIncrementing('factory.game');
         try {
+            /**
+             * @var class-string<Game> $className
+             * @phpstan-ignore missingType.generics
+             */
             $className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Game';
             if (!class_exists($className)) {
                 throw new InvalidArgumentException('Game model of does not exist: '.$className);
             }
-            /** @var Game $game */
             $game = $className::get($id);
         } catch (ModelNotFoundException) {
             Timer::stop('factory.game');
@@ -171,6 +175,7 @@ class GameFactory implements FactoryInterface
      *
      * @return Game|null
      * @throws Throwable
+     * @phpstan-ignore missingType.generics
      */
     public static function getLastGame(string $system = 'all', bool $excludeNotFinished = true) : ?Game {
         if ($system === 'all') {
@@ -254,6 +259,7 @@ class GameFactory implements FactoryInterface
      *
      * @return Game[]
      * @throws Throwable
+     * @phpstan-ignore missingType.generics
      */
     public static function getByDate(DateTimeInterface $date, bool $excludeNotFinished = false) : array {
         Timer::startIncrementing('factory.game');
@@ -406,6 +412,7 @@ class GameFactory implements FactoryInterface
      *
      * @return Game[]
      * @throws Throwable
+     * @phpstan-ignore missingType.generics
      */
     public static function getAll(array $options = []) : array {
         if (!empty($options['system'])) {

@@ -26,6 +26,7 @@ class TeamFactory implements FactoryInterface
      *
      * @return Team[]
      * @throws Throwable
+     * @phpstan-ignore missingType.generics
      */
     public static function getAll(array $options = []) : array {
         if (!empty($options['system'])) {
@@ -106,6 +107,7 @@ class TeamFactory implements FactoryInterface
      *
      * @return Team|null
      * @throws Throwable
+     * @phpstan-ignore missingType.generics
      */
     public static function getById(int $id, array $options = []) : ?Team {
         $system = $options['system'] ?? '';

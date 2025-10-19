@@ -127,7 +127,7 @@ abstract class Team extends BaseModel implements TeamInterface
     }
 
     /**
-     * @param  Team  $team
+     * @param  static  $team
      *
      * @return int
      * @throws ValidationException

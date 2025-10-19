@@ -26,6 +26,7 @@ class PlayerFactory implements FactoryInterface
      *
      * @return Player[]
      * @throws Throwable
+     * @phpstan-ignore missingType.generics
      */
     public static function getAll(array $options = []) : array {
         if (!empty($options['system'])) {
@@ -148,6 +149,7 @@ class PlayerFactory implements FactoryInterface
      *
      * @return Player|null
      * @throws Throwable
+     * @phpstan-ignore missingType.generics
      */
     public static function getById(int $id, array $options = []) : ?Player {
         $system = $options['system'] ?? '';

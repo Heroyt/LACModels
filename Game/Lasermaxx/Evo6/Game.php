@@ -22,7 +22,10 @@ use Lsr\Orm\Attributes\PrimaryKey;
  * @extends \App\GameModels\Game\Lasermaxx\Game<Team, Player>
  * @implements Evo6GameInterface<Team, Player, GameMeta>
  */
-#[PrimaryKey('id_game'), Factory(GameFactory::class, ['system' => 'evo6'])]
+#[
+  PrimaryKey('id_game'),
+  Factory(GameFactory::class, ['system' => 'evo6']) // @phpstan-ignore argument.type
+]
 class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo6GameInterface
 {
     public const string SYSTEM = 'evo6';

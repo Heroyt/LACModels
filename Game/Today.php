@@ -21,6 +21,14 @@ class Today
 
     private Fluent $gameQuery;
 
+    /**
+     * @template G of Game
+     * @template P of Player
+     * @template T of Team
+     * @param  G  $gameClass
+     * @param  P  $playerClass
+     * @param  T  $teamClass
+     */
     public function __construct(Game $gameClass, Player $playerClass, Team $teamClass) {
         $this->games = DB::select($gameClass::TABLE, 'count(*)')
                          ->where('DATE(start) = %d', $gameClass->start)
@@ -35,13 +43,20 @@ class Today
         )->fetchSingle();
     }
 
+    /**
+     * @template G of Game
+     * @param  G  $gameClass
+     *
+     * @return Fluent
+     */
     private function todayGames(Game $gameClass) : Fluent {
         $this->gameQuery = DB::select($gameClass::TABLE, 'id_game')->where('DATE(start) = %d', $gameClass->start);
         return $this->gameQuery;
     }
 
     /**
-     * @param  Player  $player
+     * @template P of Player
+     * @param  P  $player
      * @param  string  $property
      *
      * @return string Returns either one number (a position) or a range of position (ex. 1-3)

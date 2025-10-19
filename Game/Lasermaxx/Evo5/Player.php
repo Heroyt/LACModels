@@ -20,9 +20,12 @@ use Lsr\Orm\Attributes\Relations\ManyToOne;
  * LaserMaxx Evo5 player model
  *
  * @extends \App\GameModels\Game\Lasermaxx\Player<Game, Team>
- * @implements Evo5PlayerInterface<Game, Team>
+ * @implements Evo5PlayerInterface<Game, Team, \App\Models\Auth\Player>
  */
-#[PrimaryKey('id_player'), Factory(PlayerFactory::class, ['system' => 'evo5'])]
+#[
+  PrimaryKey('id_player'),
+  Factory(PlayerFactory::class, ['system' => 'evo5']) // @phpstan-ignore argument.type
+]
 class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo5PlayerInterface
 {
     public const string TABLE = 'evo5_players';

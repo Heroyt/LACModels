@@ -48,6 +48,10 @@ abstract class Player extends BaseModel implements PlayerInterface
     /** @phpstan-use WithGame<G> */
     use WithGame;
     use Expandable;
+
+    /**
+     * @use PlayerCalculatedProperties<G,T>
+     */
     use PlayerCalculatedProperties;
 
     /** @var string[] */
@@ -257,7 +261,7 @@ abstract class Player extends BaseModel implements PlayerInterface
         $pos = 0;
         $realPos = 0;
         $prevScore = null;
-        /** @var Player $player */
+        /** @var static $player */
         foreach ($this->game->playersSorted as $player) {
             if ($player->vest === $this->vest) {
                 break;
@@ -374,7 +378,7 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @return $this
      */
     public function addHits(PlayerInterface $player, int $count = 1) : static {
-        /** @var class-string<PlayerHit> $className */
+        /** @var class-string<PlayerHit<static>> $className */
         $className = str_replace('Player', 'PlayerHit', $this::class);
         if (isset($this->hitPlayers[$player->vest])) {
             $this->hitPlayers[$player->vest]->count += $count;

@@ -206,7 +206,7 @@ abstract class Game extends BaseModel implements GameInterface
      *
      * @param  string  $property
      *
-     * @return Player|null
+     * @return P|null
      * @throws ValidationException
      * @noinspection PhpMissingBreakStatementInspection
      */
@@ -253,7 +253,7 @@ abstract class Game extends BaseModel implements GameInterface
      *
      * @param  int|string  $vestNum
      *
-     * @return Player|null
+     * @return P|null
      */
     public function getVestPlayer(int | string $vestNum) : ?Player {
         return $this->players->query()->filter('vest', $vestNum)->first();
@@ -366,7 +366,6 @@ abstract class Game extends BaseModel implements GameInterface
             return false;
         }
         if ($this->teams->count() === 0) {
-            /** @var Player $player */
             foreach ($this->players as $player) {
                 $success = $success && $player->save();
             }
@@ -384,7 +383,6 @@ abstract class Game extends BaseModel implements GameInterface
      * @throws Throwable
      */
     public function calculateSkills() : void {
-        /** @var Player[] $players */
         $players = $this->players->getAll();
 
         // Calculate the base skill for all players first

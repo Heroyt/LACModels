@@ -18,7 +18,6 @@ use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Lsr\Lg\Results\Interface\Models\GameModeInterface;
 use Lsr\Lg\Results\LaserMaxx\LaserMaxxGameInterface;
-use Lsr\Lg\Results\TeamCollection;
 use Lsr\Logging\Exceptions\DirectoryCreationException;
 use Lsr\ObjectValidation\Attributes\Required;
 use Lsr\ObjectValidation\Attributes\StringLength;
@@ -142,23 +141,24 @@ class AbstractMode extends BaseModel implements GameModeInterface
      *
      * Default rules are: the best position (score) wins.
      *
-     * @param  Game  $game
+     * @template T of Team
+     * @template P of Player
+     * @template G of Game<T,P>
      *
-     * @return Player|Team|null null = draw
+     * @param  G  $game
+     *
+     * @return P|T|null null = draw
      * @throws ValidationException
      */
     public function getWin(GameInterface $game) : Player | Team | null {
         if ($this->isTeam()) {
-            /** @var TeamCollection $teams */
             $teams = $game->teamsSorted;
-            /** @var Team $team */
             $team = $teams->first();
             if (count($teams) === 2 && $team->getScore() === $teams->last()->score) {
                 return null;
             }
             return $team;
         }
-        /** @var Player $player */
         $player = $game->playersSorted->first();
         return $player;
     }
@@ -167,18 +167,27 @@ class AbstractMode extends BaseModel implements GameModeInterface
         return $this->type === GameModeType::TEAM;
     }
 
+    /**
+     * @template G of Game
+     * @param  G  $game
+     * @return void
+     */
     public function recalculateScores(GameInterface $game) : void {
         $this->recalculateScoresPlayers($game);
         $this->recalculateScoresTeams($game);
     }
 
+    /**
+     * @template G of Game
+     * @param  G  $game
+     * @return void
+     */
     protected function recalculateScoresPlayers(GameInterface $game) : void {
         if (!isset($game->scoring)) {
             return;
         }
         try {
             if ($game instanceof LaserMaxxGameInterface) {
-                /** @var Player $player */
                 foreach ($game->players as $player) {
                     $player->score =
                       ($player->hits * $game->scoring->hitOther) +
@@ -190,12 +199,15 @@ class AbstractMode extends BaseModel implements GameModeInterface
         }
     }
 
+    /**
+     * @template G of Game
+     * @param  G  $game
+     * @return void
+     */
     protected function recalculateScoresTeams(GameInterface $game) : void {
         try {
-            /** @var Team $team */
             foreach ($game->teams as $team) {
                 $team->score = 0;
-                /** @var Player $player */
                 foreach ($team->players as $player) {
                     $team->score += $player->score;
                 }
