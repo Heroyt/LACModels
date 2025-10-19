@@ -3,6 +3,7 @@
 namespace App\GameModels\Game\Lasermaxx;
 
 use App\Exceptions\InsufficientRegressionDataException;
+use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Tools\Lasermaxx\RegressionStatCalculator;
 use App\Services\RegressionCalculator;
 use Lsr\Lg\Results\Enums\GameModeType;
@@ -16,6 +17,7 @@ use Throwable;
  * @template T of Team
  *
  * @extends \App\GameModels\Game\Player<G, T>
+ * @implements LaserMaxxPlayerInterface<G, T, \App\Models\Auth\Player>
  */
 abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPlayerInterface
 {
@@ -68,6 +70,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
     public function getExpectedAverageDeathCount() : float {
         $type = $this->game->gameType;
         try {
+            assert($this->game->mode instanceof AbstractMode);
             $model = $this->getRegressionCalculator()->getDeathsModel($type, $this->game->mode);
             return $this->calculateHitDeathModel($type, $model);
         } catch (InsufficientRegressionDataException $e) {
@@ -124,6 +127,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
      */
     public function getExpectedAverageTeammateDeathCount() : float {
         try {
+            assert($this->game->mode instanceof AbstractMode);
             $model = $this->getRegressionCalculator()->getDeathsOwnModel($this->game->mode);
             $length = $this->game->getRealGameLength();
             $enemyPlayerCount = $this->game->playerCount - ($this->team->playerCount ?? 1);
@@ -194,6 +198,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
      */
     public function getExpectedAverageTeammateHitCount() : float {
         try {
+            assert($this->game->mode instanceof AbstractMode);
             $model = $this->getRegressionCalculator()->getHitsOwnModel($this->game->mode);
             $length = $this->game->getRealGameLength();
             $enemyPlayerCount = $this->game->playerCount - ($this->team->playerCount ?? 1);
@@ -277,6 +282,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
     public function getExpectedAverageHitCount() : float {
         try {
             $type = $this->game->gameType;
+            assert($this->game->mode instanceof AbstractMode);
             $model = $this->getRegressionCalculator()->getHitsModel($type, $this->game->mode);
             return $this->calculateHitDeathModel($type, $model);
         } catch (InsufficientRegressionDataException $e) {

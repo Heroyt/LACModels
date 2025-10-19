@@ -4,6 +4,7 @@ namespace App\GameModels\Game\LaserForce;
 
 use App\GameModels\Traits\WithGame;
 use App\Models\BaseModel;
+use Dibi\Row;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
@@ -16,8 +17,6 @@ class Target extends BaseModel
     public const string TABLE = 'laserforce_targets';
     public const string SYSTEM = 'laserforce';
 
-    public const array CACHE_TAGS = ['targets', 'games/laserforce', 'targets/laserforce'];
-
     public string $identifier = '';
     public string $name = '';
 
@@ -25,6 +24,13 @@ class Target extends BaseModel
     public ?Team $team = null;
     #[NoDB]
     public int $teamNum = 0;
+
+    public function __construct(?int $id = null, ?Row $dbRow = null) {
+        parent::__construct($id, $dbRow);
+        $this->cacheTags[] = 'targets';
+        $this->cacheTags[] = 'games/laserforce';
+        $this->cacheTags[] = 'targets/laserforce';
+    }
 
     /**
      * @return Team|null

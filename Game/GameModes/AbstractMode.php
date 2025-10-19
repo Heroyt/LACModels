@@ -129,7 +129,7 @@ class AbstractMode extends BaseModel implements GameModeInterface
          * @param  numeric[]  $teams
          */
         set(array $teams) {
-            $this->teams = json_encode($teams);
+            $this->teams = json_encode($teams, JSON_THROW_ON_ERROR);
         }
     }
 

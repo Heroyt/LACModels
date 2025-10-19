@@ -14,9 +14,10 @@ use Lsr\Orm\Attributes\ExtendsSerialization;
 use Lsr\Orm\Attributes\JsonExclude;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\Relations\OneToMany;
+use Lsr\Orm\ModelCollection;
 
 /**
- * @template T of Team
+ * @template T of TeamInterface
  */
 trait WithTeams
 {
@@ -42,14 +43,15 @@ trait WithTeams
     public TeamCollection $teamsSorted {
         get {
             if (empty($this->teamsSorted)) {
-                $this->teamsSorted = new TeamCollection(
-                  $this
-                    ->teams
-                    ->query()
-                    ->sortBy('score')
-                    ->desc()
-                    ->get()
-                );
+                /** @var ModelCollection<T> $teams */
+                $teams = $this->teams
+                  ->query()
+                  ->sortBy('score')
+                  ->desc()
+                  ->get();
+                /** @var TeamCollection<T> $collection */
+                $collection = new TeamCollection($teams);
+                $this->teamsSorted = $collection;
             }
             return $this->teamsSorted;
         }
@@ -71,6 +73,7 @@ trait WithTeams
      * @return TeamCollection<T>
      */
     public function loadTeams() : TeamCollection {
+        /** @var T[] $teams */
         $teams = [];
         /** @var class-string<Game> $className */
         $className = preg_replace('/(.+)Game$/', '${1}Team', get_class($this));
@@ -86,7 +89,7 @@ trait WithTeams
           )
           ->fetchAll();
         foreach ($rows as $row) {
-            /** @var Team $team */
+            /** @var T $team */
             $team = new $className($row->$primaryKey, $row);
             /* @phpstan-ignore-next-line */
             if ($this instanceof Game) {
@@ -98,7 +101,9 @@ trait WithTeams
 
             }
         }
-        return new TeamCollection($teams, 'color');
+        /** @var TeamCollection<T> $collection */
+        $collection = new TeamCollection($teams, 'color');
+        return $collection;
     }
 
     /**
@@ -123,6 +128,10 @@ trait WithTeams
         return true;
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     #[ExtendsSerialization]
     public function withTeamsJson(array $data) : array {
         $data['teamCount'] = $this->teamCount;

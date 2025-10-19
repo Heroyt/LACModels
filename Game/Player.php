@@ -39,6 +39,7 @@ use Throwable;
  *
  * @use WithGame<G>
  * @use PlayerCalculatedProperties<G,T>
+ * @implements PlayerInterface<G, T, User>
  */
 #[PrimaryKey('id_player')]
 #[Factory(PlayerFactory::class)] // @phpstan-ignore-line
@@ -49,7 +50,6 @@ abstract class Player extends BaseModel implements PlayerInterface
     use Expandable;
     use PlayerCalculatedProperties;
 
-    public const array CACHE_TAGS = ['players'];
     /** @var string[] */
     public const array CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
     public const string SYSTEM = '';
@@ -67,18 +67,20 @@ abstract class Player extends BaseModel implements PlayerInterface
     public int $deaths = 0;
     public int $position = 0;
 
-    /** @var PlayerHit[] */
+    /** @var PlayerHit<static>[] */
     #[NoDB]
-    public ?array $hitPlayers = [];
+    public ?array $hitPlayers = []; // @phpstan-ignore property.phpDocType
 
     /** @var T|null */
-    #[ManyToOne(class: Team::class, foreignKey: 'id_team')]
+    #[ManyToOne(foreignKey: 'id_team', class: Team::class)]
     public ?TeamInterface $team = null;
 
+    /** @var User|null */
     #[ManyToOne(class: User::class)]
     public ?UserInterface $user = null;
 
     public function __construct(?int $id = null, ?Row $dbRow = null) {
+        $this->cacheTags[] = 'players';
         $this->cacheTags[] = 'games/'.$this::SYSTEM;
         $this->cacheTags[] = 'players/'.$this::SYSTEM;
         parent::__construct($id, $dbRow);
@@ -336,19 +338,12 @@ abstract class Player extends BaseModel implements PlayerInterface
         return $this->trophy->getAll();
     }
 
-    /**
-     * @param  Player<G,T>  $player
-     *
-     * @return int
-     * @throws DirectoryCreationException
-     * @throws ValidationException
-     */
     public function getHitsPlayer(PlayerInterface $player) : int {
         return $this->getHitsPlayers()[$player->vest]->count ?? 0;
     }
 
     /**
-     * @return PlayerHit[]
+     * @return PlayerHit<static>[]
      * @throws DirectoryCreationException
      * @throws ValidationException
      */
@@ -360,12 +355,10 @@ abstract class Player extends BaseModel implements PlayerInterface
     }
 
     /**
-     * @return PlayerHit[]
-     * @throws ValidationException
-     * @throws DirectoryCreationException
+     * @return PlayerHit<static>[]
      */
     public function loadHits() : array {
-        /** @var PlayerHit $className */
+        /** @var class-string<PlayerHit<static>> $className */
         $className = str_replace('Player', 'PlayerHit', get_class($this));
         $hits = DB::select($className::TABLE, 'id_target, count')->where('id_player = %i', $this->id)->fetchAll();
         foreach ($hits as $row) {
@@ -375,7 +368,7 @@ abstract class Player extends BaseModel implements PlayerInterface
     }
 
     /**
-     * @param  Player<G,T>  $player
+     * @param  static  $player
      * @param  int  $count
      *
      * @return $this
@@ -466,5 +459,4 @@ abstract class Player extends BaseModel implements PlayerInterface
         parent::fillFromRow();
         $this->extensionFillFromRow();
     }
-
 }

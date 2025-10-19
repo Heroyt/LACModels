@@ -20,10 +20,11 @@ use Lsr\Orm\Attributes\JsonExclude;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\Relations\OneToMany;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
+use Lsr\Orm\ModelCollection;
 use Throwable;
 
 /**
- * @template P of Player
+ * @template P of PlayerInterface
  */
 trait WithPlayers
 {
@@ -50,14 +51,15 @@ trait WithPlayers
     public PlayerCollection $playersSorted {
         get {
             if (!isset($this->playersSorted)) {
-                $this->playersSorted = new PlayerCollection(
-                  $this
-                    ->players
-                    ->query()
-                    ->sortBy('score')
-                    ->desc()
-                    ->get()
-                );
+                /** @var ModelCollection<P> $players */
+                $players = $this->players
+                  ->query()
+                  ->sortBy('score')
+                  ->desc()
+                  ->get();
+                /** @var PlayerCollection<P> $collection */
+                $collection = new PlayerCollection($players);
+                $this->playersSorted = $collection;
             }
             return $this->playersSorted;
         }
@@ -96,14 +98,14 @@ trait WithPlayers
             if ($this instanceof Game) {
                 $player->setGame($this);
             }
-            else {
-                if ($this instanceof Team) { // @phpstan-ignore-line
-                    $player->team = $this;
-                }
+            elseif ($this instanceof Team) { // @phpstan-ignore-line
+                $player->team = $this;
             }
             $players[(int) $player->vest] = $player;
         }
-        return new PlayerCollection($players, 'vest');
+        /** @var PlayerCollection<P> $collection */
+        $collection = new PlayerCollection($players, 'vest');
+        return $collection;
     }
 
     /**
@@ -187,6 +189,10 @@ trait WithPlayers
         return true;
     }
 
+    /**
+     * @param  array<string,mixed>  $data
+     * @return array<string,mixed>
+     */
     #[ExtendsSerialization]
     public function withPlayersJson(array $data) : array {
         $data['playerCount'] = $this->playerCount;

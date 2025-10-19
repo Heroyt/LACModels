@@ -69,6 +69,7 @@ class PlayerFactory implements FactoryInterface
      * Prepare a SQL query for all players (from all systems)
      *
      * @param  int[][]  $gameIds
+     * @param  array<int|string, string>  $fields
      *
      * @return Fluent
      */
@@ -81,6 +82,7 @@ class PlayerFactory implements FactoryInterface
 
     /**
      * @param  int[][]  $gameIds
+     * @param  array<int|string, string>  $fields
      *
      * @return string[]
      */
@@ -168,6 +170,12 @@ class PlayerFactory implements FactoryInterface
         return $player;
     }
 
+    /**
+     * @param  array<int|string, string|array{first:string,second:string,operation:string}>  $gameFields
+     * @param  array<int|string, string|array{first:string,second:string,operation:string}>  $playerFields
+     * @param  array<int|string, string|array{first:string,second:string,operation:string}>  $modeFields
+     * @return Fluent
+     */
     public static function queryPlayersWithGames(
       array $gameFields = [],
       array $playerFields = [],

@@ -16,11 +16,19 @@ use Lsr\Lg\Results\Interface\Models\PlayerInterface;
  * Data model for player hits
  *
  * N:M relation between players indicating how many times did player1 hit player 2
+ *
+ * @template P of Player
+ * @implements PlayerHitInterface<P>
  */
 class PlayerHit implements PlayerHitInterface
 {
     public const string TABLE = '';
 
+    /**
+     * @param  P  $playerShot
+     * @param  P  $playerTarget
+     * @param  int  $count
+     */
     public function __construct(
       public PlayerInterface $playerShot,
       public PlayerInterface $playerTarget,

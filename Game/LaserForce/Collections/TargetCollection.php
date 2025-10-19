@@ -6,10 +6,10 @@
 
 namespace App\GameModels\Game\LaserForce\Collections;
 
-use App\Core\Collections\AbstractCollection;
-use App\Core\Interfaces\CollectionQueryInterface;
 use App\GameModels\Game\LaserForce\Collections\Query\TargetQuery;
 use App\GameModels\Game\LaserForce\Target;
+use Lsr\Lg\Results\Collections\AbstractCollection;
+use Lsr\Lg\Results\Interface\Collections\CollectionQueryInterface;
 
 /**
  * @extends AbstractCollection<Target>
@@ -19,7 +19,7 @@ class TargetCollection extends AbstractCollection
     protected string $type = Target::class;
 
     /**
-     * @return CollectionQueryInterface<Target>
+     * @return CollectionQueryInterface
      */
     public function query() : CollectionQueryInterface {
         return new TargetQuery($this);

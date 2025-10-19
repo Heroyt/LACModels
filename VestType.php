@@ -1,11 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels;
 
 enum VestType : string
 {
-
     case VEST = 'vest';
     case GUN  = 'gun';
 

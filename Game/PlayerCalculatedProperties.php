@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels\Game;
@@ -43,7 +44,7 @@ trait PlayerCalculatedProperties
         }
     }
 
-    /** @var Player<G,T>|null */
+    /** @var static|null */
     #[NoDB, JsonExclude]
     public ?PlayerInterface $favouriteTarget = null {
         get {
@@ -59,7 +60,7 @@ trait PlayerCalculatedProperties
             return $this->favouriteTarget;
         }
     }
-    /** @var Player<G,T>|null */
+    /** @var static|null */
     #[NoDB, JsonExclude]
     public ?PlayerInterface $favouriteTargetOf = null {
         get {

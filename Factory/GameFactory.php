@@ -16,7 +16,6 @@ use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Interfaces\FactoryInterface;
-use Nette\Caching\Cache as CacheBase;
 use Throwable;
 
 /**
@@ -28,7 +27,7 @@ use Throwable;
  */
 class GameFactory implements FactoryInterface
 {
-    /** @var string[] */
+    /** @var non-empty-string[] */
     private static array $supportedSystems;
 
     /**
@@ -43,7 +42,7 @@ class GameFactory implements FactoryInterface
         $game = null;
         Timer::startIncrementing('factory.game');
         /**
-         * @var null|Row{
+         * @var null|object{
          *   id_game:int,
          *   system:string,
          *   code: string,
@@ -54,7 +53,6 @@ class GameFactory implements FactoryInterface
          */
         $gameRow = self::queryGames()->where('[code] = %s', $code)->cacheTags('games/'.$code)->fetch();
         if (isset($gameRow)) {
-            /** @noinspection PhpUndefinedFieldInspection */
             /** @var Game|null $game */
             $game = self::getById((int) $gameRow->id_game, ['system' => $gameRow->system]);
         }
@@ -182,7 +180,7 @@ class GameFactory implements FactoryInterface
             $query = self::queryGamesSystem($system, $excludeNotFinished);
         }
         /**
-         * @var null|Row{
+         * @var null|object{
          *   id_game:int,
          *   system:string,
          *   code: string,
@@ -205,7 +203,7 @@ class GameFactory implements FactoryInterface
      * @param  string  $system
      * @param  bool  $excludeNotFinished
      * @param  DateTime|null  $date
-     * @param  array  $fields
+     * @param  array<string|int, string>  $fields
      *
      * @return Fluent
      */
@@ -264,19 +262,19 @@ class GameFactory implements FactoryInterface
         /** @var Row[]|null $rows */
         $rows = $cache->load(
           'games/'.$date->format('Y-m-d').($excludeNotFinished ? '/finished' : ''),
-          static function (array &$dependencies) use ($date, $excludeNotFinished) {
-              $dependencies[CacheBase::EXPIRE] = '7 days';
-              $dependencies[CacheBase::Tags] = [
-                'games',
-                'models',
-                'games/'.$date->format('Y-m-d'),
-              ];
-              $query = self::queryGames($excludeNotFinished)
-                           ->cacheTags('games', 'games/'.$date->format('Y-m-d'))
-                           ->where('DATE([start]) = %d', $date)
-                           ->orderBy('start')->desc();
-              return $query->fetchAll();
-          }
+          static fn() => self::queryGames($excludeNotFinished)
+                             ->cacheTags('games', 'games/'.$date->format('Y-m-d'))
+                             ->where('DATE([start]) = %d', $date)
+                             ->orderBy('start')->desc()
+                             ->fetchAll(),
+          [
+            'tags'   => [
+              'games',
+              'models',
+              'games/'.$date->format('Y-m-d'),
+            ],
+            'expire' => '7 days',
+          ],
         );
         $games = [];
         foreach ($rows ?? [] as $row) {
@@ -343,7 +341,7 @@ class GameFactory implements FactoryInterface
     public static function getAllTeamsColors() : array {
         $colors = [];
         foreach (self::getSupportedSystems() as $system) {
-            /** @var Game $className */
+            /** @var class-string $className */
             $className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
             if (method_exists($className, 'getTeamColors')) {
                 $colors[$system] = $className::getTeamColors();
@@ -360,7 +358,7 @@ class GameFactory implements FactoryInterface
     public static function getAllTeamsNames() : array {
         $colors = [];
         foreach (self::getSupportedSystems() as $system) {
-            /** @var Game $className */
+            /** @var class-string $className */
             $className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
             if (method_exists($className, 'getTeamNames')) {
                 $colors[$system] = $className::getTeamNames();

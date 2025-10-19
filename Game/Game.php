@@ -17,6 +17,7 @@ use App\GameModels\Traits\WithTeams;
 use App\Models\BaseModel;
 use App\Models\GameGroup;
 use App\Models\MusicMode;
+use App\Models\SystemType;
 use App\Models\WithMetaData;
 use App\Services\FeatureConfig;
 use App\Services\LaserLiga\LigaApi;
@@ -68,27 +69,25 @@ use Throwable;
  * @phpstan-consistent-constructor
  * @template T of Team
  * @template P of Player
- *
- * @phpstan-use WithTeams<T>
- * @use WithTeams<T>
- * @phpstan-use WithPlayers<P>
- * @use WithPlayers<P>
- * @phpstan-use WithMetaData<GameMeta>
- * @use WithMetaData<GameMeta>
+ * @implements GameInterface<T, P, GameMeta>
  */
 #[PrimaryKey('id_game')]
 #[OA\Schema(schema: 'Game')]
 #[Factory(GameFactory::class)] // @phpstan-ignore-line
 abstract class Game extends BaseModel implements GameInterface
 {
+    /** @use WithPlayers<P> */
     use WithPlayers;
+
+    /** @use WithTeams<T> */
     use WithTeams;
     use Expandable;
+
+    /** @use WithMetaData<GameMeta> */
     use WithMetaData;
 
-    /** @var 'evo5'|'evo6'|'laserforce'|string */
+    /** @var value-of<SystemType>|string */
     public const string SYSTEM = '';
-    public const array CACHE_TAGS = ['games'];
 
     public const string DI_TAG = 'gameDataExtension';
     private static string $codePrefix;
@@ -109,14 +108,17 @@ abstract class Game extends BaseModel implements GameInterface
     public ?Timing $timing = null;
     #[OA\Property]
     public string $code;
+    /** @var AbstractMode|null */
     #[ManyToOne(class: AbstractMode::class, loadingType: LoadingType::EAGER, factoryMethod: 'loadMode'), OA\Property, NoValidate]
     public ?GameModeInterface $mode = null;
     #[OA\Property]
     public GameModeType $gameType = GameModeType::TEAM;
     /** @var bool Indicates if the game is synchronized to public API */
     public bool $sync = false;
+    /** @var MusicMode|null */
     #[ManyToOne(class: MusicMode::class), OA\Property, NoValidate]
     public ?MusicModeInterface $music = null;
+    /** @var GameGroup|null */
     #[ManyToOne(class: GameGroup::class), OA\Property, NoValidate]
     public ?GameGroupInterface $group = null;
     #[NoDB, OA\Property]
@@ -126,6 +128,7 @@ abstract class Game extends BaseModel implements GameInterface
     protected float $realGameLength;
 
     public function __construct(?int $id = null, ?Row $dbRow = null) {
+        $this->cacheTags[] = 'games';
         $this->cacheTags[] = 'games/'.$this::SYSTEM;
         parent::__construct($id, $dbRow);
         $this->initExtensions();
@@ -215,7 +218,6 @@ abstract class Game extends BaseModel implements GameInterface
                 break;
             case 'hitsOwn':
             case 'deathsOwn':
-            /* @phpstan-ignore-next-line */
             $query->addFilter(new CollectionCompareFilter($property, Comparison::GREATER, 0));
             default:
                 $query->desc();
@@ -284,6 +286,16 @@ abstract class Game extends BaseModel implements GameInterface
         }
         $this->extensionJson($data);
         return $data;
+    }
+
+    public static function getCodePrefix() : string {
+        if (!isset(self::$codePrefix)) {
+            $config = App::getService('config');
+            assert($config instanceof Config);
+            $prefix = $config->getConfig('ENV')['GAME_PREFIX'] ?? 'g';
+            self::$codePrefix = is_string($prefix) ? $prefix : 'g';
+        }
+        return self::$codePrefix;
     }
 
     public function getMusic() : ?MusicMode {
@@ -365,16 +377,6 @@ abstract class Game extends BaseModel implements GameInterface
         }
 
         return $success && $this->extensionSave();
-    }
-
-    public static function getCodePrefix() : string {
-        if (!isset(self::$codePrefix)) {
-            $config = App::getService('config');
-            assert($config instanceof Config);
-            $prefix = $config->getConfig('ENV')['GAME_PREFIX'] ?? 'g';
-            self::$codePrefix = is_string($prefix) ? $prefix : 'g';
-        }
-        return self::$codePrefix;
     }
 
     /**
@@ -501,8 +503,7 @@ abstract class Game extends BaseModel implements GameInterface
      */
     public function getAverageKd() : float {
         try {
-            /** @var float[] $kds */
-            $kds = $this->players->query()->map(fn(Player $player) => $player->getKd())->get();
+            $kds = $this->players->query()->map(fn(Player $player) => $player->getKd());
         } catch (ValidationException | DirectoryCreationException) {
             return 1;
         }

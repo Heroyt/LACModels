@@ -122,13 +122,11 @@ trait WithTargets
             if ($this instanceof Game) {
                 $target->setGame($this);
             }
-            else {
-                if ($this instanceof Team) { // @phpstan-ignore-line
-                    $target->setTeam($this);
-                }
+            elseif ($this instanceof Team) { // @phpstan-ignore-line
+                $target->setTeam($this);
             }
             try {
-                $this->targets->set($target, $target->identifier);
+                $this->targets->set($target, (int) $target->identifier);
             } catch (InvalidArgumentException) {
 
             }

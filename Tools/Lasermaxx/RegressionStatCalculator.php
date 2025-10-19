@@ -7,13 +7,24 @@ use App\Exceptions\InsufficientRegressionDataException;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\Services\RegressionCalculator;
 use Dibi\Exception;
-use Dibi\Row;
 use Lsr\Db\DB;
 use Lsr\Db\Dibi\Fluent;
 use Lsr\Lg\Results\Enums\GameModeType;
 
 /**
  * Regression calculator class used for predicting player's hits, deaths, team hits and team deaths
+ *
+ * @phpstan-type TeamRow object{
+ *       enemies: int<0,max>,
+ *       teammates: int<0,max>,
+ *       game_length: int<0,max>,
+ *       value: int|float
+ *   }
+ * @phpstan-type SoloRow object{
+ *      teammates: int<0,max>,
+ *      game_length: int<0,max>,
+ *      value: int|float
+ *  }
  */
 class RegressionStatCalculator
 {
@@ -68,6 +79,7 @@ class RegressionStatCalculator
 
         $this->filterQueryByMode($mode, $query);
 
+        /** @var TeamRow[]|SoloRow[] $data */
         $data = $query->fetchAll();
 
         if (count($data) < 10) {
@@ -81,11 +93,13 @@ class RegressionStatCalculator
         $actual = [];
 
         if ($type === GameModeType::TEAM) {
+            /** @var TeamRow $row */
             foreach ($data as $row) {
                 $this->prepareDataTeam($row, $inputsLinear, $inputsMultiplication, $inputsSquared, $matY, $actual);
             }
         }
         else {
+            /** @var SoloRow $row */
             foreach ($data as $row) {
                 $this->prepareDataSolo($row, $inputsLinear, $inputsMultiplication, $inputsSquared, $matY, $actual);
             }
@@ -110,7 +124,7 @@ class RegressionStatCalculator
     }
 
     /**
-     * @param  Row  $row
+     * @param  TeamRow  $row
      * @param  numeric[][]  $inputsLinear
      * @param  numeric[][]  $inputsMultiplication
      * @param  numeric[][]  $inputsSquared
@@ -118,12 +132,12 @@ class RegressionStatCalculator
      * @param  numeric[]  $actual
      */
     public function prepareDataTeam(
-      Row   $row,
-      array &$inputsLinear,
-      array &$inputsMultiplication,
-      array &$inputsSquared,
-      array &$matY,
-      array &$actual
+      object $row,
+      array  &$inputsLinear,
+      array  &$inputsMultiplication,
+      array  &$inputsSquared,
+      array  &$matY,
+      array  &$actual
     ) : void {
         $inputsLinear[] = [1, $row->enemies, $row->teammates, $row->game_length];
         $inputsMultiplication[] = [
@@ -152,7 +166,7 @@ class RegressionStatCalculator
     }
 
     /**
-     * @param  Row  $row
+     * @param  SoloRow  $row
      * @param  numeric[][]  $inputsLinear
      * @param  numeric[][]  $inputsMultiplication
      * @param  numeric[][]  $inputsSquared
@@ -160,12 +174,12 @@ class RegressionStatCalculator
      * @param  numeric[]  $actual
      */
     public function prepareDataSolo(
-      Row   $row,
-      array &$inputsLinear,
-      array &$inputsMultiplication,
-      array &$inputsSquared,
-      array &$matY,
-      array &$actual
+      object $row,
+      array  &$inputsLinear,
+      array  &$inputsMultiplication,
+      array  &$inputsSquared,
+      array  &$matY,
+      array  &$actual
     ) : void {
         $inputsLinear[] = [1, $row->teammates, $row->game_length];
         $inputsMultiplication[] = [
@@ -289,6 +303,7 @@ class RegressionStatCalculator
 
         $this->filterQueryByMode($mode, $query);
 
+        /** @var TeamRow[]|SoloRow[] $data */
         $data = $query->fetchAll();
 
         if (count($data) < 10) {
@@ -302,11 +317,13 @@ class RegressionStatCalculator
         $actual = [];
 
         if ($type === GameModeType::TEAM) {
+            /** @var TeamRow $row */
             foreach ($data as $row) {
                 $this->prepareDataTeam($row, $inputsLinear, $inputsMultiplication, $inputsSquared, $matY, $actual);
             }
         }
         else {
+            /** @var SoloRow $row */
             foreach ($data as $row) {
                 $this->prepareDataSolo($row, $inputsLinear, $inputsMultiplication, $inputsSquared, $matY, $actual);
             }
@@ -344,6 +361,7 @@ class RegressionStatCalculator
 
         $this->filterQueryByMode($mode, $query);
 
+        /** @var TeamRow[] $data */
         $data = $query->fetchAll();
 
         if (count($data) < 10) {
@@ -391,6 +409,7 @@ class RegressionStatCalculator
 
         $this->filterQueryByMode($mode, $query);
 
+        /** @var TeamRow[] $data */
         $data = $query->fetchAll();
 
         if (count($data) < 10) {

@@ -11,6 +11,7 @@ use Lsr\Lg\Results\LaserMaxx\LaserMaxxTeamInterface;
  * @template G of Game
  *
  * @extends \App\GameModels\Game\Team<P, G>
+ * @implements LaserMaxxTeamInterface<P, G>
  */
 abstract class Team extends \App\GameModels\Game\Team implements LaserMaxxTeamInterface
 {

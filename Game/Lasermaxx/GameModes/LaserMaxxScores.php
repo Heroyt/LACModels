@@ -2,7 +2,7 @@
 
 namespace App\GameModels\Game\Lasermaxx\GameModes;
 
-use App\GameModels\Game\Evo5\Player;
+use App\GameModels\Game\Lasermaxx\Evo5\Player;
 use Lsr\Lg\Results\Interface\Models\GameInterface;
 use Throwable;
 

@@ -32,6 +32,7 @@ use Throwable;
  *
  * @use WithPlayers<P>
  * @use WithGame<G>
+ * @implements TeamInterface<P, G>
  */
 #[PrimaryKey('id_team')]
 #[Factory(TeamFactory::class)] // @phpstan-ignore-line

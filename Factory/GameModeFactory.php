@@ -59,17 +59,13 @@ class GameModeFactory implements FactoryInterface
                 $system = $systems;
             }
         }
-        else {
-            if ($system instanceof System) {
-                $system = $system->type->value;
-            }
-            else {
-                if ($system === null) {
-                    $system = [];
-                    foreach (System::getActive() as $s) {
-                        $system[] = $s->type->value;
-                    }
-                }
+        elseif ($system instanceof System) {
+            $system = $system->type->value;
+        }
+        elseif ($system === null) {
+            $system = [];
+            foreach (System::getActive() as $s) {
+                $system[] = $s->type->value;
             }
         }
         /** @var string[]|string $system */
@@ -126,28 +122,6 @@ class GameModeFactory implements FactoryInterface
     }
 
     /**
-     * @param  class-string<AbstractMode>  $class
-     * @param  Row|null  $mode
-     * @return AbstractMode
-     * @throws GameModeNotFoundException
-     */
-    private static function getModeObject(string $class, ?Row $mode) : AbstractMode {
-        if (!class_exists($class)) {
-            throw new GameModeNotFoundException(
-              'Cannot find game mode class: '.$class
-            );
-        }
-
-        $args = [];
-        if (isset($mode)) {
-            $args[] = $mode->id_mode;
-        }
-        /** @var AbstractMode $mode */
-        $mode = new $class(...$args);
-        return $mode;
-    }
-
-    /**
      * @param  string  $system
      * @param  Row|null  $mode
      * @param  GameModeType  $modeType
@@ -175,24 +149,27 @@ class GameModeFactory implements FactoryInterface
                 $mode->name = 'M'.$mode->name;
             }
             $dbName = str_replace([' ', '.', '_', '-'], '', Strings::toAscii(Strings::capitalize($mode->name)));
+
+            /** @var class-string<AbstractMode> $class */
             $class = $classBase.$classSystem.$classNamespace.$dbName;
             if (class_exists($class)) {
                 self::$gameModeClasses[$key] = $class;
                 return $class;
             }
+
+            /** @var class-string<AbstractMode> $class */
             $class = $classBase.$classSystem.$classNamespace.strtoupper($dbName);
             if (class_exists($class)) {
                 self::$gameModeClasses[$key] = $class;
                 return $class;
             }
+
+            $classSystem = '';
+            if ($modeType === GameModeType::TEAM) {
+                $className = 'CustomTeamMode';
+            }
             else {
-                $classSystem = '';
-                if ($modeType === GameModeType::TEAM) {
-                    $className = 'CustomTeamMode';
-                }
-                else {
-                    $className = 'CustomSoloMode';
-                }
+                $className = 'CustomSoloMode';
             }
         }
 
@@ -204,12 +181,35 @@ class GameModeFactory implements FactoryInterface
                 $className = 'Deathmatch';
             }
         }
+        /** @var class-string<AbstractMode> $class */
         $class = $classBase.$classSystem.$classNamespace.$className;
         if (class_exists($class)) {
             self::$gameModeClasses[$key] = $class;
             return $class;
         }
         return null;
+    }
+
+    /**
+     * @param  class-string<AbstractMode>  $class
+     * @param  Row|null  $mode
+     * @return AbstractMode
+     * @throws GameModeNotFoundException
+     */
+    private static function getModeObject(string $class, ?Row $mode) : AbstractMode {
+        if (!class_exists($class)) {
+            throw new GameModeNotFoundException(
+              'Cannot find game mode class: '.$class
+            );
+        }
+
+        $args = [];
+        if (isset($mode)) {
+            $args[] = $mode->id_mode;
+        }
+        /** @var AbstractMode $mode */
+        $mode = new $class(...$args);
+        return $mode;
     }
 
     /**
@@ -288,8 +288,8 @@ class GameModeFactory implements FactoryInterface
             if ($system instanceof System) {
                 $system = $system->type->value;
             }
-            else if (is_numeric($system)) {
-                $system = System::get((int) $ids)->type->value;
+            elseif (is_numeric($system)) {
+                $system = System::get((int) $system)->type->value;
             }
 
             $ids->where('(systems IS NULL OR systems LIKE %~like~)', $system);

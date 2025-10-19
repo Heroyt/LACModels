@@ -2,8 +2,8 @@
 
 namespace App\GameModels\Game\Lasermaxx;
 
-use App\Exceptions\GameModeNotFoundException;
-use App\GameModels\Game\Evo5\Player;
+use App\GameModels\Game\GameModes\AbstractMode;
+use App\GameModels\Game\Lasermaxx\Evo5\Player;
 use App\GameModels\Game\Player as BasePlayer;
 use Lsr\Lg\Results\LaserMaxx\LaserMaxxGameInterface;
 use Lsr\Lg\Results\LaserMaxx\VipSettings;
@@ -15,10 +15,13 @@ use OpenApi\Attributes as OA;
 /**
  * LaserMaxx game model
  *
+ * @phpstan-import-type GameMeta from \App\GameModels\Game\Game
+ *
  * @template T of Team
  * @template P of Player
  *
  * @extends \App\GameModels\Game\Game<T, P>
+ * @implements LaserMaxxGameInterface<T, P, GameMeta>
  */
 #[OA\Schema(schema: 'GameLmx')]
 abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameInterface
@@ -91,23 +94,21 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
      */
     public function getBestsFields() : array {
         $info = parent::getBestsFields();
-        try {
-            $mode = $this->mode;
-            if (!isset($mode)) {
-                return $info;
+        /** @var AbstractMode|null $mode */
+        $mode = $this->mode;
+        if (!isset($mode)) {
+            return $info;
+        }
+        if ($mode->isTeam()) {
+            if ($mode->settings->bestHitsOwn) {
+                $info['hitsOwn'] = lang('Zabiják vlastního týmu', context: 'bests', domain: 'results');
             }
-            if ($mode->isTeam()) {
-                if ($mode->settings->bestHitsOwn) {
-                    $info['hitsOwn'] = lang('Zabiják vlastního týmu', context: 'bests', domain: 'results');
-                }
-                if ($mode->settings->bestDeathsOwn) {
-                    $info['deathsOwn'] = lang('Největší vlastňák', context: 'bests', domain: 'results');
-                }
+            if ($mode->settings->bestDeathsOwn) {
+                $info['deathsOwn'] = lang('Největší vlastňák', context: 'bests', domain: 'results');
             }
-            if ($mode->settings->bestMines && $mode->settings->mines && $this->isMinesOn()) {
-                $info['mines'] = lang('Drtič min', context: 'bests', domain: 'results');
-            }
-        } catch (GameModeNotFoundException) {
+        }
+        if ($mode->settings->bestMines && $mode->settings->mines && $this->isMinesOn()) {
+            $info['mines'] = lang('Drtič min', context: 'bests', domain: 'results');
         }
         return $info;
     }
