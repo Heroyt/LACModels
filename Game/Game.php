@@ -43,7 +43,6 @@ use Lsr\ObjectValidation\Attributes\NoValidate;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\Instantiate;
-use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
 use Lsr\Orm\LoadingType;
@@ -121,10 +120,6 @@ abstract class Game extends BaseModel implements GameInterface
     /** @var GameGroup|null */
     #[ManyToOne(class: GameGroup::class), OA\Property, NoValidate]
     public ?GameGroupInterface $group = null;
-    #[NoDB, OA\Property]
-    public bool $started = false;
-    #[NoDB, OA\Property]
-    public bool $finished = false;
     protected float $realGameLength;
 
     public function __construct(?int $id = null, ?Row $dbRow = null) {
