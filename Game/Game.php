@@ -197,8 +197,15 @@ abstract class Game extends BaseModel implements GameInterface
         $this->extensionFillFromRow();
     }
 
+    /**
+     * Check if game was already started based on current time
+     *
+     * @return bool
+     * @phpstan-assert-if-true !null $this->start
+     */
     public function isStarted() : bool {
-        return $this->start !== null;
+        return $this->start !== null
+          && time() > $this->start->getTimestamp();
     }
 
     /**
@@ -482,7 +489,7 @@ abstract class Game extends BaseModel implements GameInterface
      */
     public function getRealGameLength() : float {
         if (!isset($this->realGameLength)) {
-            if (!isset($this->end, $this->start) || !$this->isFinished()) {
+            if (!$this->isFinished()) {
                 // If the game is not finished, it does not have a game length
                 return 0;
             }
@@ -492,8 +499,19 @@ abstract class Game extends BaseModel implements GameInterface
         return $this->realGameLength;
     }
 
+    /**
+     * Check if game is already finished based on current time
+     *
+     * @return bool
+     * @phpstan-assert-if-true !null $this->start
+     * @phpstan-assert-if-true !null $this->end
+     * @phpstan-assert-if-true !null $this->importTime
+     */
     public function isFinished() : bool {
-        return $this->end !== null && $this->importTime !== null;
+        return $this->start !== null
+          && $this->end !== null
+          && $this->importTime !== null
+          && time() > ($this->end->getTimestamp() + ($this->timing->after ?? 0));
     }
 
     /**
