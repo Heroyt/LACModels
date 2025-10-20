@@ -71,9 +71,9 @@ abstract class Player extends BaseModel implements PlayerInterface
     public int $deaths = 0;
     public int $position = 0;
 
-    /** @var PlayerHit<static>[] */
+    /** @var PlayerHit<static>[]|null */
     #[NoDB]
-    public ?array $hitPlayers = []; // @phpstan-ignore property.phpDocType
+    public ?array $hitPlayers = null; // @phpstan-ignore property.phpDocType
 
     /** @var T|null */
     #[ManyToOne(foreignKey: 'id_team', class: Team::class)]
@@ -88,8 +88,8 @@ abstract class Player extends BaseModel implements PlayerInterface
         $this->cacheTags[] = 'games/'.$this::SYSTEM;
         $this->cacheTags[] = 'players/'.$this::SYSTEM;
         parent::__construct($id, $dbRow);
-        $this->initExtensions();
         $this->hitPlayers ??= [];
+        $this->initExtensions();
     }
 
     /**
@@ -368,6 +368,7 @@ abstract class Player extends BaseModel implements PlayerInterface
         foreach ($hits as $row) {
             $this->addHits($this::get($row->id_target), $row->count);
         }
+        $this->hitPlayers ??= [];
         return $this->hitPlayers;
     }
 
@@ -375,9 +376,14 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @param  static  $player
      * @param  int  $count
      *
+     * @phpstan-assert !null $this->hitPlayers
+     *
      * @return $this
      */
     public function addHits(PlayerInterface $player, int $count = 1) : static {
+        if ($this->hitPlayers === null) {
+            $this->hitPlayers = [];
+        }
         /** @var class-string<PlayerHit<static>> $className */
         $className = str_replace('Player', 'PlayerHit', $this::class);
         if (isset($this->hitPlayers[$player->vest])) {

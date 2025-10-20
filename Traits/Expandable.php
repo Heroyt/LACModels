@@ -41,6 +41,10 @@ trait Expandable
      * @return void
      */
     public function __set($name, ?Model $value) : void {
+        if ($value === null) {
+            unset($this->data[$name]);
+            return;
+        }
         $this->data[$name] = $value;
     }
 
@@ -93,7 +97,11 @@ trait Expandable
     }
 
     protected function extensionFillFromRow() : void {
-        foreach (static::getExtensions() as $extension) {
+        if ($this->row === null) {
+            return;
+        }
+        foreach ($this::getExtensions() as $extension) {
+            assert($this->row !== null);
             $extension->parseRow($this->row, $this);
         }
     }

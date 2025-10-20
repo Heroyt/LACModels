@@ -154,13 +154,12 @@ class AbstractMode extends BaseModel implements GameModeInterface
         if ($this->isTeam()) {
             $teams = $game->teamsSorted;
             $team = $teams->first();
-            if (count($teams) === 2 && $team->getScore() === $teams->last()->score) {
+            if (count($teams) === 2 && $team?->getScore() === $teams->last()?->getScore()) {
                 return null;
             }
             return $team;
         }
-        $player = $game->playersSorted->first();
-        return $player;
+        return $game->playersSorted->first();
     }
 
     public function isTeam() : bool {
@@ -255,7 +254,7 @@ class AbstractMode extends BaseModel implements GameModeInterface
         return array_filter(
           $this->variations,
           fn($variationValues) => count($variationValues) > 0
-            && first($variationValues)->variation->public
+            && (first($variationValues)->variation->public ?? true)
         );
     }
 

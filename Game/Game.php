@@ -340,20 +340,32 @@ abstract class Game extends BaseModel implements GameInterface
      * @noinspection PhpUndefinedFieldInspection
      */
     public function save() : bool {
+        if (!$this->isFinished()) {
+            $this->getLogger()->warning('Cannot save a game that is not finished yet.', ['file' => $this->resultsFile]);
+            return false;
+        }
+
         $pk = $this::getPrimaryKey();
+
+        // Test duplicate
         /** @var Row|null $test */
-        $test = DB::select($this::TABLE, $pk.', code')->where(
-          'start = %dt OR start = %dt',
-          $this->start,
-          $this->start->getTimestamp() + ($this->timing->before ?? 20)
-        )->fetch(cache: false);
+        $test = DB::select($this::TABLE, $pk.', code')
+                  ->where(
+                    'start = %dt OR start = %dt',
+                    $this->start,
+                    $this->start->getTimestamp() + ($this->timing->before ?? 20)
+                  )
+                  ->fetch(cache: false);
         if (isset($test)) {
             $this->id = $test->$pk;
             $this->code = $test->code;
         }
+
+        // Make sure code is set
         if (empty($this->code)) {
             $this->code = uniqid(self::getCodePrefix(), false);
         }
+
         $success = parent::save();
         if (!$success) {
             return false;
@@ -378,6 +390,21 @@ abstract class Game extends BaseModel implements GameInterface
         }
 
         return $success && $this->extensionSave();
+    }
+
+    /**
+     * Check if game is already finished based on current time
+     *
+     * @return bool
+     * @phpstan-assert-if-true !null $this->start
+     * @phpstan-assert-if-true !null $this->end
+     * @phpstan-assert-if-true !null $this->importTime
+     */
+    public function isFinished() : bool {
+        return $this->start !== null
+          && $this->end !== null
+          && $this->importTime !== null
+          && time() > ($this->end->getTimestamp() + ($this->timing->after ?? 0));
     }
 
     /**
@@ -492,21 +519,6 @@ abstract class Game extends BaseModel implements GameInterface
             $this->realGameLength = (($diff->h * 3600) + ($diff->i * 60) + $diff->s) / 60;
         }
         return $this->realGameLength;
-    }
-
-    /**
-     * Check if game is already finished based on current time
-     *
-     * @return bool
-     * @phpstan-assert-if-true !null $this->start
-     * @phpstan-assert-if-true !null $this->end
-     * @phpstan-assert-if-true !null $this->importTime
-     */
-    public function isFinished() : bool {
-        return $this->start !== null
-          && $this->end !== null
-          && $this->importTime !== null
-          && time() > ($this->end->getTimestamp() + ($this->timing->after ?? 0));
     }
 
     /**

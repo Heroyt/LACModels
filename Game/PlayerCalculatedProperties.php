@@ -24,7 +24,7 @@ trait PlayerCalculatedProperties
     #[NoDB]
     public int $color {
         get {
-            return $this->team->color ?? ($this->game->mode->isSolo() ? 2 : 0);
+            return $this->team->color ?? ($this->game->mode?->isSolo() ? 2 : 0);
         }
     }
 
