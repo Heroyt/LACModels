@@ -364,7 +364,7 @@ class GameFactory implements FactoryInterface
         $colors = [];
         foreach (self::getSupportedSystems() as $system) {
             /** @var class-string $className */
-            $className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
+            $className = 'App\GameModels\Game\\'.self::systemToNamespace($system).'\Game';
             if (method_exists($className, 'getTeamColors')) {
                 $colors[$system] = $className::getTeamColors();
             }
@@ -381,7 +381,7 @@ class GameFactory implements FactoryInterface
         $colors = [];
         foreach (self::getSupportedSystems() as $system) {
             /** @var class-string $className */
-            $className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
+            $className = 'App\GameModels\Game\\'.self::systemToNamespace($system).'\Game';
             if (method_exists($className, 'getTeamNames')) {
                 $colors[$system] = $className::getTeamNames();
             }
@@ -411,7 +411,7 @@ class GameFactory implements FactoryInterface
         if (!in_array($system, self::getSupportedSystems(), true)) {
             throw new InvalidArgumentException('Unsupported or unknown system: '.$system);
         }
-        $className = 'App\GameModels\Game\\'.ucfirst($system).'\Game';
+        $className = 'App\GameModels\Game\\'.self::systemToNamespace($system).'\Game';
         if (!class_exists($className)) {
             throw new InvalidArgumentException('Cannot find Game class for system: '.$system);
         }
