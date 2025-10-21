@@ -140,7 +140,7 @@ class GameModeFactory implements FactoryInterface
         $classBase = 'App\\GameModels\\Game\\';
         $classSystem = '';
         if (!empty($system)) {
-            $classSystem = Strings::firstUpper($system).'\\';
+            $classSystem = GameFactory::systemToNamespace($system).'\\';
         }
         $classNamespace = 'GameModes\\';
         $className = '';

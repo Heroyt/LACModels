@@ -27,6 +27,13 @@ use Throwable;
  */
 class GameFactory implements FactoryInterface
 {
+
+    public const array SYSTEM_MAP = [
+      'evo5'       => 'Lasermaxx\\Evo5',
+      'evo6'       => 'Lasermaxx\\Evo6',
+      'laserforce' => 'Laserforce',
+    ];
+
     /** @var non-empty-string[] */
     private static array $supportedSystems;
 
@@ -150,11 +157,12 @@ class GameFactory implements FactoryInterface
         }
         Timer::startIncrementing('factory.game');
         try {
+
             /**
              * @var class-string<Game> $className
              * @phpstan-ignore missingType.generics
              */
-            $className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Game';
+            $className = '\\App\\GameModels\\Game\\'.self::systemToNamespace($system).'\\Game';
             if (!class_exists($className)) {
                 throw new InvalidArgumentException('Game model of does not exist: '.$className);
             }
@@ -165,6 +173,14 @@ class GameFactory implements FactoryInterface
         }
         Timer::stop('factory.game');
         return $game;
+    }
+
+    /**
+     * @param  string  $system
+     * @return non-empty-string
+     */
+    public static function systemToNamespace(string $system) : string {
+        return (self::SYSTEM_MAP[strtolower($system)] ?? Strings::toPascalCase($system));
     }
 
     /**

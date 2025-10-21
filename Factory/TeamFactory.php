@@ -6,7 +6,6 @@ use App\GameModels\Game\Team;
 use InvalidArgumentException;
 use Lsr\Db\DB;
 use Lsr\Db\Dibi\Fluent;
-use Lsr\Helpers\Tools\Strings;
 use Lsr\Helpers\Tools\Timer;
 use Lsr\Orm\Exceptions\ModelNotFoundException;
 use Lsr\Orm\Interfaces\FactoryInterface;
@@ -116,7 +115,7 @@ class TeamFactory implements FactoryInterface
         }
         Timer::startIncrementing('factory.team');
         try {
-            $className = '\\App\\GameModels\\Game\\'.Strings::toPascalCase($system).'\\Team';
+            $className = '\\App\\GameModels\\Game\\'.GameFactory::systemToNamespace($system).'\\Team';
             if (!class_exists($className)) {
                 throw new InvalidArgumentException('Team model of does not exist: '.$className);
             }
