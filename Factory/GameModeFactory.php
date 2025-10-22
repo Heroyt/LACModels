@@ -34,7 +34,7 @@ class GameModeFactory implements FactoryInterface
     public static function getById(int $id, array $options = []) : ?AbstractMode {
         /** @var Row|null $mode */
         $mode = DB::select('game_modes', 'id_mode, name, systems, type')->where('id_mode = %i', $id)->fetch();
-        $system = (string) ($options['system'] ?? $mode->system ?? '');
+        $system = (string) ($options['system'] ?? $mode->system ?? null);
         $modeType = GameModeType::tryFrom((string) ($mode->type ?? 'TEAM')) ?? GameModeType::TEAM;
         return self::findModeObject($system, $mode, $modeType);
     }
