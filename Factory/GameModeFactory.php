@@ -34,7 +34,7 @@ class GameModeFactory implements FactoryInterface
     public static function getById(int $id, array $options = []) : ?AbstractMode {
         /** @var Row|null $mode */
         $mode = DB::select('game_modes', 'id_mode, name, systems, type')->where('id_mode = %i', $id)->fetch();
-        $system = (string) ($mode->system ?? '');
+        $system = (string) ($options['system'] ?? $mode->system ?? '');
         $modeType = GameModeType::tryFrom((string) ($mode->type ?? 'TEAM')) ?? GameModeType::TEAM;
         return self::findModeObject($system, $mode, $modeType);
     }
@@ -127,7 +127,7 @@ class GameModeFactory implements FactoryInterface
      * @param  GameModeType  $modeType
      * @return class-string<AbstractMode>|null
      */
-    private static function tryFindingModeClass(string $system, ?Row $mode, GameModeType $modeType) : ?string {
+    public static function tryFindingModeClass(string $system, ?Row $mode, GameModeType $modeType) : ?string {
         $key = $system.'_'.$modeType->value;
         if (isset($mode)) {
             $key .= '_'.$mode->id_mode;
@@ -231,7 +231,7 @@ class GameModeFactory implements FactoryInterface
                     '%s LIKE CONCAT(\'%\', [sysName], \'%\')',
                     $modeName
                   )->fetch();
-        if (isset($mode->system)) {
+        if (empty($system) && isset($mode->system)) {
             $system = $mode->system;
         }
         return self::findModeObject($system, $mode, $modeType);
