@@ -200,7 +200,8 @@ abstract class Game extends BaseModel implements GameInterface
      */
     public function isStarted() : bool {
         return $this->start !== null
-          && time() > $this->start->getTimestamp();
+          // Start time is timestamp of a real game-start, so we need to subtract the preparation time before the game
+          && time() >= $this->start->getTimestamp() - ($this->timing->before ?? 0);
     }
 
     /**
