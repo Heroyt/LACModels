@@ -408,6 +408,10 @@ abstract class Game extends BaseModel implements GameInterface
           && time() > ($this->end->getTimestamp() + ($this->timing->after ?? 0));
     }
 
+    public function isEnded() : bool {
+        return $this->isFinished();
+    }
+
     /**
      * @return void
      * @throws Throwable

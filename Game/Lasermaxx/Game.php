@@ -150,4 +150,8 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
         }
         return parent::getBestPlayer($property);
     }
+
+    public function isEnded() : bool {
+        return $this->isFinished() || ($this->realEnd !== null && $this->realEnd->getTimestamp() < time());
+    }
 }
