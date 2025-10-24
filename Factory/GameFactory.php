@@ -176,11 +176,13 @@ class GameFactory implements FactoryInterface
     }
 
     /**
-     * @param  string  $system
+     * @param  non-empty-string  $system
      * @return non-empty-string
      */
     public static function systemToNamespace(string $system) : string {
-        return (self::SYSTEM_MAP[strtolower($system)] ?? Strings::toPascalCase($system));
+        $namespace = (self::SYSTEM_MAP[strtolower($system)] ?? Strings::toPascalCase($system));
+        assert(!empty($namespace));
+        return $namespace;
     }
 
     /**
