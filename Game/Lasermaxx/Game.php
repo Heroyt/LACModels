@@ -9,6 +9,7 @@ use Lsr\Lg\Results\LaserMaxx\VipSettings;
 use Lsr\Lg\Results\LaserMaxx\ZombieSettings;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\Instantiate;
+use Lsr\Orm\Attributes\NoDB;
 use OpenApi\Attributes as OA;
 
 /**
@@ -50,6 +51,11 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
     public VipSettings $vipSettings;
 
     protected bool $minesOn;
+
+    #[NoDB]
+    public ?\DateTimeInterface $playEnd = null;
+    #[NoDB]
+    public ?\DateTimeInterface $realEnd = null;
 
     /**
      * @return string[]
