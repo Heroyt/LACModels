@@ -54,7 +54,7 @@ class Survival extends Deathmatch implements CustomResultsMode, ModifyScoresMode
                 $player->scoreBonus += 1000;
                 $player->score += 1000;
             }
-            $player->ammoRest = $game->ammo - $player->shots;
+            $player->ammoRest = max($game->ammo - $player->shots, 0);
         }
     }
 }
