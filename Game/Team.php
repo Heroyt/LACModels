@@ -20,6 +20,7 @@ use Lsr\ObjectValidation\Attributes\StringLength;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Transforms\Truncate;
 use Throwable;
 
 /**
@@ -57,7 +58,7 @@ abstract class Team extends BaseModel implements TeamInterface
     #[Required]
     public int $position = 0;
     #[Required]
-    #[StringLength(min: 1, max: 99)]
+    #[StringLength(min: 1, max: 99), Truncate(99)]
     public string $name = '';
 
 

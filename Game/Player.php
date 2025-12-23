@@ -27,6 +27,7 @@ use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Attributes\Transforms\Truncate;
 use Throwable;
 
 /**
@@ -60,7 +61,7 @@ abstract class Player extends BaseModel implements PlayerInterface
     public const string DI_TAG = 'playerDataExtension';
 
     #[Required]
-    #[StringLength(min: 1, max: 50)]
+    #[StringLength(min: 1, max: 50), Truncate(50)]
     public string $name = '';
     public int $score = 0;
     public int $skill = 0;
