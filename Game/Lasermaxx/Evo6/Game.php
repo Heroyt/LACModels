@@ -3,6 +3,7 @@
 namespace App\GameModels\Game\Lasermaxx\Evo6;
 
 use App\GameModels\Factory\GameFactory;
+use App\GameModels\Game\WithLinkedPlayers;
 use Lsr\Lg\Results\LaserMaxx\Evo6\Evo6GameInterface;
 use Lsr\Lg\Results\LaserMaxx\Evo6\GameStyleType;
 use Lsr\Lg\Results\LaserMaxx\Evo6\HitGainSettings;
@@ -11,6 +12,7 @@ use Lsr\Lg\Results\LaserMaxx\Evo6\Scoring;
 use Lsr\Lg\Results\LaserMaxx\Evo6\TriggerSpeed;
 use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\Instantiate;
+use Lsr\Orm\Attributes\JsonExclude;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 
@@ -28,11 +30,18 @@ use Lsr\Orm\Attributes\PrimaryKey;
 ]
 class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo6GameInterface
 {
+    /** @use WithLinkedPlayers<LinkedPlayer> */
+    use WithLinkedPlayers;
+
     public const string SYSTEM = 'evo6';
     public const string TABLE = 'evo6_games';
 
     #[NoDB]
     public string $playerClass = Player::class;
+
+    #[NoDB, JsonExclude]
+    public string $linkedPlayerClass = LinkedPlayer::class;
+
     #[NoDB]
     public string $teamClass = Team::class;
     public bool $blastShots = false;

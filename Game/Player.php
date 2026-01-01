@@ -27,6 +27,7 @@ use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\NoDB;
 use Lsr\Orm\Attributes\PrimaryKey;
 use Lsr\Orm\Attributes\Relations\ManyToOne;
+use Lsr\Orm\Attributes\Transforms\Clamp;
 use Lsr\Orm\Attributes\Transforms\Truncate;
 use Throwable;
 
@@ -66,9 +67,17 @@ abstract class Player extends BaseModel implements PlayerInterface
     public int $score = 0;
     public int $skill = 0;
     public int | string $vest = 0;
+    /** @var int<0, max> */
+    #[Clamp(min: 0)]
     public int $shots = 0;
+    /** @var int<0, 100> */
+    #[Clamp(0, 100)]
     public int $accuracy = 0;
+    /** @var int<0, max> */
+    #[Clamp(min: 0)]
     public int $hits = 0;
+    /** @var int<0, max> */
+    #[Clamp(min: 0)]
     public int $deaths = 0;
     public int $position = 0;
 
@@ -385,8 +394,9 @@ abstract class Player extends BaseModel implements PlayerInterface
         if ($this->hitPlayers === null) {
             $this->hitPlayers = [];
         }
+        $className = last(explode('\\', $this::class));
         /** @var class-string<PlayerHit<static>> $className */
-        $className = str_replace('Player', 'PlayerHit', $this::class);
+        $className = str_replace($className, 'PlayerHit', $this::class);
         if (isset($this->hitPlayers[$player->vest])) {
             $this->hitPlayers[$player->vest]->count += $count;
             return $this;

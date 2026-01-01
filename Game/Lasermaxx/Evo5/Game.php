@@ -10,6 +10,7 @@ use App\GameModels\Factory\GameFactory;
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Lasermaxx\Evo5\GameModes\Deathmatch;
 use App\GameModels\Game\Lasermaxx\Evo5\GameModes\TeamDeathmatch;
+use App\GameModels\Game\WithLinkedPlayers;
 use Lsr\Lg\Results\Enums\GameModeType;
 use Lsr\Lg\Results\LaserMaxx\Evo5\Evo5GameInterface;
 use Lsr\Lg\Results\LaserMaxx\Evo5\Scoring;
@@ -33,11 +34,18 @@ use Lsr\Orm\Attributes\PrimaryKey;
 ]
 class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo5GameInterface
 {
+    /** @use WithLinkedPlayers<LinkedPlayer> */
+    use WithLinkedPlayers;
+
     public const string SYSTEM = 'evo5';
     public const string TABLE = 'evo5_games';
 
     #[NoDB, JsonExclude]
     public string $playerClass = Player::class;
+
+    #[NoDB, JsonExclude]
+    public string $linkedPlayerClass = LinkedPlayer::class;
+
     #[NoDB, JsonExclude]
     public string $teamClass = Team::class;
     #[Instantiate]

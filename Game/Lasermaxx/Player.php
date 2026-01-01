@@ -39,15 +39,26 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
     public int $scorePowers = 0;
     public int $scoreMines = 0;
     public int $scoreAccuracy = 0;
+    /** @var int<0, max> */
     #[Clamp(min: 0)]
     public int $ammoRest = 0;
+    /** @var int<0, max> */
     #[Clamp(min: 0)]
     public int $livesRest = 0;
+    /** @var int<0, max> */
     public int $minesHits = 0;
 
+    /** @var int<0, max> */
+    #[Clamp(min: 0)]
     public int $hitsOther = 0;
+    /** @var int<0, max> */
+    #[Clamp(min: 0)]
     public int $hitsOwn = 0;
+    /** @var int<0, max> */
+    #[Clamp(min: 0)]
     public int $deathsOwn = 0;
+    /** @var int<0, max> */
+    #[Clamp(min: 0)]
     public int $deathsOther = 0;
 
     public bool $vip = false;
