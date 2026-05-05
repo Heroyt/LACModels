@@ -90,7 +90,7 @@ class Tip extends BaseModel
         return $this;
     }
 
-    protected function transformTranslationsForSave(?string $translations): ?string
+    public function transformTranslationsForSave(?string $translations): ?string
     {
         if ($translations === null) {
             return null;
@@ -98,7 +98,7 @@ class Tip extends BaseModel
         return base64_encode($translations);
     }
 
-    protected function transformTranslationsForLoad(?string $translations): ?string
+    public function transformTranslationsForLoad(?string $translations): ?string
     {
         if ($translations === null) {
             return null;
