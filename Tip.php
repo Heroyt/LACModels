@@ -10,6 +10,7 @@ use App\Core\App;
 use App\Models\BaseModel;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
 use Lsr\Orm\Attributes\PrimaryKey;
+use Lsr\Orm\Attributes\Transform;
 
 #[PrimaryKey('id_tip')]
 class Tip extends BaseModel
@@ -17,6 +18,7 @@ class Tip extends BaseModel
     public const string TABLE = 'tips';
 
     public string $text;
+    #[Transform(save: 'transformTranslationsForSave', load: 'transformTranslationsForLoad')]
     public ?string $translations = null;
 
     /** @var array<string,string> */
@@ -57,7 +59,7 @@ class Tip extends BaseModel
     public function getTranslations() : array {
         if (!isset($this->translationsParsed)) {
             if ($this->translations !== null) {
-                $translations = igbinary_unserialize($this->translations);
+                $translations = $this->unserializeTranslations($this->translations);
                 $this->translationsParsed = $translations === false ? [] : $translations;
             }
             else {
@@ -86,6 +88,50 @@ class Tip extends BaseModel
         $this->getTranslations();
         $this->translationsParsed[$lang] = $text;
         return $this;
+    }
+
+    protected function transformTranslationsForSave(?string $translations): ?string
+    {
+        if ($translations === null) {
+            return null;
+        }
+        return base64_encode($translations);
+    }
+
+    protected function transformTranslationsForLoad(?string $translations): ?string
+    {
+        if ($translations === null) {
+            return null;
+        }
+        $decoded = base64_decode($translations, true);
+        if ($decoded === false) {
+            return $translations;
+        }
+        if ($this->canUnserializeTranslations($decoded)) {
+            return $decoded;
+        }
+        return $translations;
+    }
+
+    /**
+     * @return array<string,string>|false
+     */
+    private function unserializeTranslations(string $translations): array|false
+    {
+        $decoded = base64_decode($translations, true);
+        if ($decoded !== false && $this->canUnserializeTranslations($decoded)) {
+            return igbinary_unserialize($decoded);
+        }
+        return igbinary_unserialize($translations);
+    }
+
+    private function canUnserializeTranslations(string $value): bool
+    {
+        $unserialized = @igbinary_unserialize($value);
+        return !(
+            ($unserialized === false && $value !== igbinary_serialize(false)) ||
+            ($unserialized === null && $value !== igbinary_serialize(null))
+        );
     }
 
     public function jsonSerialize() : array {
