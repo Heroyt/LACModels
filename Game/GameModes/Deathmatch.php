@@ -19,7 +19,8 @@ class Deathmatch extends AbstractMode implements SoloGameModeInterface
     public string $name = 'Deathmatch';
     public ?string $description = 'Free for all game type.';
 
-    public function getTeamAlternative() : string {
+    public function getTeamAlternative(): string
+    {
         return TeamDeathmatch::class;
     }
 }

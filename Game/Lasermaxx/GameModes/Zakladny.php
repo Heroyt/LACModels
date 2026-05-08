@@ -37,7 +37,8 @@ class Zakladny extends AbstractMode implements CustomResultsMode, TeamGameModeIn
      * @param  G  $game
      * @return T|null
      */
-    public function getWin(GameInterface $game) : ?Team {
+    public function getWin(GameInterface $game): ?Team
+    {
         /** @var T $team1 */
         $team1 = $game->teams->first();
         $zakladny1 = $this->getBasesDestroyed($team1);
@@ -62,11 +63,12 @@ class Zakladny extends AbstractMode implements CustomResultsMode, TeamGameModeIn
      *
      * @return int
      */
-    public function getBasesDestroyed(Team $team) : int {
+    public function getBasesDestroyed(Team $team): int
+    {
 
         $shields = $team->players->map(
         /** @phpstan-ignore argument.type */
-          fn(Player $player) => $player->getBonusCount()
+            fn(Player $player) => $player->getBonusCount()
         );
         if (count($shields) === 0) {
             return 0;
@@ -77,14 +79,16 @@ class Zakladny extends AbstractMode implements CustomResultsMode, TeamGameModeIn
     /**
      * @inheritDoc
      */
-    public function getCustomResultsTemplate() : string {
+    public function getCustomResultsTemplate(): string
+    {
         return 'zakladny';
     }
 
     /**
      * @inheritDoc
      */
-    public function getCustomGateScreen() : string {
+    public function getCustomGateScreen(): string
+    {
         return LaserMaxxZakladnyResultsScreen::class;
     }
 
@@ -94,7 +98,8 @@ class Zakladny extends AbstractMode implements CustomResultsMode, TeamGameModeIn
      * @param  T  $team
      * @return string
      */
-    public function getBaseNameForTeam(Team $team) : string {
+    public function getBaseNameForTeam(Team $team): string
+    {
         // TODO: rewrite this to be more modular
 
         // The only variants are MZ and ZM

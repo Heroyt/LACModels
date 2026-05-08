@@ -42,7 +42,8 @@ class PrintStyle extends BaseModel
      * @throws ValidationException
      * @throws DirectoryCreationException
      */
-    public static function getActiveStyle() : ?PrintStyle {
+    public static function getActiveStyle(): ?PrintStyle
+    {
         $id = self::getActiveStyleId();
         if ($id > 0) {
             return new self($id);
@@ -54,9 +55,10 @@ class PrintStyle extends BaseModel
     /**
      * @return int
      */
-    public static function getActiveStyleId() : int {
+    public static function getActiveStyleId(): int
+    {
         /** @var int|null $currentStyle */
-        $currentStyle = DB::select(self::TABLE.'_dates', 'id_style')
+        $currentStyle = DB::select(self::TABLE . '_dates', 'id_style')
                           ->where('DAYOFYEAR(CURDATE()) BETWEEN DAYOFYEAR(date_from) AND DAYOFYEAR(date_to)')
                           ->fetchSingle();
         if (isset($currentStyle)) {
@@ -74,8 +76,9 @@ class PrintStyle extends BaseModel
      * @throws ValidationException
      * @throws ModelNotFoundException
      */
-    public static function getAllStyleDates() : array {
-        $styles = DB::select(self::TABLE.'_dates', '*')->fetchAll();
+    public static function getAllStyleDates(): array
+    {
+        $styles = DB::select(self::TABLE . '_dates', '*')->fetchAll();
         $return = [];
         foreach ($styles as $style) {
             $return[] = [
@@ -92,18 +95,19 @@ class PrintStyle extends BaseModel
      *
      * @return string
      */
-    public function getCssClasses(bool $tag = true) : string {
+    public function getCssClasses(bool $tag = true): string
+    {
         $return = '';
         if ($tag) {
             $return .= '<style>';
         }
         if (!self::$gotVars) {
-            $return .= ':root {'.$this->getCssVars(false).'}';
+            $return .= ':root {' . $this->getCssVars(false) . '}';
         }
         foreach (self::COLORS as $color) {
-            $return .= '.print-'.$color.' {--text-color: var(--print-'.$color.'-text); background-color: var(--print-'.$color.') !important; color: var(--print-'.$color.'-text) !important;}';
-            $return .= '.bg-print-'.$color.' {background-color: var(--print-'.$color.') !important;}';
-            $return .= '.text-print-'.$color.' {--text-color: var(--print-'.$color.'-text); color: var(--print-'.$color.') !important;}';
+            $return .= '.print-' . $color . ' {--text-color: var(--print-' . $color . '-text); background-color: var(--print-' . $color . ') !important; color: var(--print-' . $color . '-text) !important;}';
+            $return .= '.bg-print-' . $color . ' {background-color: var(--print-' . $color . ') !important;}';
+            $return .= '.text-print-' . $color . ' {--text-color: var(--print-' . $color . '-text); color: var(--print-' . $color . ') !important;}';
         }
         if ($tag) {
             $return .= '</style>';
@@ -116,17 +120,18 @@ class PrintStyle extends BaseModel
      *
      * @return string
      */
-    public function getCssVars(bool $tag = true) : string {
+    public function getCssVars(bool $tag = true): string
+    {
         $return = '';
         if ($tag) {
             $return .= '<style>:root {';
         }
-        $return .= '--print-dark: '.$this->colorDark.';--print-light: '.$this->colorLight.';--print-primary: '.$this->colorPrimary.';';
-        $return .= '--print-dark-text: '.Color::getFontColor(
+        $return .= '--print-dark: ' . $this->colorDark . ';--print-light: ' . $this->colorLight . ';--print-primary: ' . $this->colorPrimary . ';';
+        $return .= '--print-dark-text: ' . Color::getFontColor(
             $this->colorDark
-          ).';--print-light-text: '.Color::getFontColor(
+            ) . ';--print-light-text: ' . Color::getFontColor(
             $this->colorLight
-          ).';--print-primary-text: '.Color::getFontColor($this->colorPrimary).';';
+            ) . ';--print-primary-text: ' . Color::getFontColor($this->colorPrimary) . ';';
         if ($tag) {
             $return .= '}</style>';
         }

@@ -37,11 +37,13 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo5Player
     #[ManyToOne(foreignKey: 'id_team', class: Team::class)]
     public ?TeamInterface $team = null;
 
-    public function getMines() : int {
+    public function getMines(): int
+    {
         return $this->bonus->getSum();
     }
 
-    public function getBonusCount() : int {
+    public function getBonusCount(): int
+    {
         return $this->bonus->getSum();
     }
 }

@@ -27,11 +27,11 @@ class TeamFactory implements FactoryInterface
      * @throws Throwable
      * @phpstan-ignore missingType.generics
      */
-    public static function getAll(array $options = []) : array {
+    public static function getAll(array $options = []): array
+    {
         if (!empty($options['system'])) {
             $rows = self::queryTeamsSystem($options['system'])->fetchAll();
-        }
-        else {
+        } else {
             $rows = self::queryTeams()->fetchAll();
         }
         $models = [];
@@ -52,13 +52,14 @@ class TeamFactory implements FactoryInterface
      *
      * @return Fluent
      */
-    public static function queryTeamsSystem(string $system, array $gameIds = []) : Fluent {
+    public static function queryTeamsSystem(string $system, array $gameIds = []): Fluent
+    {
         $q = DB::select(
-          ["[{$system}_teams]", "[g]"],
-          "[g].[id_team], [g].[id_game], [g].[color], %s as [system], [g].[name], [g].[score]",
-          $system
+            ["[{$system}_teams]", "[g]"],
+            "[g].[id_team], [g].[id_game], [g].[color], %s as [system], [g].[name], [g].[score]",
+            $system
         )
-               ->cacheTags('teams', 'teams/'.$system);
+            ->cacheTags('teams', 'teams/' . $system);
         if (!empty($gameIds)) {
             $q->where("[g].[id_game] IN %in", $gameIds);
         }
@@ -72,7 +73,8 @@ class TeamFactory implements FactoryInterface
      *
      * @return Fluent
      */
-    public static function queryTeams(array $gameIds = []) : Fluent {
+    public static function queryTeams(array $gameIds = []): Fluent
+    {
         $query = DB::select();
         $queries = [];
 
@@ -85,16 +87,16 @@ class TeamFactory implements FactoryInterface
             }
 
             $q = DB::select(
-              ["[{$system}_teams]", "[g$key]"],
-              "[g$key].[id_team], [g$key].[id_game], [g$key].[color], %s as [system], [g$key].[name], [g$key].[score]",
-              $system
+                ["[{$system}_teams]", "[g$key]"],
+                "[g$key].[id_team], [g$key].[id_game], [g$key].[color], %s as [system], [g$key].[name], [g$key].[score]",
+                $system
             );
             if (!empty($gameIds[$system])) {
                 $q->where("[g$key].[id_game] IN %in", $gameIds[$system]);
             }
             $queries[] = (string) $q;
         }
-        $query->from('%sql', '(('.implode(') UNION ALL (', $queries).')) [t]');
+        $query->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]');
         return $query->cacheTags('teams');
     }
 
@@ -108,16 +110,17 @@ class TeamFactory implements FactoryInterface
      * @throws Throwable
      * @phpstan-ignore missingType.generics
      */
-    public static function getById(int $id, array $options = []) : ?Team {
+    public static function getById(int $id, array $options = []): ?Team
+    {
         $system = $options['system'] ?? '';
         if (empty($system)) {
             throw new InvalidArgumentException('System name is required.');
         }
         Timer::startIncrementing('factory.team');
         try {
-            $className = '\\App\\GameModels\\Game\\'.GameFactory::systemToNamespace($system).'\\Team';
+            $className = '\\App\\GameModels\\Game\\' . GameFactory::systemToNamespace($system) . '\\Team';
             if (!class_exists($className)) {
-                throw new InvalidArgumentException('Team model of does not exist: '.$className);
+                throw new InvalidArgumentException('Team model of does not exist: ' . $className);
             }
             $team = $className::get($id);
         } catch (ModelNotFoundException) {

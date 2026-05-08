@@ -30,7 +30,8 @@ class M100Naboju extends Deathmatch implements CustomResultsMode
      *
      * @return string Path to template file
      */
-    public function getCustomResultsTemplate() : string {
+    public function getCustomResultsTemplate(): string
+    {
         return 'naboju';
     }
 
@@ -39,7 +40,8 @@ class M100Naboju extends Deathmatch implements CustomResultsMode
      *
      * @return string Path to template file
      */
-    public function getCustomGateScreen() : string {
+    public function getCustomGateScreen(): string
+    {
         return LaserMaxx100NabojuResultsScreen::class;
     }
 }

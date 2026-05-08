@@ -31,7 +31,8 @@ class GameModeFactory implements FactoryInterface
      * @return AbstractMode|null
      * @throws GameModeNotFoundException
      */
-    public static function getById(int $id, array $options = []) : ?AbstractMode {
+    public static function getById(int $id, array $options = []): ?AbstractMode
+    {
         /** @var Row|null $mode */
         $mode = DB::select('game_modes', 'id_mode, name, systems, type')->where('id_mode = %i', $id)->fetch();
         $system = (string) ($options['system'] ?? $mode->system ?? null);
@@ -46,10 +47,11 @@ class GameModeFactory implements FactoryInterface
      * @noinspection PhpUndefinedFieldInspection
      */
     public static function findModeObject(
-      string | null | System | array $system,
-      ?Row                           $mode,
-      GameModeType                   $modeType
-    ) : AbstractMode {
+        string|null|System|array $system,
+        ?Row                     $mode,
+        GameModeType             $modeType
+    ): AbstractMode
+    {
         Timer::startIncrementing('factory.gamemode');
 
         // Normalize system value
@@ -58,11 +60,9 @@ class GameModeFactory implements FactoryInterface
             if (count($systems) > 1) {
                 $system = $systems;
             }
-        }
-        elseif ($system instanceof System) {
+        } elseif ($system instanceof System) {
             $system = $system->type->value;
-        }
-        elseif ($system === null) {
+        } elseif ($system === null) {
             $system = [];
             foreach (System::getActive() as $s) {
                 $system[] = $s->type->value;
@@ -82,15 +82,14 @@ class GameModeFactory implements FactoryInterface
             $class = 'App\\GameModels\\Game\\GameModes\\';
             if (isset($mode)) {
                 $class .= (GameModeType::TEAM === $modeType ? 'CustomTeamMode' : 'CustomSoloMode');
-            }
-            else {
+            } else {
                 $class .= (GameModeType::TEAM === $modeType ? 'TeamDeathmatch' : 'Deathmatch');
             }
             // Cache found class
             foreach ($system as $sys) {
-                $key = $sys.'_'.$modeType->value;
+                $key = $sys . '_' . $modeType->value;
                 if (isset($mode)) {
-                    $key .= '_'.$mode->id_mode;
+                    $key .= '_' . $mode->id_mode;
                 }
                 self::$gameModeClasses[$key] = $class;
             }
@@ -107,14 +106,13 @@ class GameModeFactory implements FactoryInterface
         $class = 'App\\GameModels\\Game\\GameModes\\';
         if (isset($mode)) {
             $class .= (GameModeType::TEAM === $modeType ? 'CustomTeamMode' : 'CustomSoloMode');
-        }
-        else {
+        } else {
             $class .= (GameModeType::TEAM === $modeType ? 'TeamDeathmatch' : 'Deathmatch');
         }
         // Cache found class
-        $key = $system.'_'.$modeType->value;
+        $key = $system . '_' . $modeType->value;
         if (isset($mode)) {
-            $key .= '_'.$mode->id_mode;
+            $key .= '_' . $mode->id_mode;
         }
         self::$gameModeClasses[$key] = $class;
         Timer::stop('factory.gamemode');
@@ -127,10 +125,11 @@ class GameModeFactory implements FactoryInterface
      * @param  GameModeType  $modeType
      * @return class-string<AbstractMode>|null
      */
-    public static function tryFindingModeClass(string $system, ?Row $mode, GameModeType $modeType) : ?string {
-        $key = $system.'_'.$modeType->value;
+    public static function tryFindingModeClass(string $system, ?Row $mode, GameModeType $modeType): ?string
+    {
+        $key = $system . '_' . $modeType->value;
         if (isset($mode)) {
-            $key .= '_'.$mode->id_mode;
+            $key .= '_' . $mode->id_mode;
         }
 
         if (isset(self::$gameModeClasses[$key])) {
@@ -140,25 +139,25 @@ class GameModeFactory implements FactoryInterface
         $classBase = 'App\\GameModels\\Game\\';
         $classSystem = '';
         if (!empty($system)) {
-            $classSystem = GameFactory::systemToNamespace($system).'\\';
+            $classSystem = GameFactory::systemToNamespace($system) . '\\';
         }
         $classNamespace = 'GameModes\\';
         $className = '';
         if (isset($mode)) {
             if (is_numeric($mode->name[0])) {
-                $mode->name = 'M'.$mode->name;
+                $mode->name = 'M' . $mode->name;
             }
             $dbName = str_replace([' ', '.', '_', '-'], '', Strings::toAscii(Strings::capitalize($mode->name)));
 
             /** @var class-string<AbstractMode> $class */
-            $class = $classBase.$classSystem.$classNamespace.$dbName;
+            $class = $classBase . $classSystem . $classNamespace . $dbName;
             if (class_exists($class)) {
                 self::$gameModeClasses[$key] = $class;
                 return $class;
             }
 
             /** @var class-string<AbstractMode> $class */
-            $class = $classBase.$classSystem.$classNamespace.strtoupper($dbName);
+            $class = $classBase . $classSystem . $classNamespace . strtoupper($dbName);
             if (class_exists($class)) {
                 self::$gameModeClasses[$key] = $class;
                 return $class;
@@ -167,8 +166,7 @@ class GameModeFactory implements FactoryInterface
             $classSystem = '';
             if ($modeType === GameModeType::TEAM) {
                 $className = 'CustomTeamMode';
-            }
-            else {
+            } else {
                 $className = 'CustomSoloMode';
             }
         }
@@ -176,13 +174,12 @@ class GameModeFactory implements FactoryInterface
         if (empty($className)) {
             if ($modeType === GameModeType::TEAM) {
                 $className = 'TeamDeathmatch';
-            }
-            else {
+            } else {
                 $className = 'Deathmatch';
             }
         }
         /** @var class-string<AbstractMode> $class */
-        $class = $classBase.$classSystem.$classNamespace.$className;
+        $class = $classBase . $classSystem . $classNamespace . $className;
         if (class_exists($class)) {
             self::$gameModeClasses[$key] = $class;
             return $class;
@@ -196,10 +193,11 @@ class GameModeFactory implements FactoryInterface
      * @return AbstractMode
      * @throws GameModeNotFoundException
      */
-    private static function getModeObject(string $class, ?Row $mode) : AbstractMode {
+    private static function getModeObject(string $class, ?Row $mode): AbstractMode
+    {
         if (!class_exists($class)) {
             throw new GameModeNotFoundException(
-              'Cannot find game mode class: '.$class
+                'Cannot find game mode class: ' . $class
             );
         }
 
@@ -221,15 +219,16 @@ class GameModeFactory implements FactoryInterface
      * @throws GameModeNotFoundException
      */
     public static function find(
-      string       $modeName,
-      GameModeType $modeType = GameModeType::TEAM,
-      string       $system = ''
-    ) : AbstractMode {
+        string       $modeName,
+        GameModeType $modeType = GameModeType::TEAM,
+        string       $system = ''
+    ): AbstractMode
+    {
         /** @var Row|null $mode */
         $mode = DB::select('vModesNames', 'id_mode, name, systems')
                   ->where(
-                    '%s LIKE CONCAT(\'%\', [sysName], \'%\')',
-                    $modeName
+                      '%s LIKE CONCAT(\'%\', [sysName], \'%\')',
+                      $modeName
                   )->fetch();
         if (empty($system) && isset($mode->system)) {
             $system = $mode->system;
@@ -246,10 +245,11 @@ class GameModeFactory implements FactoryInterface
      * @throws GameModeNotFoundException
      */
     public static function findByName(
-      string       $modeName,
-      GameModeType $modeType = GameModeType::TEAM,
-      string       $system = ''
-    ) : AbstractMode {
+        string       $modeName,
+        GameModeType $modeType = GameModeType::TEAM,
+        string       $system = ''
+    ): AbstractMode
+    {
         /** @var Row|null $mode */
         $mode = DB::select('vModesNames', 'id_mode, name, systems')->where('[name] = %s', $modeName)->fetch();
         if (isset($mode->systems)) {
@@ -264,7 +264,8 @@ class GameModeFactory implements FactoryInterface
      * @return int
      * @throws GameModeNotFoundException
      */
-    public static function getIdByObject(string | object $object) : int {
+    public static function getIdByObject(string|object $object): int
+    {
         $modes = self::getAll();
         foreach ($modes as $mode) {
             if ($mode instanceof $object && isset($mode->id)) {
@@ -280,15 +281,15 @@ class GameModeFactory implements FactoryInterface
      * @return AbstractMode[]
      * @throws GameModeNotFoundException
      */
-    public static function getAll(array $options = []) : array {
+    public static function getAll(array $options = []): array
+    {
         $ids = DB::select('game_modes', 'id_mode, name, systems, type')
-          ->cacheTags(AbstractMode::TABLE.'/query');
+            ->cacheTags(AbstractMode::TABLE . '/query');
         if (isset($options['system'])) {
             $system = $options['system'];
             if ($system instanceof System) {
                 $system = $system->type->value;
-            }
-            elseif (is_numeric($system)) {
+            } elseif (is_numeric($system)) {
                 $system = System::get((int) $system)->type->value;
             }
 

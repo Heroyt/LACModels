@@ -24,7 +24,8 @@ class PrintTemplate extends BaseModel
     public ?string $description = '';
     public PrintOrientation $orientation = PrintOrientation::landscape;
 
-    public static function getBySlug(string $slug) : ?PrintTemplate {
+    public static function getBySlug(string $slug): ?PrintTemplate
+    {
         self::$slugCache[$slug] ??= static::query()->where('slug = %s', $slug)->first();
         return self::$slugCache[$slug];
     }

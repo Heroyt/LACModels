@@ -40,11 +40,12 @@ class Event extends BaseModel
      * @return void
      * @throws ResultsParseException
      */
-    public function process() : void {
+    public function process(): void
+    {
         switch ($this->type) {
             case EventType::HIT:
                 if (!isset($this->actor2)) {
-                    throw new ResultsParseException('Hit event must have both actors - event time: '.$this->time);
+                    throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
                 }
                 if ($this->actor2 instanceof Player) {
                     $this->actor1->shots++;
@@ -53,15 +54,14 @@ class Event extends BaseModel
                     $this->actor2->deaths++;
                     $this->actor2->deathsOther++;
                     $this->actor1->addHits($this->actor2);
-                }
-                else {
+                } else {
                     $this->actor1->targetHitsCount++;
                     $this->actor1->addTargetHits($this->actor2);
                 }
                 break;
             case EventType::HIT_OWN:
                 if (!isset($this->actor2)) {
-                    throw new ResultsParseException('Hit event must have both actors - event time: '.$this->time);
+                    throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
                 }
                 if ($this->actor2 instanceof Player) {
                     $this->actor1->shots++;
@@ -74,7 +74,7 @@ class Event extends BaseModel
                 break;
             case EventType::TARGET_HIT:
                 if (!isset($this->actor2)) {
-                    throw new ResultsParseException('Hit event must have both actors - event time: '.$this->time);
+                    throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
                 }
                 if ($this->actor2 instanceof Target) {
                     $this->actor1->shots++;
@@ -85,7 +85,7 @@ class Event extends BaseModel
             case EventType::TARGET_ROCKET_DESTROYED:
             case EventType::TARGET_DESTROYED:
                 if (!isset($this->actor2)) {
-                    throw new ResultsParseException('Hit event must have both actors - event time: '.$this->time);
+                    throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
                 }
                 if ($this->actor2 instanceof Target) {
                     $this->actor1->shots++;
@@ -102,7 +102,7 @@ class Event extends BaseModel
                 break;
             case EventType::ROCKET:
                 if (!isset($this->actor2)) {
-                    throw new ResultsParseException('Rocket event must have both actors - event time: '.$this->time);
+                    throw new ResultsParseException('Rocket event must have both actors - event time: ' . $this->time);
                 }
                 $this->actor1->rocketCount++;
                 if ($this->actor2 instanceof Player) {
@@ -113,8 +113,7 @@ class Event extends BaseModel
                     $this->actor2->deathsOther++;
                     $this->actor2->rocketDeathCount++;
                     $this->actor1->addHits($this->actor2);
-                }
-                else {
+                } else {
                     $this->actor1->targetHitsCount++;
                     $this->actor1->addTargetHits($this->actor2);
                 }
@@ -151,7 +150,7 @@ class Event extends BaseModel
                 break;
             case EventType::ADD_LIVES:
                 if (!isset($this->actor2) || !($this->actor2 instanceof Player)) {
-                    throw new ResultsParseException('Add lives event must have both actors - event time: '.$this->time);
+                    throw new ResultsParseException('Add lives event must have both actors - event time: ' . $this->time);
                 }
                 $this->actor1->addedLives++;
                 $this->actor2->livesAddedTo++;
@@ -161,7 +160,7 @@ class Event extends BaseModel
                 break;
             case EventType::ADD_AMMO:
                 if (!isset($this->actor2) || !($this->actor2 instanceof Player)) {
-                    throw new ResultsParseException('Add ammo event must have both actors - event time: '.$this->time);
+                    throw new ResultsParseException('Add ammo event must have both actors - event time: ' . $this->time);
                 }
                 $this->actor1->addedAmmo++;
                 $this->actor2->ammoAddedTo++;

@@ -32,14 +32,16 @@ class Barvicky extends AbstractMode implements CustomLoadMode
      *
      * @return string Script name or empty string
      */
-    public function getNewGameScriptToRun() : string {
+    public function getNewGameScriptToRun(): string
+    {
         return 'barvicky';
     }
 
     /**
      * @inheritDoc
      */
-    public function modifyGameDataBeforeLoad(LasermaxxLoadData $loadData, array $data) : LasermaxxLoadData {
+    public function modifyGameDataBeforeLoad(LasermaxxLoadData $loadData, array $data): LasermaxxLoadData
+    {
         // Shuffle teams
         if (isset($data['hiddenTeams']) && $data['hiddenTeams'] === '1') {
             $teamCount = count($loadData->teams);
@@ -60,7 +62,7 @@ class Barvicky extends AbstractMode implements CustomLoadMode
 
         // Add starting team color meta
         foreach ($loadData->players as $player) {
-            $loadData->meta['p'.$player->vest.'-startTeam'] = $player->team;
+            $loadData->meta['p' . $player->vest . '-startTeam'] = $player->team;
         }
         return $loadData;
     }

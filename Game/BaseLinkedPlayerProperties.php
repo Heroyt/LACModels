@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels\Game;
@@ -10,7 +11,6 @@ namespace App\GameModels\Game;
  */
 trait BaseLinkedPlayerProperties
 {
-
     /** @var non-empty-array<P> */
     public array $players;
 
@@ -198,5 +198,4 @@ trait BaseLinkedPlayerProperties
         }
         return $this->getSum($property) / $count;
     }
-
 }

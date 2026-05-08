@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels\Game\Lasermaxx\Evo6\GameModes;
@@ -13,7 +14,5 @@ use Lsr\Orm\Attributes\PrimaryKey;
 ]
 class KamenNuzkyPapir extends TeamDeathmatch
 {
-
     public string $name = 'Kámen, Nůžky, Papír';
-
 }

@@ -1,11 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels\Game\Lasermaxx;
 
 trait LasermaxxLinkedPlayerProperties
 {
-
     public int $shotPoints {
         get => $this->sumWithMemo('shotPoints');
         set(int $value) {
@@ -139,5 +139,4 @@ trait LasermaxxLinkedPlayerProperties
             }
         }
     }
-
 }

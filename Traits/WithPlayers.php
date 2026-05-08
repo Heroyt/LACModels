@@ -53,10 +53,10 @@ trait WithPlayers
             if (!isset($this->playersSorted)) {
                 /** @var ModelCollection<P> $players */
                 $players = $this->players
-                  ->query()
-                  ->sortBy('score')
-                  ->desc()
-                  ->get();
+                    ->query()
+                    ->sortBy('score')
+                    ->desc()
+                    ->get();
                 /** @var PlayerCollection<P> $collection */
                 $collection = new PlayerCollection($players);
                 $this->playersSorted = $collection;
@@ -70,7 +70,8 @@ trait WithPlayers
      * @throws Throwable
      * @throws ModelNotFoundException
      */
-    public function loadPlayers() : PlayerCollection {
+    public function loadPlayers(): PlayerCollection
+    {
         /** @var array<int,P> $players */
         $players = [];
 
@@ -82,14 +83,14 @@ trait WithPlayers
         $query = DB::select($className::TABLE, '*')
           ->where('%n = %i', $this::getPrimaryKey(), $this->id)
           ->cacheTags(
-            'games/'.$this::SYSTEM.'/'.$gameId,
-            'games/'.$this::SYSTEM.'/'.$gameId.'/players',
-            'games/'.$date,
-            'players',
-            'players/'.$this::SYSTEM
+              'games/' . $this::SYSTEM . '/' . $gameId,
+              'games/' . $this::SYSTEM . '/' . $gameId . '/players',
+              'games/' . $date,
+              'players',
+              'players/' . $this::SYSTEM
           );
         if ($this instanceof Team) {
-            $query->cacheTags('teams/'.$this::SYSTEM.'/'.$this->id, 'teams/'.$this::SYSTEM.'/'.$this->id.'/players');
+            $query->cacheTags('teams/' . $this::SYSTEM . '/' . $this->id, 'teams/' . $this::SYSTEM . '/' . $this->id . '/players');
         }
         $rows = $query->fetchAll();
         foreach ($rows as $row) {
@@ -97,8 +98,7 @@ trait WithPlayers
             $player = $className::get($row->$primaryKey, $row);
             if ($this instanceof Game) {
                 $player->setGame($this);
-            }
-            elseif ($this instanceof Team) { // @phpstan-ignore-line
+            } elseif ($this instanceof Team) { // @phpstan-ignore-line
                 $player->team = $this;
             }
             $players[(int) $player->vest] = $player;
@@ -115,7 +115,8 @@ trait WithPlayers
      * @throws Throwable
      * @throws ValidationException
      */
-    public function getMinScore() : int {
+    public function getMinScore(): int
+    {
         $player = $this->players->query()->sortBy('score')->asc()->first();
         if (isset($player)) {
             return $player->score;
@@ -130,7 +131,8 @@ trait WithPlayers
      * @throws Throwable
      * @throws ValidationException
      */
-    public function getMaxScore() : int {
+    public function getMaxScore(): int
+    {
         $player = $this->players->query()->sortBy('score')->desc()->first();
         if (isset($player)) {
             return $player->score;
@@ -143,7 +145,8 @@ trait WithPlayers
      *
      * @return $this
      */
-    public function addPlayer(PlayerInterface ...$players) : static {
+    public function addPlayer(PlayerInterface ...$players): static
+    {
         foreach ($players as $player) {
             $this->players->add($player);
         }
@@ -159,7 +162,8 @@ trait WithPlayers
      * @return bool
      * @throws ValidationException
      */
-    public function savePlayers() : bool {
+    public function savePlayers(): bool
+    {
         if (!isset($this->players)) {
             return true;
         }
@@ -191,7 +195,8 @@ trait WithPlayers
      * @return array<string,mixed>
      */
     #[ExtendsSerialization]
-    public function withPlayersJson(array $data) : array {
+    public function withPlayersJson(array $data): array
+    {
         $data['playerCount'] = $this->playerCount;
 
         return $data;

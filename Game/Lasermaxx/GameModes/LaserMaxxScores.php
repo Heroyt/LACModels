@@ -12,13 +12,13 @@ use Throwable;
  */
 trait LaserMaxxScores
 {
-
     /**
      * @template G of Game
      * @param  G  $game
      * @return void
      */
-    protected function recalculateScoresPlayers(GameInterface $game) : void {
+    protected function recalculateScoresPlayers(GameInterface $game): void
+    {
         if (!isset($game->scoring)) {
             return;
         }
@@ -38,8 +38,7 @@ trait LaserMaxxScores
                 /** @phpstan-ignore method.alreadyNarrowedType */
                 if ($this->isSolo()) {
                     $player->score += ($player->hits * $game->scoring->hitOther) + ($player->deaths * $game->scoring->deathOther);
-                }
-                else {
+                } else {
                     $player->score += ($player->hitsOther * $game->scoring->hitOther) + ($player->hitsOwn * $game->scoring->hitOwn) + ($player->deathsOther * $game->scoring->deathOther) + ($player->deathsOwn * $game->scoring->deathOwn);
                 }
 

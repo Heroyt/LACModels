@@ -29,9 +29,10 @@ class Zakladny extends \App\GameModels\Game\Lasermaxx\GameModes\Zakladny
      * @return int
      * @throws ValidationException
      */
-    public function getBasesDestroyed(LasermaxxTeam $team) : int {
+    public function getBasesDestroyed(LasermaxxTeam $team): int
+    {
         $shields = $team->players->map(
-          static fn(Player $player) => $player->getBonusCount()
+            static fn(Player $player) => $player->getBonusCount()
         );
         if (count($shields) === 0) {
             return 0;

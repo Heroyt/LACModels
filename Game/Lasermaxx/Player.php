@@ -69,7 +69,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 
     protected RegressionStatCalculator $calculator;
 
-    abstract public function getBonusCount() : int;
+    abstract public function getBonusCount(): int;
 
     /**
      * Get an expected number of deaths based on the number of teammates and enemies.
@@ -81,7 +81,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
      * @return float
      * @throws Throwable
      */
-    public function getExpectedAverageDeathCount() : float {
+    public function getExpectedAverageDeathCount(): float
+    {
         $type = $this->game->gameType;
         try {
             assert($this->game->mode instanceof AbstractMode);
@@ -96,7 +97,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
     /**
      * @return RegressionStatCalculator
      */
-    public function getRegressionCalculator() : RegressionStatCalculator {
+    public function getRegressionCalculator(): RegressionStatCalculator
+    {
         if (!isset($this->calculator)) {
             $this->calculator = new RegressionStatCalculator();
         }
@@ -110,21 +112,23 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
      * @return float
      * @throws Throwable
      */
-    private function calculateHitDeathModel(GameModeType $type, array $model) : float {
+    private function calculateHitDeathModel(GameModeType $type, array $model): float
+    {
         $length = $this->game->getRealGameLength();
         if ($type === GameModeType::TEAM) {
             $teamPlayerCount = $this->team->playerCount ?? 0;
             $enemyPlayerCount = $this->game->playerCount - $teamPlayerCount - 1;
             return RegressionCalculator::calculateRegressionPrediction(
-              [$teamPlayerCount, $enemyPlayerCount, $length],
-              $model
+                [$teamPlayerCount, $enemyPlayerCount, $length],
+                $model
             );
         }
         $enemyPlayerCount = $this->game->playerCount - 1;
         return RegressionCalculator::calculateRegressionPrediction([$enemyPlayerCount, $length], $model);
     }
 
-    public function getRemainingLives() : int {
+    public function getRemainingLives(): int
+    {
         return ($this->game->lives ?? 9999) - $this->deaths - $this->minesHits;
     }
 
@@ -139,7 +143,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
      * @return float
      * @throws Throwable
      */
-    public function getExpectedAverageTeammateDeathCount() : float {
+    public function getExpectedAverageTeammateDeathCount(): float
+    {
         try {
             assert($this->game->mode instanceof AbstractMode);
             $model = $this->getRegressionCalculator()->getDeathsOwnModel($this->game->mode);
@@ -147,8 +152,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
             $enemyPlayerCount = $this->game->playerCount - ($this->team->playerCount ?? 1);
             $teamPlayerCount = $this->team?->playerCount - 1;
             return RegressionCalculator::calculateRegressionPrediction(
-              [$teamPlayerCount, $enemyPlayerCount, $length],
-              $model
+                [$teamPlayerCount, $enemyPlayerCount, $length],
+                $model
             );
         } catch (InsufficientRegressionDataException $e) {
             $this->getLogger()->exception($e);
@@ -156,7 +161,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
         }
     }
 
-    public function getSkillParts() : array {
+    public function getSkillParts(): array
+    {
         $parts = parent::getSkillParts();
         try {
             $parts['teamHits'] = $this->calculateSkillFromTeamHits();
@@ -171,7 +177,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
      * @return float
      * @throws Throwable
      */
-    protected function calculateSkillFromTeamHits() : float {
+    protected function calculateSkillFromTeamHits(): float
+    {
         if ($this->game->mode?->isTeam() ?? true) {
             $expectedAverageHits = $this->getExpectedAverageTeammateHitCount();
             if ($expectedAverageHits === 0.0) {
@@ -185,8 +192,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
             // Completely average game should lose at least 100 points
             // On the other hand -> hitting no teammates will grant 100 points
             $hitsSkill = $hitsDiffPercent * 100;
-        }
-        else {
+        } else {
             // In solo game, no teammates can be hit. Adds 100 points as a base.
             $hitsSkill = 0;
         }
@@ -210,7 +216,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
      * @return float
      * @throws Throwable
      */
-    public function getExpectedAverageTeammateHitCount() : float {
+    public function getExpectedAverageTeammateHitCount(): float
+    {
         try {
             assert($this->game->mode instanceof AbstractMode);
             $model = $this->getRegressionCalculator()->getHitsOwnModel($this->game->mode);
@@ -218,8 +225,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
             $enemyPlayerCount = $this->game->playerCount - ($this->team->playerCount ?? 1);
             $teamPlayerCount = $this->team?->playerCount - 1;
             return RegressionCalculator::calculateRegressionPrediction(
-              [$teamPlayerCount, $enemyPlayerCount, $length],
-              $model
+                [$teamPlayerCount, $enemyPlayerCount, $length],
+                $model
             );
         } catch (InsufficientRegressionDataException $e) {
             $this->getLogger()->exception($e);
@@ -230,7 +237,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
     /**
      * @return float
      */
-    protected function calculateSkillFromBonuses() : float {
+    protected function calculateSkillFromBonuses(): float
+    {
         return $this->getMines() * 10;
     }
 
@@ -239,7 +247,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
      *
      * @return int
      */
-    abstract public function getMines() : int;
+    abstract public function getMines(): int;
 
     /**
      * Calculate a skill level based on the player's results
@@ -254,7 +262,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
      * @return int A whole number evaluation on an arbitrary scale (no max or min value).
      * @throws Throwable
      */
-    public function calculateSkill() : int {
+    public function calculateSkill(): int
+    {
         // Base skill value - hits, K:D, K:D deviation, accuracy - already normalized
         $skill = $this->calculateBaseSkill();
 
@@ -273,7 +282,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
     /**
      * @return float
      */
-    public function getKd() : float {
+    public function getKd(): float
+    {
         try {
             return $this->game->mode?->isSolo() ? parent::getKd() :
               $this->hitsOther / ($this->deathsOther === 0 ? 1 : $this->deathsOther);
@@ -282,7 +292,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
         }
     }
 
-    protected function calculateSkillForHits() : float {
+    protected function calculateSkillForHits(): float
+    {
         $expectedAverageHits = $this->getExpectedAverageHitCount();
         $hitsDiff = $this->hits - $expectedAverageHits;
 
@@ -293,7 +304,8 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
         return $hitsDiffPercent * 200;
     }
 
-    public function getExpectedAverageHitCount() : float {
+    public function getExpectedAverageHitCount(): float
+    {
         try {
             $type = $this->game->gameType;
             assert($this->game->mode instanceof AbstractMode);

@@ -21,7 +21,8 @@ class TargetCollection extends AbstractCollection
     /**
      * @return CollectionQueryInterface<Target>
      */
-    public function query() : CollectionQueryInterface {
+    public function query(): CollectionQueryInterface
+    {
         return new TargetQuery($this);
     }
 }

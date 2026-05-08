@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels\Game\Lasermaxx\Evo6\GameModes;
@@ -18,8 +19,8 @@ class TeamRevolver extends Revolver implements TeamGameModeInterface
     public GameModeType $type = GameModeType::TEAM;
     public string $name = 'Team Revolver';
 
-    public function getSoloAlternative() : string {
+    public function getSoloAlternative(): string
+    {
         return Revolver::class;
     }
-
 }

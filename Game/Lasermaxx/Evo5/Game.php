@@ -51,7 +51,8 @@ class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo5GameInterf
     #[Instantiate]
     public Scoring $scoring;
 
-    public function loadMode() : AbstractMode {
+    public function loadMode(): AbstractMode
+    {
         return parent::loadMode() ?? ($this->gameType === GameModeType::SOLO ? new Deathmatch() : new TeamDeathmatch());
     }
 }

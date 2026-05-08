@@ -60,7 +60,8 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
     /**
      * @return string[]
      */
-    public static function getTeamColors() : array {
+    public static function getTeamColors(): array
+    {
         return [
           0 => '#E00000',
           1 => '#008500',
@@ -74,7 +75,8 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
     /**
      * @return string[]
      */
-    public static function getTeamNames() : array {
+    public static function getTeamNames(): array
+    {
         return [
           0 => lang('Red team', context: 'team.names'),
           1 => lang('Green team', context: 'team.names'),
@@ -85,19 +87,22 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
         ];
     }
 
-    public function insert() : bool {
-        $this->getLogger()->info('Inserting game: '.$this->fileNumber);
+    public function insert(): bool
+    {
+        $this->getLogger()->info('Inserting game: ' . $this->fileNumber);
         return parent::insert();
     }
 
-    public function save() : bool {
+    public function save(): bool
+    {
         return parent::save() && $this->saveTeams() && $this->savePlayers();
     }
 
     /**
      * @return array<string,string>
      */
-    public function getBestsFields() : array {
+    public function getBestsFields(): array
+    {
         $info = parent::getBestsFields();
         /** @var AbstractMode|null $mode */
         $mode = $this->mode;
@@ -125,7 +130,8 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
      *
      * @return bool
      */
-    public function isMinesOn() : bool {
+    public function isMinesOn(): bool
+    {
         if (!isset($this->minesOn)) {
             $this->minesOn = false;
             foreach ($this->players as $player) {
@@ -144,14 +150,16 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
      * @return P|null
      * @throws ValidationException
      */
-    public function getBestPlayer(string $property) : ?BasePlayer {
+    public function getBestPlayer(string $property): ?BasePlayer
+    {
         if ($property === 'mines' && !$this->isMinesOn()) {
             return null;
         }
         return parent::getBestPlayer($property);
     }
 
-    public function isEnded() : bool {
+    public function isEnded(): bool
+    {
         return $this->isFinished() || ($this->realEnd !== null && $this->realEnd->getTimestamp() < time());
     }
 }

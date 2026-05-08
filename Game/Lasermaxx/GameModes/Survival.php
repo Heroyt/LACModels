@@ -29,7 +29,8 @@ class Survival extends Deathmatch implements CustomResultsMode, ModifyScoresMode
      *
      * @return string Path to template file
      */
-    public function getCustomResultsTemplate() : string {
+    public function getCustomResultsTemplate(): string
+    {
         return 'survival';
     }
 
@@ -38,7 +39,8 @@ class Survival extends Deathmatch implements CustomResultsMode, ModifyScoresMode
      *
      * @return string Path to template file
      */
-    public function getCustomGateScreen() : string {
+    public function getCustomGateScreen(): string
+    {
         return LaserMaxxSurvivalResultsScreen::class;
     }
 
@@ -47,7 +49,8 @@ class Survival extends Deathmatch implements CustomResultsMode, ModifyScoresMode
      * @param  G  $game
      * @return void
      */
-    public function modifyResults(GameInterface $game) : void {
+    public function modifyResults(GameInterface $game): void
+    {
         // Add 1000 score to surviving players
         foreach ($game->players as $player) {
             if ($player->ammoRest > 0 && $player->getRemainingLives() > 0) {

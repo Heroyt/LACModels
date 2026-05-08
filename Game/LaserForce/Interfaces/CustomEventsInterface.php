@@ -18,5 +18,5 @@ interface CustomEventsInterface
      *
      * @return void
      */
-    public function processEvent(Event $event) : void;
+    public function processEvent(Event $event): void;
 }

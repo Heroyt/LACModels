@@ -12,7 +12,8 @@ enum PlayerRole : string
     case MEDIC = 'medic';
     case AMMO  = 'ammo';
 
-    public static function getForSpaceMarines(int $role) : PlayerRole {
+    public static function getForSpaceMarines(int $role): PlayerRole
+    {
         return match ($role) {
             1 => self::CAPTAIN,
             2 => self::SCOUT,

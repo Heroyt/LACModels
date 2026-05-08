@@ -42,7 +42,8 @@ class CSGO extends AbstractMode implements CustomResultsMode, TeamGameModeInterf
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getWin(GameInterface $game) : ?Team {
+    public function getWin(GameInterface $game): ?Team
+    {
         $teams = $game->teams;
         // Two teams - get the last team alive or team with most hits
         if (count($teams) === 2) {
@@ -96,7 +97,8 @@ class CSGO extends AbstractMode implements CustomResultsMode, TeamGameModeInterf
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getRemainingLives(Team $team) : int {
+    public function getRemainingLives(Team $team): int
+    {
         $remaining = $this->getTotalLives($team) - $team->getDeaths();
         assert($remaining >= 0);
         return $remaining;
@@ -110,7 +112,8 @@ class CSGO extends AbstractMode implements CustomResultsMode, TeamGameModeInterf
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getTotalLives(Team $team) : int {
+    public function getTotalLives(Team $team): int
+    {
         $game = $team->game;
         $total = count($team->players) * $game->lives;
         assert($total >= 0);
@@ -120,14 +123,16 @@ class CSGO extends AbstractMode implements CustomResultsMode, TeamGameModeInterf
     /**
      * @inheritDoc
      */
-    public function getCustomResultsTemplate() : string {
+    public function getCustomResultsTemplate(): string
+    {
         return '';
     }
 
     /**
      * @inheritDoc
      */
-    public function getCustomGateScreen() : string {
+    public function getCustomGateScreen(): string
+    {
         return LaserMaxxCSGOResultsScreen::class;
     }
 }

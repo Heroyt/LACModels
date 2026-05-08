@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels\Game;
@@ -12,7 +13,6 @@ use Lsr\Lg\Results\PlayerCollection;
  */
 trait WithLinkedPlayers
 {
-
     public function loadPlayers(): PlayerCollection
     {
         $this->players = parent::loadPlayers();
@@ -87,5 +87,4 @@ trait WithLinkedPlayers
             }
         }
     }
-
 }

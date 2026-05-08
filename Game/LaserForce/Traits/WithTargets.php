@@ -29,7 +29,8 @@ trait WithTargets
     #[Instantiate]
     public TargetCollection $targets;
 
-    public function addTarget(Target ...$targets) : static {
+    public function addTarget(Target ...$targets): static
+    {
         if (!isset($this->targets)) {
             $this->targets = new TargetCollection();
         }
@@ -46,7 +47,8 @@ trait WithTargets
      * @return bool
      * @throws ValidationException
      */
-    public function saveTargets() : bool {
+    public function saveTargets(): bool
+    {
         if (!isset($this->targets)) {
             return true;
         }
@@ -66,7 +68,8 @@ trait WithTargets
     /**
      * @return int
      */
-    public function getTargetCount() : int {
+    public function getTargetCount(): int
+    {
         if (!isset($this->targetCount) || $this->targetCount < 1) {
             $this->targetCount = $this->getTargets()->count();
         }
@@ -76,7 +79,8 @@ trait WithTargets
     /**
      * @return TargetCollection
      */
-    public function getTargets() : TargetCollection {
+    public function getTargets(): TargetCollection
+    {
         if (!isset($this->targets)) {
             $this->targets = new TargetCollection();
         }
@@ -97,7 +101,8 @@ trait WithTargets
      * @throws ValidationException
      * @throws Throwable
      */
-    public function loadTargets() : TargetCollection {
+    public function loadTargets(): TargetCollection
+    {
         if (!isset($this->targets)) {
             $this->targets = new TargetCollection();
         }
@@ -107,22 +112,21 @@ trait WithTargets
         $query = DB::select(Target::TABLE, '*')
           ->where('%n = %i', $this::getPrimaryKey(), $this->id)
           ->cacheTags(
-            'games/'.$this::SYSTEM.'/'.$gameId,
-            'games/'.$this::SYSTEM.'/'.$gameId.'/targets',
-            'games/'.$date,
-            'targets',
-            'targets/'.$this::SYSTEM
+              'games/' . $this::SYSTEM . '/' . $gameId,
+              'games/' . $this::SYSTEM . '/' . $gameId . '/targets',
+              'games/' . $date,
+              'targets',
+              'targets/' . $this::SYSTEM
           );
         if ($this instanceof Team) {
-            $query->cacheTags('teams/'.$this::SYSTEM.'/'.$this->id, 'teams/'.$this::SYSTEM.'/'.$this->id.'/targets');
+            $query->cacheTags('teams/' . $this::SYSTEM . '/' . $this->id, 'teams/' . $this::SYSTEM . '/' . $this->id . '/targets');
         }
         $rows = $query->fetchAll();
         foreach ($rows as $row) {
             $target = Target::get($row->$primaryKey, $row);
             if ($this instanceof Game) {
                 $target->setGame($this);
-            }
-            elseif ($this instanceof Team) { // @phpstan-ignore-line
+            } elseif ($this instanceof Team) { // @phpstan-ignore-line
                 $target->setTeam($this);
             }
             try {

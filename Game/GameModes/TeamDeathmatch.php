@@ -17,7 +17,8 @@ class TeamDeathmatch extends AbstractMode implements TeamGameModeInterface
     public string $name = 'Team deathmatch';
     public ?string $description = 'Classic team game type.';
 
-    public function getSoloAlternative() : string {
+    public function getSoloAlternative(): string
+    {
         return Deathmatch::class;
     }
 }

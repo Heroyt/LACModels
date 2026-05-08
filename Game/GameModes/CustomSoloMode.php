@@ -16,7 +16,8 @@ class CustomSoloMode extends AbstractMode
 {
     public GameModeType $type = GameModeType::SOLO;
 
-    public function getTeamAlternative() : string {
+    public function getTeamAlternative(): string
+    {
         return CustomTeamMode::class;
     }
 }

@@ -46,10 +46,10 @@ trait WithTeams
             if (empty($this->teamsSorted)) {
                 /** @var ModelCollection<T> $teams */
                 $teams = $this->teams
-                  ->query()
-                  ->sortBy('score')
-                  ->desc()
-                  ->get();
+                    ->query()
+                    ->sortBy('score')
+                    ->desc()
+                    ->get();
                 /** @var TeamCollection<T> $collection */
                 $collection = new TeamCollection($teams);
                 $this->teamsSorted = $collection;
@@ -63,7 +63,8 @@ trait WithTeams
      *
      * @return $this
      */
-    public function addTeam(TeamInterface ...$teams) : static {
+    public function addTeam(TeamInterface ...$teams): static
+    {
         foreach ($teams as $team) {
             $this->teams->add($team);
         }
@@ -73,7 +74,8 @@ trait WithTeams
     /**
      * @return TeamCollection<T>
      */
-    public function loadTeams() : TeamCollection {
+    public function loadTeams(): TeamCollection
+    {
         /** @var T[] $teams */
         $teams = [];
         /** @var class-string<Model> $className */
@@ -82,11 +84,11 @@ trait WithTeams
         $rows = DB::select($className::TABLE, '*')
           ->where('%n = %i', $this::getPrimaryKey(), $this->id)
           ->cacheTags(
-            'games/'.$this::SYSTEM.'/'.$this->id,
-            'games/'.$this::SYSTEM.'/'.$this->id.'/teams',
-            'games/'.$this->start?->format('Y-m-d'),
-            'teams',
-            'teams/'.$this::SYSTEM
+              'games/' . $this::SYSTEM . '/' . $this->id,
+              'games/' . $this::SYSTEM . '/' . $this->id . '/teams',
+              'games/' . $this->start?->format('Y-m-d'),
+              'teams',
+              'teams/' . $this::SYSTEM
           )
           ->fetchAll();
         foreach ($rows as $row) {
@@ -113,7 +115,8 @@ trait WithTeams
      * @return bool
      * @throws ValidationException
      */
-    public function saveTeams() : bool {
+    public function saveTeams(): bool
+    {
         Timer::start('game.save.teams');
         if (!isset($this->teams)) {
             Timer::stop('game.save.teams');
@@ -134,7 +137,8 @@ trait WithTeams
      * @return array<string, mixed>
      */
     #[ExtendsSerialization]
-    public function withTeamsJson(array $data) : array {
+    public function withTeamsJson(array $data): array
+    {
         $data['teamCount'] = $this->teamCount;
         return $data;
     }

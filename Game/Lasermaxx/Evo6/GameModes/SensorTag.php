@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels\Game\Lasermaxx\Evo6\GameModes;
@@ -16,7 +17,6 @@ use Lsr\Orm\Attributes\PrimaryKey;
 ]
 class SensorTag extends Deathmatch implements ModifyScoresMode
 {
-
     public string $name = 'Sensor Tag';
 
     /**
@@ -24,7 +24,8 @@ class SensorTag extends Deathmatch implements ModifyScoresMode
      * @param  G  $game
      * @return void
      */
-    public function modifyResults(GameInterface $game) : void {
+    public function modifyResults(GameInterface $game): void
+    {
         foreach ($game->players as $player) {
             if ($player->getRemainingLives() > 0) {
                 $player->scoreBonus += 1000;

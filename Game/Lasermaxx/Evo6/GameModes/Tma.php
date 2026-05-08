@@ -17,7 +17,8 @@ use Lsr\Orm\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class Tma extends \App\GameModels\Game\Lasermaxx\GameModes\Tma
 {
-    public function getSoloAlternative() : string {
+    public function getSoloAlternative(): string
+    {
         return TmaSolo::class;
     }
 }

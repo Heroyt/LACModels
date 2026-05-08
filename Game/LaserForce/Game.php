@@ -28,13 +28,13 @@ class Game extends \App\GameModels\Game\Game
      *
      * @return $this
      */
-    public function addEvent(Event $event) : static {
+    public function addEvent(Event $event): static
+    {
         if (!isset($this->events[$event->time])) {
             $this->events[$event->time] = $event;
-        }
-        else {
+        } else {
             for ($i = 0; $i < 10; $i++) {
-                $key = $event->time.'-'.$i;
+                $key = $event->time . '-' . $i;
                 if (!isset($this->events[$key])) {
                     $this->events[$key] = $event;
                     return $this;

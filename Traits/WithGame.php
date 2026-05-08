@@ -22,7 +22,8 @@ trait WithGame
      * @return G
      * @throws Throwable
      */
-    public function loadGame() : Game {
+    public function loadGame(): Game
+    {
         /** @phpstan-ignore nullsafe.neverNull */
         $gameId = $this->row?->id_game ?? $this->relationIds['game'] ?? null;
         /** @var G|null $game */
@@ -42,12 +43,14 @@ trait WithGame
      *
      * @return $this
      */
-    public function setGame(GameInterface $game) : static {
+    public function setGame(GameInterface $game): static
+    {
         $this->game = $game;
         return $this;
     }
 
-    public function saveGame() : bool {
+    public function saveGame(): bool
+    {
         return $this->game->save();
     }
 }

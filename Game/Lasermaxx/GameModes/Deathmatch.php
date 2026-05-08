@@ -15,7 +15,8 @@ class Deathmatch extends \App\GameModels\Game\GameModes\Deathmatch
 {
     use LaserMaxxScores;
 
-    public function getTeamAlternative() : string {
+    public function getTeamAlternative(): string
+    {
         return TeamDeathmatch::class;
     }
 }

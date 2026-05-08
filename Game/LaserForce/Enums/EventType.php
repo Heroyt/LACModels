@@ -104,7 +104,8 @@ enum EventType : string
     // Domination
     case BEACON = 'beacon';
 
-    public static function getForType(string $type) : ?EventType {
+    public static function getForType(string $type): ?EventType
+    {
         return match ($type) {
             '0E00'  => self::LEVEL_UP,
             '0100'  => self::START,
@@ -147,7 +148,8 @@ enum EventType : string
         };
     }
 
-    public function isModeAction() : bool {
+    public function isModeAction(): bool
+    {
         return match ($this) {
             self::MODE_ACTION_1, self::MODE_ACTION_2, self::MODE_ACTION_3, self::MODE_ACTION_4, self::MODE_ACTION_5, self::MODE_ACTION_6, self::MODE_ACTION_7, self::MODE_ACTION_8, self::MODE_ACTION_9, self::MODE_ACTION_10 => true,
             default => false,

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels\Game;
@@ -8,7 +9,6 @@ namespace App\GameModels\Game;
  */
 interface LinkedPlayerInterface
 {
-
     /** @var non-empty-array<P> */
     public array $players {
         get;
@@ -20,5 +20,4 @@ interface LinkedPlayerInterface
         get;
         set;
     }
-
 }

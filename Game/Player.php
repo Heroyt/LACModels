@@ -95,8 +95,8 @@ abstract class Player extends BaseModel implements PlayerInterface
 
     public function __construct(?int $id = null, ?Row $dbRow = null) {
         $this->cacheTags[] = 'players';
-        $this->cacheTags[] = 'games/'.$this::SYSTEM;
-        $this->cacheTags[] = 'players/'.$this::SYSTEM;
+        $this->cacheTags[] = 'games/' . $this::SYSTEM;
+        $this->cacheTags[] = 'players/' . $this::SYSTEM;
         parent::__construct($id, $dbRow);
         $this->hitPlayers ??= [];
         $this->initExtensions();
@@ -106,15 +106,16 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @return bool
      * @throws ValidationException
      */
-    public function save() : bool {
+    public function save(): bool
+    {
         try {
             /** @var int|null $test */
             $test = DB::select($this::TABLE, $this::getPrimaryKey())
                       ->where(
-                        'id_game = %i && name = %s && vest = '.(is_string($this->vest) ? '%s' : '%i'),
-                        $this->game->id,
-                        $this->name,
-                        $this->vest
+                          'id_game = %i && name = %s && vest = ' . (is_string($this->vest) ? '%s' : '%i'),
+                          $this->game->id,
+                          $this->name,
+                          $this->vest
                       )
                       ->fetchSingle(cache: false);
             if (isset($test)) {
@@ -137,7 +138,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @return float
      * @throws Throwable
      */
-    public function getExpectedAverageDeathCount() : float {
+    public function getExpectedAverageDeathCount(): float
+    {
         $enemyPlayerCount = $this->game->playerCount - ($this->game->mode?->isSolo() ? 1 : $this->team?->playerCount);
         $teamPlayerCount = ($this->team->playerCount ?? 1) - 1;
         if ($this->game->mode?->isTeam()) {
@@ -160,7 +162,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @return int A whole number evaluation on an arbitrary scale (no max or min value).
      * @throws Throwable
      */
-    public function calculateSkill() : int {
+    public function calculateSkill(): int
+    {
         $this->skill = (int) round($this->calculateBaseSkill());
 
         return $this->skill;
@@ -172,7 +175,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @return float
      * @throws Throwable
      */
-    protected function calculateBaseSkill() : float {
+    protected function calculateBaseSkill(): float
+    {
         $skill = 0.0;
 
         // Add points for hits - average hits <=> 300 points
@@ -198,7 +202,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @return float
      * @throws Throwable
      */
-    protected function calculateSkillForHits() : float {
+    protected function calculateSkillForHits(): float
+    {
         $expectedAverageHits = $this->getExpectedAverageHitCount();
         $hitsDiff = $this->hits - $expectedAverageHits;
 
@@ -220,7 +225,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @return float
      * @throws Throwable
      */
-    public function getExpectedAverageHitCount() : float {
+    public function getExpectedAverageHitCount(): float
+    {
         $enemyPlayerCount = $this->game->playerCount - ($this->game->mode?->isSolo() ? 1 : $this->team?->playerCount);
         $teamPlayerCount = ($this->team->playerCount ?? 1) - 1;
         if ($this->game->mode?->isTeam()) {
@@ -233,13 +239,13 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @return float
      * @throws Throwable
      */
-    protected function calculateSkillFromKD() : float {
+    protected function calculateSkillFromKD(): float
+    {
         $kd = $this->getKd();
         $skill = 0.0;
         if ($kd >= 1) {
             $skill += $kd * 50;
-        }
-        else {
+        } else {
             if ($kd !== 0.0) {
                 $skill -= (1 / $kd) * 5;
             }
@@ -256,18 +262,21 @@ abstract class Player extends BaseModel implements PlayerInterface
         return $skill;
     }
 
-    public function getKd() : float {
+    public function getKd(): float
+    {
         return $this->hits / ($this->deaths === 0 ? 1 : $this->deaths);
     }
 
     /**
      * @return float
      */
-    protected function calculateSkillFromAccuracy() : float {
+    protected function calculateSkillFromAccuracy(): float
+    {
         return 500 * ($this->accuracy / 100);
     }
 
-    protected function calculateSkillFromPosition() : float {
+    protected function calculateSkillFromPosition(): float
+    {
         $pos = 0;
         $realPos = 0;
         $prevScore = null;
@@ -290,7 +299,8 @@ abstract class Player extends BaseModel implements PlayerInterface
     /**
      * @return bool
      */
-    public function saveHits() : bool {
+    public function saveHits(): bool
+    {
         if (empty($this->hitPlayers)) {
             return true;
         }
@@ -309,7 +319,8 @@ abstract class Player extends BaseModel implements PlayerInterface
         }
     }
 
-    public function getQueryData(bool $filterChanged = true) : array {
+    public function getQueryData(bool $filterChanged = true): array
+    {
         $data = parent::getQueryData($filterChanged);
         $this->extensionAddQueryData($data);
         return $data;
@@ -322,7 +333,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      *
      * @return int
      */
-    public function getTodayPosition(string $property) : int {
+    public function getTodayPosition(string $property): int
+    {
         return 0; // TODO: Implement
     }
 
@@ -332,7 +344,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @return array{name:string,icon:string}
      * @throws ValidationException
      */
-    public function getBestAt() : array {
+    public function getBestAt(): array
+    {
         if (!isset($this->trophy)) {
             $this->trophy = new PlayerTrophy($this);
         }
@@ -345,14 +358,16 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @return array{name:string,icon:string}[]
      * @throws ValidationException
      */
-    public function getAllBestAt() : array {
+    public function getAllBestAt(): array
+    {
         if (!isset($this->trophy)) {
             $this->trophy = new PlayerTrophy($this);
         }
         return $this->trophy->getAll();
     }
 
-    public function getHitsPlayer(PlayerInterface $player) : int {
+    public function getHitsPlayer(PlayerInterface $player): int
+    {
         return $this->getHitsPlayers()[$player->vest]->count ?? 0;
     }
 
@@ -361,7 +376,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @throws DirectoryCreationException
      * @throws ValidationException
      */
-    public function getHitsPlayers() : array {
+    public function getHitsPlayers(): array
+    {
         if (empty($this->hitPlayers)) {
             return $this->loadHits();
         }
@@ -371,7 +387,8 @@ abstract class Player extends BaseModel implements PlayerInterface
     /**
      * @return PlayerHit<static>[]
      */
-    public function loadHits() : array {
+    public function loadHits(): array
+    {
         /** @var class-string<PlayerHit<static>> $className */
         $className = str_replace('Player', 'PlayerHit', get_class($this));
         $hits = DB::select($className::TABLE, 'id_target, count')->where('id_player = %i', $this->id)->fetchAll();
@@ -390,7 +407,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      *
      * @return $this
      */
-    public function addHits(PlayerInterface $player, int $count = 1) : static {
+    public function addHits(PlayerInterface $player, int $count = 1): static
+    {
         if ($this->hitPlayers === null) {
             $this->hitPlayers = [];
         }
@@ -410,7 +428,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @throws ValidationException
      * @throws DirectoryCreationException
      */
-    public function jsonSerialize() : array {
+    public function jsonSerialize(): array
+    {
         $data = parent::jsonSerialize();
         $data['user'] = $this->user?->id;
         if (isset($this->user)) {
@@ -428,7 +447,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      *
      * @return int
      */
-    public function getSkill() : int {
+    public function getSkill(): int
+    {
         if ($this->game->getGroup() === null) {
             return $this->skill;
         }
@@ -447,7 +467,8 @@ abstract class Player extends BaseModel implements PlayerInterface
      * @return array<string,float>
      * @throws Throwable
      */
-    public function getSkillParts() : array {
+    public function getSkillParts(): array
+    {
         $hits = 0.0;
         try {
             $hits = $this->calculateSkillForHits();
@@ -462,18 +483,20 @@ abstract class Player extends BaseModel implements PlayerInterface
         ];
     }
 
-    public function getRankDifference() : ?float {
+    public function getRankDifference(): ?float
+    {
         if (!isset($this->user)) {
             return null;
         }
         return DB::select('player_game_rating', '[difference]')->where(
-          '[id_user] = %i AND [code] = %s',
-          $this->user->id,
-          $this->game->code
+            '[id_user] = %i AND [code] = %s',
+            $this->user->id,
+            $this->game->code
         )->fetchSingle(false);
     }
 
-    public function fillFromRow() : void {
+    public function fillFromRow(): void
+    {
         if (!isset($this->row)) {
             return;
         }

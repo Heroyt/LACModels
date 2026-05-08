@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels\Game\Lasermaxx\Evo6\GameModes;
@@ -15,8 +16,8 @@ class Revolver extends Deathmatch
 {
     public string $name = 'Revolver';
 
-    public function getTeamAlternative() : string {
+    public function getTeamAlternative(): string
+    {
         return TeamRevolver::class;
     }
-
 }
