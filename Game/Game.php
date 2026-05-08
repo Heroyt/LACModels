@@ -346,6 +346,35 @@ abstract class Game extends BaseModel implements GameInterface
             return false;
         }
 
+        DB::getConnection()->begin();
+        try {
+            $success = $this->saveFinishedGame();
+            if ($success) {
+                DB::getConnection()->commit();
+                return true;
+            }
+
+            DB::getConnection()->rollback();
+            return false;
+        } catch (Throwable $e) {
+            DB::getConnection()->rollback();
+            throw $e;
+        }
+    }
+
+    /**
+     * @return bool
+     * @throws DirectoryCreationException
+     * @throws ValidationException
+     * @throws Throwable
+     * @noinspection PhpUndefinedFieldInspection
+     */
+    private function saveFinishedGame(): bool
+    {
+        if ($this->start === null) {
+            return false;
+        }
+
         $pk = $this::getPrimaryKey();
 
         // Test duplicate
