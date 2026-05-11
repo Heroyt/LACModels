@@ -34,7 +34,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 		'mines',
 	];
 
-	protected const array IMPORT_PROPERTIES = [
+	protected const array        IMPORT_PROPERTIES     = [
 		'name',
 		'score',
 		'skill',
@@ -61,32 +61,32 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 	];
 
 	#[OA\Property]
-	public int $shotPoints    = 0;
+	public int  $shotPoints    = 0;
 	#[OA\Property]
-	public int $scoreBonus    = 0;
+	public int  $scoreBonus    = 0;
 	#[OA\Property]
-	public int $scorePowers   = 0;
+	public int  $scorePowers   = 0;
 	#[OA\Property]
-	public int $scoreMines    = 0;
+	public int  $scoreMines    = 0;
 	#[OA\Property]
-	public int $scoreAccuracy = 0;
+	public int  $scoreAccuracy = 0;
 	#[OA\Property]
-	public int $ammoRest      = 0;
+	public int  $ammoRest      = 0;
 	#[OA\Property]
-	public int $livesRest      = 0;
+	public int  $livesRest     = 0;
 	#[OA\Property]
-	public int $minesHits     = 0;
+	public int  $minesHits     = 0;
 	#[OA\Property]
-	public bool $vip = false;
+	public bool $vip           = false;
 	#[OA\Property]
-	public int $scoreVip = 0;
+	public int  $scoreVip      = 0;
 
-	#[OA\Property(format:'url')]
+	#[OA\Property(format: 'url')]
 	public string $myLasermaxx = '';
 
 	#[NoDB]
 	public int $reloads {
-		get => $this->game->reloadClips > 0 ? (int) floor($this->shots/$this->game->ammo) : 0;
+		get => $this->game->reloadClips > 0 ? (int)floor($this->shots / $this->game->ammo) : 0;
 	}
 
 	protected RegressionStatCalculator $calculator;
@@ -205,16 +205,15 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 			}
 			$expectedAverageHits = $this->getExpectedAverageTeammateHitCount();
 			if ($expectedAverageHits === 0.0) {
-				$expectedAverageHits = 0.1;
+				$expectedAverageHits = 1;
 			}
-			$hitsDiff = $this->hitsOwn - $expectedAverageHits;
 
 			// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
-			$hitsDiffPercent = 1 + ($hitsDiff / (((int)$expectedAverageHits) !== 0 ? $expectedAverageHits : 1));
+			$hitsDiffPercent = $this->hitsOwn / $expectedAverageHits;
 
 			// Completely average game should lose at least 100 points
 			// On the other hand -> hitting no teammates will grant 100 points
-			$hitsSkill = $hitsDiffPercent * 100;
+			$hitsSkill = $hitsDiffPercent * self::HITS_OWN_SKILL_WEIGHT;
 		}
 		else {
 			// In solo game, no teammates can be hit. Adds 100 points as a base.
@@ -265,7 +264,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 	 * @return float
 	 */
 	protected function calculateSkillFromBonuses(): float {
-		return $this->getMines() * 10;
+		return $this->getMines() * self::BONUSES_SKILL_WEIGHT;
 	}
 
 	/**
@@ -319,13 +318,16 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
 
 	protected function calculateSkillForHits(): float {
 		$expectedAverageHits = $this->getExpectedAverageHitCount();
-		$hitsDiff = $this->hits - $expectedAverageHits;
+
+		if (((int)$expectedAverageHits) === 0) {
+			$expectedAverageHits = 1;
+		}
 
 		// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
-		$hitsDiffPercent = 1 + ($hitsDiff / (((int)$expectedAverageHits) !== 0 ? $expectedAverageHits : 1));
+		$hitsDiffPercent = $this->hits / $expectedAverageHits;
 
 		// Completely average game should acquire at least 200 points
-		return $hitsDiffPercent * 200;
+		return $hitsDiffPercent * self::HITS_SKILL_WEIGHT;
 	}
 
 	public function getExpectedAverageHitCount(): float {

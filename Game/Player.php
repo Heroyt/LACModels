@@ -59,7 +59,7 @@ abstract class Player extends BaseModel implements PlayerInterface
 	public const array  CLASSIC_BESTS = ['score', 'hits', 'score', 'accuracy', 'shots', 'miss'];
 	public const string SYSTEM        = '';
 
-	protected const array IMPORT_PROPERTIES = [
+	protected const array          IMPORT_PROPERTIES     = [
 		'name',
 		'score',
 		'skill',
@@ -74,6 +74,14 @@ abstract class Player extends BaseModel implements PlayerInterface
 		'deathsOther',
 		'deathsOwn',
 	];
+	public const float             HITS_SKILL_WEIGHT     = 200.0;
+	public const float             HITS_OWN_SKILL_WEIGHT = 100.0;
+	public const float             BONUSES_SKILL_WEIGHT  = 10.0;
+	public const float             KD_SKILL_WEIGHT       = 80.0;
+	public const float             KD_SKILL_BONUS        = 50.0;
+	public const float             KD_SKILL_PENALTY      = 5.0;
+	public const float             ACCURACY_SKILL_WEIGHT = 500.0;
+	public const float             POSITION_SKILL_WEIGHT = 200.0;
 
 	#[Required]
 	#[StringLength(min: 1, max: 50)]
@@ -113,7 +121,7 @@ abstract class Player extends BaseModel implements PlayerInterface
 	}
 
 	public static function fromImportDto(PlayerImportDto $data): static {
-				/** @var static<G, T> $player */
+		/** @var static<G, T> $player */
 		/** @phpstan-ignore new.static */
 		$player = new static();
 		foreach (static::IMPORT_PROPERTIES as $property) {
@@ -125,7 +133,9 @@ abstract class Player extends BaseModel implements PlayerInterface
 			$user = User::getByCode($data->code);
 			if (
 				$user !== null
-				&& strtolower(Strings::toAscii(trim($user->nickname))) === strtolower(Strings::toAscii(trim($player->name)))
+				&& strtolower(Strings::toAscii(trim($user->nickname))) === strtolower(
+					Strings::toAscii(trim($player->name))
+				)
 			) {
 				$player->user = $user;
 			}
@@ -278,10 +288,10 @@ abstract class Player extends BaseModel implements PlayerInterface
 		}
 
 		// Normalize to value between <0,...) where the value of 1 corresponds to exactly average hit count
-		$hitsDiffPercent = 1 + ($hitsDiff / $expectedAverageHits);
+		$hitsDiffPercent = $this->hits / $expectedAverageHits;
 
 		// Completely average game should acquire at least 300 points
-		return $hitsDiffPercent * 200;
+		return $hitsDiffPercent * self::HITS_SKILL_WEIGHT;
 	}
 
 	/**
@@ -312,12 +322,10 @@ abstract class Player extends BaseModel implements PlayerInterface
 		$kd = $this->getKd();
 		$skill = 0.0;
 		if ($kd >= 1) {
-			$skill += $kd * 50;
+			$skill += $kd * self::KD_SKILL_BONUS;
 		}
-		else {
-			if ($kd !== 0.0) {
-				$skill -= (1 / $kd) * 5;
-			}
+		elseif ($kd !== 0.0) {
+			$skill -= (1 / $kd) * self::KD_SKILL_PENALTY;
 		}
 
 		// Add points for deviation from an average K:D
@@ -325,8 +333,8 @@ abstract class Player extends BaseModel implements PlayerInterface
 		if ($averageKd === 0.0) {
 			$averageKd = 1.0;
 		}
-		$kdDiff = 1 + (($kd - $averageKd) / $averageKd); // $average K:D should never be 0 if any hits were fired
-		$skill += $kdDiff * 80;
+		$kdDiff = $kd / $averageKd; // $average K:D should never be 0 if any hits were fired
+		$skill += $kdDiff * self::KD_SKILL_WEIGHT;
 
 		return $skill;
 	}
@@ -339,7 +347,7 @@ abstract class Player extends BaseModel implements PlayerInterface
 	 * @return float
 	 */
 	protected function calculateSkillFromAccuracy(): float {
-		return 500 * ($this->accuracy / 100);
+		return self::ACCURACY_SKILL_WEIGHT * ($this->accuracy / 100);
 	}
 
 	/**
@@ -363,7 +371,7 @@ abstract class Player extends BaseModel implements PlayerInterface
 		}
 
 		$playerCount = $this->game->playerCount;
-		return 200.0 * ($playerCount - $pos) / $playerCount;
+		return self::POSITION_SKILL_WEIGHT * ($playerCount - $pos) / $playerCount;
 	}
 
 	/**

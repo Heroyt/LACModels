@@ -24,10 +24,10 @@ use OpenApi\Attributes as OA;
 #[PrimaryKey('id_player'), Factory(PlayerFactory::class, ['system' => 'evo6']), OA\Schema(schema: 'PlayerEvo6')]
 class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6PlayerInterface
 {
-    public const string TABLE = 'evo6_players';
-    public const string SYSTEM = 'evo6';
+	public const string TABLE  = 'evo6_players';
+	public const string SYSTEM = 'evo6';
 
-	protected const array IMPORT_PROPERTIES = [
+	protected const array   IMPORT_PROPERTIES      = [
 		'name',
 		'score',
 		'skill',
@@ -62,65 +62,53 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6Player
 		'scoreKnockout',
 		'birthday',
 	];
+	public const float      VEST_TYPE_SKILL_WEIGHT = -600.0;
 
 	#[OA\Property]
-    public int $bonuses = 0;
+	public int  $bonuses            = 0;
 	#[OA\Property]
-    public int $activity = 0;
+	public int  $activity           = 0;
 	#[OA\Property]
-    public int $calories = 0;
+	public int  $calories           = 0;
 	#[OA\Property]
-    public int $scoreActivity = 0;
+	public int  $scoreActivity      = 0;
 	#[OA\Property]
-    public int $scoreEncouragement = 0;
+	public int  $scoreEncouragement = 0;
 	#[OA\Property]
-    public int $scoreKnockout = 0;
+	public int  $scoreKnockout      = 0;
 	#[OA\Property]
-    public int $scorePenalty = 0;
+	public int  $scorePenalty       = 0;
 	#[OA\Property]
-    public int $scoreReality = 0;
+	public int  $scoreReality       = 0;
 	#[OA\Property]
-    public int $penaltyCount = 0;
+	public int  $penaltyCount       = 0;
 	#[OA\Property]
-    public bool $birthday = false;
-    #[NoDB, OA\Property]
-    public int $respawns {
-        get {
+	public bool $birthday           = false;
+	#[NoDB, OA\Property]
+	public int  $respawns {
+		get {
 			assert($this->game instanceof Game);
-            if ($this->deaths < $this->game->lives || $this->game->respawnSettings->respawnLives === 0) {
-                return 0;
-            }
-            return (int) floor(($this->deaths - $this->game->lives) / $this->game->respawnSettings->respawnLives);
-        }
-    }
-
-    #[ManyToOne(class: Game::class), OA\Property(ref: '#/components/schemas/GameEvo6')]
-    public GameInterface $game;
-    #[ManyToOne(foreignKey: 'id_team', class: Team::class), OA\Property(ref: '#/components/schemas/TeamEvo6')]
-    public ?TeamInterface $team = null;
-
-    /**
-     * @inheritDoc
-     */
-    public function getMines() : int {
-        return $this->bonuses;
-    }
-
-    public function getBonusCount() : int {
-        return $this->bonuses;
-    }
-
-	public function getVestType() : VestType {
-		assert($this->game instanceof Game);
-		assert($this->game->arena !== null);
-
-		$vests = Vest::getForSystem(SystemType::EVO6, $this->game->arena);
-
-		$vest = array_find($vests, fn(Vest $vest) => $vest->vestNum === (string) $this->vest);
-		if ($vest === null) {
-			return VestType::VEST;
+			if ($this->deaths < $this->game->lives || $this->game->respawnSettings->respawnLives === 0) {
+				return 0;
+			}
+			return (int)floor(($this->deaths - $this->game->lives) / $this->game->respawnSettings->respawnLives);
 		}
-		return $vest->type;
+	}
+
+	#[ManyToOne(class: Game::class), OA\Property(ref: '#/components/schemas/GameEvo6')]
+	public GameInterface  $game;
+	#[ManyToOne(foreignKey: 'id_team', class: Team::class), OA\Property(ref: '#/components/schemas/TeamEvo6')]
+	public ?TeamInterface $team = null;
+
+	/**
+	 * @inheritDoc
+	 */
+	public function getMines(): int {
+		return $this->bonuses;
+	}
+
+	public function getBonusCount(): int {
+		return $this->bonuses;
 	}
 
 	public function calculateBaseSkill(): float {
@@ -129,7 +117,7 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6Player
 		return $skill;
 	}
 
-	public function calculateSkillForVestType() : int {
+	public function calculateSkillForVestType(): int {
 		if ($this->getVestType() === VestType::VEST) {
 			return 0;
 		}
@@ -147,8 +135,21 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6Player
 		}
 
 		$playerCount = $this->game->players->count();
-		$koef = ($playerCount - $gunCount)/$playerCount;
-		return (int) round(-600 * $koef);
+		$koef = ($playerCount - $gunCount) / $playerCount;
+		return (int)round(self::VEST_TYPE_SKILL_WEIGHT * $koef);
+	}
+
+	public function getVestType(): VestType {
+		assert($this->game instanceof Game);
+		assert($this->game->arena !== null);
+
+		$vests = Vest::getForSystem(SystemType::EVO6, $this->game->arena);
+
+		$vest = array_find($vests, fn(Vest $vest) => $vest->vestNum === (string)$this->vest);
+		if ($vest === null) {
+			return VestType::VEST;
+		}
+		return $vest->type;
 	}
 
 	public function getSkillParts(): array {
