@@ -174,8 +174,8 @@ class PlayerFactory implements FactoryInterface
 	 * @param array<int|string, string|array{first:string,second:string,operation:string}|array{first:string,aggregate:string}> $playerFields
 	 * @param array<int|string, string|array{first:string,second:string,operation:string}>                                      $modeFields
 	 */
-	public static function queryPlayersWithGames(array $gameFields = [], array $playerFields = [], array $modeFields = []): Fluent {
-		$query = DB::select();
+	public static function queryPlayersWithGames(array $gameFields = [], array $playerFields = [], array $modeFields = [], string $select = '*'): Fluent {
+		$query = DB::select(null, $select);
 		$queries = self::getPlayersWithGamesUnionQueries($gameFields, $playerFields, $modeFields);
 		$query->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]');
 		return $query->cacheTags('players');
