@@ -86,6 +86,10 @@ trait PlayerCalculatedProperties
             if (!isset($this->relativeHits)) {
                 try {
                     $expected = $this->getExpectedAverageHitCount();
+                    if ($expected <= 0.0) {
+                        $this->relativeHits = null;
+                        return $this->relativeHits;
+                    }
                     $diff = $this->hits - $expected;
                     $this->relativeHits = 1 + ($diff / $expected);
                 } catch (InsufficientRegressionDataException) {
@@ -100,6 +104,10 @@ trait PlayerCalculatedProperties
             if (!isset($this->relativeDeaths)) {
                 try {
                     $expected = $this->getExpectedAverageDeathCount();
+                    if ($expected <= 0.0) {
+                        $this->relativeDeaths = null;
+                        return $this->relativeDeaths;
+                    }
                     $diff = $this->deaths - $expected;
                     $this->relativeDeaths = 1 + ($diff / $expected);
                 } catch (InsufficientRegressionDataException) {
