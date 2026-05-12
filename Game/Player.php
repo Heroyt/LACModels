@@ -112,9 +112,8 @@ abstract class Player extends BaseModel implements PlayerInterface
             /** @var int|null $test */
             $test = DB::select($this::TABLE, $this::getPrimaryKey())
                       ->where(
-                          'id_game = %i && name = %s && vest = ' . (is_string($this->vest) ? '%s' : '%i'),
+                          'id_game = %i && vest = ' . (is_string($this->vest) ? '%s' : '%i'),
                           $this->game->id,
-                          $this->name,
                           $this->vest
                       )
                       ->fetchSingle(cache: false);
