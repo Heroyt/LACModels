@@ -84,7 +84,7 @@ abstract class Player extends BaseModel implements PlayerInterface
 	public const float             POSITION_SKILL_WEIGHT = 200.0;
 
 	#[Required]
-	#[StringLength(min: 1, max: 50)]
+	#[StringLength(min: 1, max: 255)]
 	public string     $name        = '';
 	public int        $score       = 0;
 	public int        $skill       = 0;

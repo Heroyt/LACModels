@@ -59,11 +59,9 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
 	#[OA\Property]
 	public int $respawn = 5;
 	#[OA\Property]
-	#[OA\Property]public int $reloadClips = 0;
+	public int $reloadClips = 0;
 	#[OA\Property]
-	#[OA\Property]
-    public bool $allowFriendlyFire = true;
-    #[OA\Property]
+	public bool $allowFriendlyFire = true;
 	#[OA\Property]
 	public bool $antiStalking = false;
 	#[OA\Property]
