@@ -67,7 +67,6 @@ class Zakladny extends AbstractMode implements CustomResultsMode, TeamGameModeIn
     public function getBasesDestroyed(Team $team): int {
 
         $shields = $team->players->map(
-            /** @phpstan-ignore argument.type */
             fn (Player $player) => $player->getBonusCount(),
         );
         if (count($shields) === 0) {

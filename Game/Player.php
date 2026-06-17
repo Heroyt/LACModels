@@ -329,7 +329,7 @@ abstract class Player extends BaseModel implements PlayerInterface
     /**
      * Get one trophy
      *
-     * @return array{name:string,icon:string}
+     * @return array{name:string,description:string,icon:string}
      * @throws ValidationException
      */
     public function getBestAt(): array {
@@ -342,7 +342,7 @@ abstract class Player extends BaseModel implements PlayerInterface
     /**
      * Get all trophies
      *
-     * @return array{name:string,icon:string}[]
+     * @return array{name:string,description:string,icon:string}[]
      * @throws ValidationException
      */
     public function getAllBestAt(): array {
@@ -394,7 +394,8 @@ abstract class Player extends BaseModel implements PlayerInterface
         if ($this->hitPlayers === null) {
             $this->hitPlayers = [];
         }
-        $className = last(explode('\\', $this::class));
+        $parts = explode('\\', $this::class);
+        $className = $parts[count($parts) - 1];
         /** @var class-string<PlayerHit<static>> $className */
         $className = str_replace($className, 'PlayerHit', $this::class);
         if (isset($this->hitPlayers[$player->vest])) {

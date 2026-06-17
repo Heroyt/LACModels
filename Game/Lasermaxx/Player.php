@@ -127,7 +127,7 @@ abstract class Player extends \App\GameModels\Game\Player implements LaserMaxxPl
     }
 
     public function getRemainingLives(): int {
-        return ($this->game->lives ?? 9999) - $this->deaths - $this->minesHits;
+        return $this->game->lives - $this->deaths - $this->minesHits;
     }
 
     /**

@@ -69,7 +69,7 @@ class TargetHit implements JsonSerializable
     }
 
     /**
-     * @return array{id_player:int|null,id_target:int|null,count:int|null}
+     * @return array{id_player:int|null,id_target:int|null,type:value-of<TargetHitType>,count:int}
      * @noinspection PhpArrayShapeAttributeCanBeAddedInspection
      */
     public function getQueryData(): array {

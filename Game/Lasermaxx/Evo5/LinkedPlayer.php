@@ -90,7 +90,7 @@ class LinkedPlayer extends Player implements LinkedPlayerInterface
         /**
          * @param Team|null $value
          */
-        set(?TeamInterface $value) { // @phpstan-ignore propertySetHook.noAssign
+        set(?TeamInterface $value) {
             foreach ($this->players as $player) {
                 $player->team = $value;
             }
@@ -104,7 +104,7 @@ class LinkedPlayer extends Player implements LinkedPlayerInterface
         /**
          * @param Game $value
          */
-        set(GameInterface $value) { // @phpstan-ignore propertySetHook.noAssign
+        set(GameInterface $value) {
             foreach ($this->players as $player) {
                 $player->game = $value;
             }

@@ -69,7 +69,7 @@ trait WithTargets
      * @return int
      */
     public function getTargetCount(): int {
-        if ( ! isset($this->targetCount) || $this->targetCount < 1) {
+        if ($this->targetCount < 1) {
             $this->targetCount = $this->getTargets()->count();
         }
         return $this->targetCount;

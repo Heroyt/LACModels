@@ -13,6 +13,7 @@ use App\Models\System;
 use App\Models\SystemType;
 use DateTimeImmutable;
 use DateTimeInterface;
+use Dibi\Row;
 use Lsr\Db\DB;
 use Lsr\LaserLiga\Enums\VestStatus;
 use Lsr\ObjectValidation\Exceptions\ValidationException;
@@ -103,19 +104,49 @@ class Vest extends BaseModel
      */
     public static function getGridDimensions(string|SystemType|System $system): ?object {
         if ($system instanceof System) {
-            /** @phpstan-ignore return.type */
-            return self::query()->where('id_system = %s', $system->id);
+            $row = DB::select(self::TABLE, 'MAX([grid_col]) as [cols], MAX([grid_row]) as [rows]')
+                ->where('id_system = %i', $system->id)
+                ->fetch();
+
+            if ($row === null) {
+                return null;
+            }
+
+            return self::formatGridDimensions($row);
         }
         if ($system instanceof SystemType) {
             $system = $system->value;
         }
-        /* @phpstan-ignore-next-line */
-        return DB::select(self::TABLE, 'MAX([grid_col]) as [cols], MAX([grid_row]) as [rows]')
+        $row = DB::select(self::TABLE, 'MAX([grid_col]) as [cols], MAX([grid_row]) as [rows]')
             ->where(
                 'id_system IN %sql',
                 DB::select(System::TABLE, 'id_system')->where('type = %s', $system),
             )
             ->fetch();
+
+        if ($row === null) {
+            return null;
+        }
+
+        return self::formatGridDimensions($row);
+    }
+
+    /**
+     * @param array<string,mixed>|Row $row
+     * @return object{cols:int,rows:int}
+     */
+    private static function formatGridDimensions(array|Row $row): object {
+        if (is_array($row)) {
+            return (object) [
+                'cols' => (int) ($row['cols'] ?? 0),
+                'rows' => (int) ($row['rows'] ?? 0),
+            ];
+        }
+
+        return (object) [
+            'cols' => (int) $row->cols,
+            'rows' => (int) $row->rows,
+        ];
     }
 
     public function update(): bool {

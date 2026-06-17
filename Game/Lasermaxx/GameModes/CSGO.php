@@ -60,15 +60,13 @@ class CSGO extends AbstractMode implements CustomResultsMode, TeamGameModeInterf
             if ($remaining1 > 0 && $remaining2 === 0) {
                 return $team1;
             }
-            if ($remaining1 > 0 && $remaining2 > 0) {
-                $hits1 = $team1->getHits();
-                $hits2 = $team2->getHits();
-                if ($hits1 > $hits2) {
-                    return $team1;
-                }
-                if ($hits2 > $hits1) {
-                    return $team2;
-                }
+            $hits1 = $team1->getHits();
+            $hits2 = $team2->getHits();
+            if ($hits1 > $hits2) {
+                return $team1;
+            }
+            if ($hits2 > $hits1) {
+                return $team2;
             }
             return null;
         }
