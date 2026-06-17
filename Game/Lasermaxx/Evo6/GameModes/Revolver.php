@@ -9,15 +9,14 @@ use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
 #[
-  PrimaryKey('id_mode'),
-  Factory(GameModeFactory::class) // @phpstan-ignore argument.type
+    PrimaryKey('id_mode'),
+    Factory(GameModeFactory::class) // @phpstan-ignore argument.type
 ]
 class Revolver extends Deathmatch
 {
     public string $name = 'Revolver';
 
-    public function getTeamAlternative(): string
-    {
+    public function getTeamAlternative(): string {
         return TeamRevolver::class;
     }
 }

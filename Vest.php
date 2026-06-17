@@ -37,16 +37,14 @@ class Vest extends BaseModel
      * @return Vest[]
      * @throws ValidationException
      */
-    public static function getForSystem(string|SystemType|System $system): array
-    {
+    public static function getForSystem(string|SystemType|System $system): array {
         return self::querySystem($system)->get();
     }
 
     /**
      * @return ModelQuery<Vest>
      */
-    public static function querySystem(string|SystemType|System $system): ModelQuery
-    {
+    public static function querySystem(string|SystemType|System $system): ModelQuery {
         if ($system instanceof System) {
             /** @phpstan-ignore return.type */
             return self::query()->where('id_system = %s', $system->id);
@@ -56,19 +54,17 @@ class Vest extends BaseModel
         }
         /** @phpstan-ignore return.type */
         return self::query()
-                   ->where(
-                       'id_system IN %sql',
-                       DB::select(System::TABLE, 'id_system')->where('type = %s', $system)
-                   );
+            ->where(
+                'id_system IN %sql',
+                DB::select(System::TABLE, 'id_system')->where('type = %s', $system),
+            );
     }
 
-    public static function getVestCount(string|SystemType|System $system): int
-    {
+    public static function getVestCount(string|SystemType|System $system): int {
         return self::querySystem($system)->count();
     }
 
-    public static function getGridCols(string|SystemType|System $system): int
-    {
+    public static function getGridCols(string|SystemType|System $system): int {
         if ($system instanceof System) {
             /** @phpstan-ignore return.type */
             return self::query()->where('id_system = %s', $system->id);
@@ -77,15 +73,14 @@ class Vest extends BaseModel
             $system = $system->value;
         }
         return DB::select(self::TABLE, 'MAX(grid_col)')
-                 ->where(
-                     'id_system IN %sql',
-                     DB::select(System::TABLE, 'id_system')->where('type = %s', $system)
-                 )
-                 ->fetchSingle();
+            ->where(
+                'id_system IN %sql',
+                DB::select(System::TABLE, 'id_system')->where('type = %s', $system),
+            )
+            ->fetchSingle();
     }
 
-    public static function getGridRows(string|SystemType|System $system): int
-    {
+    public static function getGridRows(string|SystemType|System $system): int {
         if ($system instanceof System) {
             /** @phpstan-ignore return.type */
             return self::query()->where('id_system = %s', $system->id);
@@ -94,18 +89,17 @@ class Vest extends BaseModel
             $system = $system->value;
         }
         return DB::select(self::TABLE, 'MAX(grid_row)')
-                 ->where(
-                     'id_system IN %sql',
-                     DB::select(System::TABLE, 'id_system')->where('type = %s', $system)
-                 )
-                 ->fetchSingle();
+            ->where(
+                'id_system IN %sql',
+                DB::select(System::TABLE, 'id_system')->where('type = %s', $system),
+            )
+            ->fetchSingle();
     }
 
     /**
      * @return object{cols:int,rows:int}|null
      */
-    public static function getGridDimensions(string|SystemType|System $system): ?object
-    {
+    public static function getGridDimensions(string|SystemType|System $system): ?object {
         if ($system instanceof System) {
             /** @phpstan-ignore return.type */
             return self::query()->where('id_system = %s', $system->id);
@@ -115,15 +109,14 @@ class Vest extends BaseModel
         }
         /* @phpstan-ignore-next-line */
         return DB::select(self::TABLE, 'MAX([grid_col]) as [cols], MAX([grid_row]) as [rows]')
-                 ->where(
-                     'id_system IN %sql',
-                     DB::select(System::TABLE, 'id_system')->where('type = %s', $system)
-                 )
-                 ->fetch();
+            ->where(
+                'id_system IN %sql',
+                DB::select(System::TABLE, 'id_system')->where('type = %s', $system),
+            )
+            ->fetch();
     }
 
-    public function update(): bool
-    {
+    public function update(): bool {
         $this->updatedAt = new DateTimeImmutable();
         return parent::update();
     }

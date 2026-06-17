@@ -38,8 +38,7 @@ class Target extends BaseModel
     /**
      * @return Team|null
      */
-    public function getTeam(): ?Team
-    {
+    public function getTeam(): ?Team {
         return $this->team;
     }
 
@@ -48,8 +47,7 @@ class Target extends BaseModel
      *
      * @return Target
      */
-    public function setTeam(Team $team): Target
-    {
+    public function setTeam(Team $team): Target {
         $this->team = $team;
         return $this;
     }

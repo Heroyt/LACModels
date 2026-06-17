@@ -25,8 +25,7 @@ class TeamSurvival extends Survival implements TeamGameModeInterface
     public string $name = 'Team Survival';
     public GameModeType $type = GameModeType::TEAM;
 
-    public function getSoloAlternative(): string
-    {
+    public function getSoloAlternative(): string {
         return Survival::class;
     }
 }

@@ -31,15 +31,15 @@ class Today
      */
     public function __construct(Game $gameClass, Player $playerClass, Team $teamClass) {
         $this->games = DB::select($gameClass::TABLE, 'count(*)')
-                         ->where('DATE(start) = %d', $gameClass->start)
-                         ->fetchSingle();
+            ->where('DATE(start) = %d', $gameClass->start)
+            ->fetchSingle();
         $this->players = DB::select($playerClass::TABLE, 'count(*)')->where(
             'id_game IN %sql',
-            $this->todayGames($gameClass)
+            $this->todayGames($gameClass),
         )->fetchSingle();
         $this->teams = DB::select($teamClass::TABLE, 'count(*)')->where(
             'id_game IN %sql',
-            $this->todayGames($gameClass)
+            $this->todayGames($gameClass),
         )->fetchSingle();
     }
 
@@ -49,8 +49,7 @@ class Today
      *
      * @return Fluent
      */
-    private function todayGames(Game $gameClass): Fluent
-    {
+    private function todayGames(Game $gameClass): Fluent {
         $this->gameQuery = DB::select($gameClass::TABLE, 'id_game')->where('DATE(start) = %d', $gameClass->start);
         return $this->gameQuery;
     }
@@ -62,24 +61,23 @@ class Today
      *
      * @return string Returns either one number (a position) or a range of position (ex. 1-3)
      */
-    public function getPlayerOrder(Player $player, string $property): string
-    {
+    public function getPlayerOrder(Player $player, string $property): string {
         $better = DB::select($player::TABLE, 'count(*)')
-          ->where(
-              '[id_game] IN %sql AND %n > %i',
-              $this->gameQuery,
-              Strings::toSnakeCase($property),
-              $player->$property
-          )
-          ->fetchSingle();
+            ->where(
+                '[id_game] IN %sql AND %n > %i',
+                $this->gameQuery,
+                Strings::toSnakeCase($property),
+                $player->$property,
+            )
+            ->fetchSingle();
         $same = DB::select($player::TABLE, 'count(*)')
-          ->where(
-              '[id_game] IN %sql AND %n = %i',
-              $this->gameQuery,
-              Strings::toSnakeCase($property),
-              $player->$property
-          )
-          ->fetchSingle();
+            ->where(
+                '[id_game] IN %sql AND %n = %i',
+                $this->gameQuery,
+                Strings::toSnakeCase($property),
+                $player->$property,
+            )
+            ->fetchSingle();
         $better++;
         if ($same === 1) {
             return (string) $better;

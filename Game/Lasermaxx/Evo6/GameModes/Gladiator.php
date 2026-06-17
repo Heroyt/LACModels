@@ -11,20 +11,18 @@ use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
 #[
-  PrimaryKey('id_mode'),
-  Factory(GameModeFactory::class) // @phpstan-ignore argument.type
+    PrimaryKey('id_mode'),
+    Factory(GameModeFactory::class) // @phpstan-ignore argument.type
 ]
 class Gladiator extends Deathmatch implements CustomLoadMode
 {
     public string $name = 'Gladiator';
 
-    public function getNewGameScriptToRun(): string
-    {
+    public function getNewGameScriptToRun(): string {
         return 'gladiator';
     }
 
-    public function modifyGameDataBeforeLoad(LasermaxxLoadData $loadData, array $data): LasermaxxLoadData
-    {
+    public function modifyGameDataBeforeLoad(LasermaxxLoadData $loadData, array $data): LasermaxxLoadData {
         foreach ($loadData->players as $player) {
             $player->vip = true;
         }

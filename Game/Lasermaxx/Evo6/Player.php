@@ -19,8 +19,8 @@ use Lsr\Orm\Attributes\Relations\ManyToOne;
  * @implements Evo6PlayerInterface<Game, Team, User>
  */
 #[
-  PrimaryKey('id_player'),
-  Factory(PlayerFactory::class, ['system' => 'evo6']) // @phpstan-ignore argument.type
+    PrimaryKey('id_player'),
+    Factory(PlayerFactory::class, ['system' => 'evo6']) // @phpstan-ignore argument.type
 ]
 class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6PlayerInterface
 {
@@ -55,11 +55,11 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo6Player
     /**
      * @inheritDoc
      */
-    public function getMines() : int {
+    public function getMines(): int {
         return $this->bonuses;
     }
 
-    public function getBonusCount() : int {
+    public function getBonusCount(): int {
         return $this->bonuses;
     }
 

@@ -13,8 +13,7 @@ use Lsr\Lg\Results\PlayerCollection;
  */
 trait WithLinkedPlayers
 {
-    public function loadPlayers(): PlayerCollection
-    {
+    public function loadPlayers(): PlayerCollection {
         $this->players = parent::loadPlayers();
         $this->linkPlayers();
         return $this->players;
@@ -25,8 +24,7 @@ trait WithLinkedPlayers
      *
      * Linked player = Player with the same user or the same name and team.
      */
-    public function linkPlayers(): void
-    {
+    public function linkPlayers(): void {
         // Find linked players
         $uniquePlayers = [];
         foreach ($this->players as $player) {
@@ -59,7 +57,7 @@ trait WithLinkedPlayers
             $this->players->set($linkedPlayer, $linkedPlayer->vest);
         }
 
-        if (!$linked) {
+        if ( ! $linked) {
             return;
         }
 
@@ -74,7 +72,7 @@ trait WithLinkedPlayers
         foreach ($this->players as $player) {
             $hits = $player->getHitsPlayers();
             foreach ($hits as $vest => $hit) {
-                if (!isset($linkedVests[$vest])) {
+                if ( ! isset($linkedVests[$vest])) {
                     continue;
                 }
                 // Add hits from linked vests

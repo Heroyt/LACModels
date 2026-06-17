@@ -132,16 +132,14 @@ abstract class Game extends BaseModel implements GameInterface
     /**
      * @return array<int, string>
      */
-    public static function getTeamColors(): array
-    {
+    public static function getTeamColors(): array {
         return [];
     }
 
     /**
      * @return array<int, string>
      */
-    public static function getTeamNames(): array
-    {
+    public static function getTeamNames(): array {
         return [];
     }
 
@@ -149,9 +147,8 @@ abstract class Game extends BaseModel implements GameInterface
      * @return AbstractMode|null
      * @throws GameModeNotFoundException
      */
-    public function getMode(): ?AbstractMode
-    {
-        if (!isset($this->mode)) {
+    public function getMode(): ?AbstractMode {
+        if ( ! isset($this->mode)) {
             if (isset($this->relationIds['mode'])) {
                 $this->mode = GameModeFactory::getById($this->relationIds['mode']);
             } else {
@@ -165,8 +162,7 @@ abstract class Game extends BaseModel implements GameInterface
         return $this->mode;
     }
 
-    public function loadMode(): ?AbstractMode
-    {
+    public function loadMode(): ?AbstractMode {
         if (isset($this->relationIds['mode'])) {
             $mode = GameModeFactory::getById($this->relationIds['mode'], ['system' => $this::SYSTEM]);
             if ($mode !== null) {
@@ -180,16 +176,14 @@ abstract class Game extends BaseModel implements GameInterface
         return GameModeFactory::findModeObject($this::SYSTEM, null, $this->gameType);
     }
 
-    public function getQueryData(bool $filterChanged = true): array
-    {
+    public function getQueryData(bool $filterChanged = true): array {
         $data = parent::getQueryData($filterChanged);
         $this->extensionAddQueryData($data);
         return $data;
     }
 
-    public function fillFromRow(): void
-    {
-        if (!isset($this->row)) {
+    public function fillFromRow(): void {
+        if ( ! isset($this->row)) {
             return;
         }
         parent::fillFromRow();
@@ -202,8 +196,7 @@ abstract class Game extends BaseModel implements GameInterface
      * @return bool
      * @phpstan-assert-if-true !null $this->start
      */
-    public function isStarted(): bool
-    {
+    public function isStarted(): bool {
         return $this->start !== null
           // Start time is timestamp of a real game-start, so we need to subtract the preparation time before the game
           && time() >= $this->start->getTimestamp() - ($this->timing->before ?? 0);
@@ -218,8 +211,7 @@ abstract class Game extends BaseModel implements GameInterface
      * @throws ValidationException
      * @noinspection PhpMissingBreakStatementInspection
      */
-    public function getBestPlayer(string $property): ?Player
-    {
+    public function getBestPlayer(string $property): ?Player {
         $query = $this->players->query()->sortBy($property);
         switch ($property) {
             case 'shots':
@@ -227,7 +219,8 @@ abstract class Game extends BaseModel implements GameInterface
                 break;
             case 'hitsOwn':
             case 'deathsOwn':
-            $query->addFilter(new CollectionCompareFilter($property, Comparison::GREATER, 0));
+                $query->addFilter(new CollectionCompareFilter($property, Comparison::GREATER, 0));
+                // no break
             default:
                 $query->desc();
                 break;
@@ -239,19 +232,18 @@ abstract class Game extends BaseModel implements GameInterface
      * @return array<string,string>
      * @noinspection PhpArrayShapeAttributeCanBeAddedInspection
      */
-    public function getBestsFields(): array
-    {
+    public function getBestsFields(): array {
         $fields = [
-          'hits'     => lang('Největší terminátor', context: 'bests', domain: 'results'),
-          'deaths'   => lang('Objekt největšího zájmu', context: 'bests', domain: 'results'),
-          'score'    => lang('Absolutní vítěz', context: 'bests', domain: 'results'),
-          'accuracy' => lang('Hráč s nejlepší muškou', context: 'bests', domain: 'results'),
-          'shots'    => lang('Nejúspornější střelec', context: 'bests', domain: 'results'),
-          'miss'     => lang('Největší mimoň', context: 'bests', domain: 'results'),
+            'hits'     => lang('Největší terminátor', context: 'bests', domain: 'results'),
+            'deaths'   => lang('Objekt největšího zájmu', context: 'bests', domain: 'results'),
+            'score'    => lang('Absolutní vítěz', context: 'bests', domain: 'results'),
+            'accuracy' => lang('Hráč s nejlepší muškou', context: 'bests', domain: 'results'),
+            'shots'    => lang('Nejúspornější střelec', context: 'bests', domain: 'results'),
+            'miss'     => lang('Největší mimoň', context: 'bests', domain: 'results'),
         ];
         foreach ($fields as $key => $value) {
             $settingName = Strings::toCamelCase('best_' . $key);
-            if (!($this->mode->settings->$settingName ?? true)) {
+            if ( ! ($this->mode->settings->$settingName ?? true)) {
                 unset($fields[$key]);
             }
         }
@@ -265,8 +257,7 @@ abstract class Game extends BaseModel implements GameInterface
      *
      * @return P|null
      */
-    public function getVestPlayer(int|string $vestNum): ?Player
-    {
+    public function getVestPlayer(int|string $vestNum): ?Player {
         return $this->players->query()->filter('vest', $vestNum)->first();
     }
 
@@ -276,8 +267,7 @@ abstract class Game extends BaseModel implements GameInterface
      * @throws GameModeNotFoundException
      * @throws ValidationException
      */
-    public function jsonSerialize(): array
-    {
+    public function jsonSerialize(): array {
         if (empty($this->code)) {
             $this->code = uniqid($this::getCodePrefix(), false);
         }
@@ -286,9 +276,9 @@ abstract class Game extends BaseModel implements GameInterface
         $data['group'] = null;
         if ($this->group !== null) {
             $data['group'] = [
-              'id'     => $this->group->id,
-              'name'   => $this->group->name,
-              'active' => $this->group->active,
+                'id'     => $this->group->id,
+                'name'   => $this->group->name,
+                'active' => $this->group->active,
             ];
         }
         $data['metaData'] = $this->getMeta();
@@ -300,9 +290,8 @@ abstract class Game extends BaseModel implements GameInterface
         return $data;
     }
 
-    public static function getCodePrefix(): string
-    {
-        if (!isset(self::$codePrefix)) {
+    public static function getCodePrefix(): string {
+        if ( ! isset(self::$codePrefix)) {
             $config = App::getService('config');
             assert($config instanceof Config);
             $prefix = $config->getConfig('ENV')['GAME_PREFIX'] ?? 'g';
@@ -311,8 +300,7 @@ abstract class Game extends BaseModel implements GameInterface
         return self::$codePrefix;
     }
 
-    public function getMusic(): ?MusicMode
-    {
+    public function getMusic(): ?MusicMode {
         $this->music ??= isset($this->relationIds['music']) ? MusicMode::get($this->relationIds['music']) : null;
         return $this->music;
     }
@@ -325,11 +313,10 @@ abstract class Game extends BaseModel implements GameInterface
      * @throws JsonException
      * @throws Throwable
      */
-    public function sync(): bool
-    {
+    public function sync(): bool {
         /** @var FeatureConfig $featureConfig */
         $featureConfig = App::getService('features');
-        if (!$featureConfig->isFeatureEnabled('liga')) {
+        if ( ! $featureConfig->isFeatureEnabled('liga')) {
             return false;
         }
 
@@ -352,9 +339,8 @@ abstract class Game extends BaseModel implements GameInterface
      * @throws Throwable
      * @noinspection PhpUndefinedFieldInspection
      */
-    public function save(): bool
-    {
-        if (!$this->isFinished()) {
+    public function save(): bool {
+        if ( ! $this->isFinished()) {
             $this->getLogger()->warning('Cannot save a game that is not finished yet.', ['file' => $this->resultsFile]);
             return false;
         }
@@ -382,8 +368,7 @@ abstract class Game extends BaseModel implements GameInterface
      * @throws Throwable
      * @noinspection PhpUndefinedFieldInspection
      */
-    private function saveFinishedGame(): bool
-    {
+    private function saveFinishedGame(): bool {
         if ($this->start === null) {
             return false;
         }
@@ -393,12 +378,12 @@ abstract class Game extends BaseModel implements GameInterface
         // Test duplicate
         /** @var Row|null $test */
         $test = DB::select($this::TABLE, $pk . ', code')
-                  ->where(
-                      'start = %dt OR start = %dt',
-                      $this->start,
-                      $this->start->getTimestamp() + ($this->timing->before ?? 20)
-                  )
-                  ->fetch(cache: false);
+            ->where(
+                'start = %dt OR start = %dt',
+                $this->start,
+                $this->start->getTimestamp() + ($this->timing->before ?? 20),
+            )
+            ->fetch(cache: false);
         if (isset($test)) {
             $this->id = $test->$pk;
             $this->code = $test->code;
@@ -410,7 +395,7 @@ abstract class Game extends BaseModel implements GameInterface
         }
 
         $success = parent::save();
-        if (!$success) {
+        if ( ! $success) {
             return false;
         }
 
@@ -419,7 +404,7 @@ abstract class Game extends BaseModel implements GameInterface
         foreach ($this->teams as $team) {
             $success &= $team->save();
         }
-        if (!$success) {
+        if ( ! $success) {
             return false;
         }
         if ($this->teams->count() === 0) {
@@ -443,16 +428,14 @@ abstract class Game extends BaseModel implements GameInterface
      * @phpstan-assert-if-true !null $this->end
      * @phpstan-assert-if-true !null $this->importTime
      */
-    public function isFinished(): bool
-    {
+    public function isFinished(): bool {
         return $this->start !== null
           && $this->end !== null
           && $this->importTime !== null
           && time() > ($this->end->getTimestamp() + ($this->timing->after ?? 0));
     }
 
-    public function isEnded(): bool
-    {
+    public function isEnded(): bool {
         return $this->isFinished();
     }
 
@@ -460,8 +443,7 @@ abstract class Game extends BaseModel implements GameInterface
      * @return void
      * @throws Throwable
      */
-    public function calculateSkills(): void
-    {
+    public function calculateSkills(): void {
         $players = $this->players->getAll();
 
         // Calculate the base skill for all players first
@@ -499,14 +481,12 @@ abstract class Game extends BaseModel implements GameInterface
         }
     }
 
-    public function getGroup(): ?GameGroup
-    {
+    public function getGroup(): ?GameGroup {
         $this->group ??= isset($this->relationIds['group']) ? GameGroup::get($this->relationIds['group']) : null;
         return $this->group;
     }
 
-    public function insert(): bool
-    {
+    public function insert(): bool {
         if ($this->getGroup() !== null) {
             $this->getGroup()->clearCache();
         }
@@ -516,8 +496,7 @@ abstract class Game extends BaseModel implements GameInterface
         return parent::insert();
     }
 
-    public function clearCache(): void
-    {
+    public function clearCache(): void {
         parent::clearCache();
 
         // Invalidate cached objects
@@ -526,14 +505,14 @@ abstract class Game extends BaseModel implements GameInterface
         $cache->remove('games/' . $this::SYSTEM . '/' . $this->id);
         $cache->clean(
             [
-            CacheParent::Tags => [
-                'games/' . $this::SYSTEM . '/' . $this->id,
-                'games/' . $this->start?->format('Y-m-d'),
-                'games/' . $this->start?->format('Y-m'),
-                'games/' . $this->start?->format('Y'),
-                'games/' . $this->code,
+                CacheParent::Tags => [
+                    'games/' . $this::SYSTEM . '/' . $this->id,
+                    'games/' . $this->start?->format('Y-m-d'),
+                    'games/' . $this->start?->format('Y-m'),
+                    'games/' . $this->start?->format('Y'),
+                    'games/' . $this->code,
+                ],
             ],
-            ]
         );
 
         if ($this->getGroup() !== null) {
@@ -549,8 +528,7 @@ abstract class Game extends BaseModel implements GameInterface
         }
     }
 
-    public function delete(): bool
-    {
+    public function delete(): bool {
         /** @var Cache $cache */
         $cache = App::getService('cache');
         $cache->clean([CacheParent::Tags => ['games/counts']]);
@@ -562,10 +540,9 @@ abstract class Game extends BaseModel implements GameInterface
      *
      * @return float Real game length in minutes.
      */
-    public function getRealGameLength(): float
-    {
-        if (!isset($this->realGameLength)) {
-            if (!$this->isFinished()) {
+    public function getRealGameLength(): float {
+        if ( ! isset($this->realGameLength)) {
+            if ( ! $this->isFinished()) {
                 // If the game is not finished, it does not have a game length
                 return 0;
             }
@@ -578,18 +555,16 @@ abstract class Game extends BaseModel implements GameInterface
     /**
      * @return float
      */
-    public function getAverageKd(): float
-    {
+    public function getAverageKd(): float {
         try {
-            $kds = $this->players->query()->map(fn(Player $player) => $player->getKd());
+            $kds = $this->players->query()->map(fn (Player $player) => $player->getKd());
         } catch (ValidationException | DirectoryCreationException) {
             return 1;
         }
         return empty($kds) ? 1 : array_sum($kds) / count($kds);
     }
 
-    public function recalculateScores(): void
-    {
+    public function recalculateScores(): void {
         if ($this->mode !== null) {
             $this->mode->recalculateScores($this);
             $this->reorder();
@@ -597,8 +572,7 @@ abstract class Game extends BaseModel implements GameInterface
         }
     }
 
-    public function reorder(): void
-    {
+    public function reorder(): void {
         $this->mode?->reorderGame($this);
         $this->runHook('reorder');
     }

@@ -11,16 +11,15 @@ use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
 #[
-  PrimaryKey('id_mode'),
-  Factory(GameModeFactory::class) // @phpstan-ignore argument.type
+    PrimaryKey('id_mode'),
+    Factory(GameModeFactory::class) // @phpstan-ignore argument.type
 ]
 class TeamRevolver extends Revolver implements TeamGameModeInterface
 {
     public GameModeType $type = GameModeType::TEAM;
     public string $name = 'Team Revolver';
 
-    public function getSoloAlternative(): string
-    {
+    public function getSoloAlternative(): string {
         return Revolver::class;
     }
 }

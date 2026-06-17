@@ -9,7 +9,7 @@ namespace App\GameModels\Game\Enums;
  * @method static VestStatus from(string $value)
  * @property string $value
  */
-enum VestStatus : string
+enum VestStatus: string
 {
     case OK     = 'ok';
     case PLAYABLE = 'playable';

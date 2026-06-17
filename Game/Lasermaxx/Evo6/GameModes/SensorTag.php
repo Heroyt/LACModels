@@ -12,8 +12,8 @@ use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
 #[
-  PrimaryKey('id_mode'),
-  Factory(GameModeFactory::class) // @phpstan-ignore argument.type
+    PrimaryKey('id_mode'),
+    Factory(GameModeFactory::class) // @phpstan-ignore argument.type
 ]
 class SensorTag extends Deathmatch implements ModifyScoresMode
 {
@@ -24,8 +24,7 @@ class SensorTag extends Deathmatch implements ModifyScoresMode
      * @param  G  $game
      * @return void
      */
-    public function modifyResults(GameInterface $game): void
-    {
+    public function modifyResults(GameInterface $game): void {
         foreach ($game->players as $player) {
             if ($player->getRemainingLives() > 0) {
                 $player->scoreBonus += 1000;

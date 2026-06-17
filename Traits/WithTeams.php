@@ -25,7 +25,7 @@ trait WithTeams
     #[NoDB]
     public int $teamCount {
         get {
-            if (!isset($this->teamCount) || $this->teamCount < 1) {
+            if ( ! isset($this->teamCount) || $this->teamCount < 1) {
                 $this->teamCount = $this->teams->count();
             }
             return $this->teamCount;
@@ -63,8 +63,7 @@ trait WithTeams
      *
      * @return $this
      */
-    public function addTeam(TeamInterface ...$teams): static
-    {
+    public function addTeam(TeamInterface ...$teams): static {
         foreach ($teams as $team) {
             $this->teams->add($team);
         }
@@ -74,23 +73,22 @@ trait WithTeams
     /**
      * @return TeamCollection<T>
      */
-    public function loadTeams(): TeamCollection
-    {
+    public function loadTeams(): TeamCollection {
         /** @var T[] $teams */
         $teams = [];
         /** @var class-string<Model> $className */
         $className = preg_replace('/(.+)Game$/', '${1}Team', get_class($this));
         $primaryKey = $className::getPrimaryKey();
         $rows = DB::select($className::TABLE, '*')
-          ->where('%n = %i', $this::getPrimaryKey(), $this->id)
-          ->cacheTags(
-              'games/' . $this::SYSTEM . '/' . $this->id,
-              'games/' . $this::SYSTEM . '/' . $this->id . '/teams',
-              'games/' . $this->start?->format('Y-m-d'),
-              'teams',
-              'teams/' . $this::SYSTEM
-          )
-          ->fetchAll();
+            ->where('%n = %i', $this::getPrimaryKey(), $this->id)
+            ->cacheTags(
+                'games/' . $this::SYSTEM . '/' . $this->id,
+                'games/' . $this::SYSTEM . '/' . $this->id . '/teams',
+                'games/' . $this->start?->format('Y-m-d'),
+                'teams',
+                'teams/' . $this::SYSTEM,
+            )
+            ->fetchAll();
         foreach ($rows as $row) {
             /** @var T $team */
             $team = new $className($row->$primaryKey, $row);
@@ -115,15 +113,14 @@ trait WithTeams
      * @return bool
      * @throws ValidationException
      */
-    public function saveTeams(): bool
-    {
+    public function saveTeams(): bool {
         Timer::start('game.save.teams');
-        if (!isset($this->teams)) {
+        if ( ! isset($this->teams)) {
             Timer::stop('game.save.teams');
             return true;
         }
         foreach ($this->teams as $team) {
-            if (!$team->save()) {
+            if ( ! $team->save()) {
                 Timer::stop('game.save.teams');
                 return false;
             }
@@ -137,8 +134,7 @@ trait WithTeams
      * @return array<string, mixed>
      */
     #[ExtendsSerialization]
-    public function withTeamsJson(array $data): array
-    {
+    public function withTeamsJson(array $data): array {
         $data['teamCount'] = $this->teamCount;
         return $data;
     }

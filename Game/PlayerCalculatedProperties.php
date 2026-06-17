@@ -37,7 +37,7 @@ trait PlayerCalculatedProperties
     #[NoDB, JsonExclude]
     public PlayerTrophy $trophy {
         get {
-            if (!isset($this->trophy)) {
+            if ( ! isset($this->trophy)) {
                 $this->trophy = new PlayerTrophy($this);
             }
             return $this->trophy;
@@ -48,7 +48,7 @@ trait PlayerCalculatedProperties
     #[NoDB, JsonExclude]
     public ?PlayerInterface $favouriteTarget = null {
         get {
-            if (!isset($this->favouriteTarget)) {
+            if ( ! isset($this->favouriteTarget)) {
                 $max = 0;
                 foreach ($this->getHitsPlayers() as $hits) {
                     if ($hits->count > $max) {
@@ -64,7 +64,7 @@ trait PlayerCalculatedProperties
     #[NoDB, JsonExclude]
     public ?PlayerInterface $favouriteTargetOf = null {
         get {
-            if (!isset($this->favouriteTargetOf)) {
+            if ( ! isset($this->favouriteTargetOf)) {
                 $max = 0;
                 /** @var static $player */
                 foreach ($this->game->players as $player) {
@@ -83,7 +83,7 @@ trait PlayerCalculatedProperties
     }
     public ?float $relativeHits = null {
         get {
-            if (!isset($this->relativeHits)) {
+            if ( ! isset($this->relativeHits)) {
                 try {
                     $expected = $this->getExpectedAverageHitCount();
                     if ($expected <= 0.0) {
@@ -101,7 +101,7 @@ trait PlayerCalculatedProperties
     }
     public ?float $relativeDeaths = null {
         get {
-            if (!isset($this->relativeDeaths)) {
+            if ( ! isset($this->relativeDeaths)) {
                 try {
                     $expected = $this->getExpectedAverageDeathCount();
                     if ($expected <= 0.0) {

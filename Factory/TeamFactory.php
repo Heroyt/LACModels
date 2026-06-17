@@ -27,9 +27,8 @@ class TeamFactory implements FactoryInterface
      * @throws Throwable
      * @phpstan-ignore missingType.generics
      */
-    public static function getAll(array $options = []): array
-    {
-        if (!empty($options['system'])) {
+    public static function getAll(array $options = []): array {
+        if ( ! empty($options['system'])) {
             $rows = self::queryTeamsSystem($options['system'])->fetchAll();
         } else {
             $rows = self::queryTeams()->fetchAll();
@@ -52,15 +51,14 @@ class TeamFactory implements FactoryInterface
      *
      * @return Fluent
      */
-    public static function queryTeamsSystem(string $system, array $gameIds = []): Fluent
-    {
+    public static function queryTeamsSystem(string $system, array $gameIds = []): Fluent {
         $q = DB::select(
             ["[{$system}_teams]", "[g]"],
             "[g].[id_team], [g].[id_game], [g].[color], %s as [system], [g].[name], [g].[score]",
-            $system
+            $system,
         )
             ->cacheTags('teams', 'teams/' . $system);
-        if (!empty($gameIds)) {
+        if ( ! empty($gameIds)) {
             $q->where("[g].[id_game] IN %in", $gameIds);
         }
         return $q;
@@ -73,12 +71,11 @@ class TeamFactory implements FactoryInterface
      *
      * @return Fluent
      */
-    public static function queryTeams(array $gameIds = []): Fluent
-    {
+    public static function queryTeams(array $gameIds = []): Fluent {
         $query = DB::select();
         $queries = [];
 
-        $filterGameIds = !empty($gameIds) && array_any($gameIds, static fn(array $ids) => !empty($ids));
+        $filterGameIds = ! empty($gameIds) && array_any($gameIds, static fn (array $ids) => ! empty($ids));
 
         foreach (GameFactory::getSupportedSystems() as $key => $system) {
             if ($filterGameIds && empty($gameIds[$system])) {
@@ -89,9 +86,9 @@ class TeamFactory implements FactoryInterface
             $q = DB::select(
                 ["[{$system}_teams]", "[g$key]"],
                 "[g$key].[id_team], [g$key].[id_game], [g$key].[color], %s as [system], [g$key].[name], [g$key].[score]",
-                $system
+                $system,
             );
-            if (!empty($gameIds[$system])) {
+            if ( ! empty($gameIds[$system])) {
                 $q->where("[g$key].[id_game] IN %in", $gameIds[$system]);
             }
             $queries[] = (string) $q;
@@ -110,8 +107,7 @@ class TeamFactory implements FactoryInterface
      * @throws Throwable
      * @phpstan-ignore missingType.generics
      */
-    public static function getById(int $id, array $options = []): ?Team
-    {
+    public static function getById(int $id, array $options = []): ?Team {
         $system = $options['system'] ?? '';
         if (empty($system)) {
             throw new InvalidArgumentException('System name is required.');
@@ -119,7 +115,7 @@ class TeamFactory implements FactoryInterface
         Timer::startIncrementing('factory.team');
         try {
             $className = '\\App\\GameModels\\Game\\' . GameFactory::systemToNamespace($system) . '\\Team';
-            if (!class_exists($className)) {
+            if ( ! class_exists($className)) {
                 throw new InvalidArgumentException('Team model of does not exist: ' . $className);
             }
             $team = $className::get($id);

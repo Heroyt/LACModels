@@ -17,9 +17,8 @@ trait LaserMaxxScores
      * @param  G  $game
      * @return void
      */
-    protected function recalculateScoresPlayers(GameInterface $game): void
-    {
-        if (!isset($game->scoring)) {
+    protected function recalculateScoresPlayers(GameInterface $game): void {
+        if ( ! isset($game->scoring)) {
             return;
         }
         try {

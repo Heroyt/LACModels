@@ -58,21 +58,21 @@ class AbstractMode extends BaseModel implements GameModeInterface
             if (empty($this->variations)) {
                 /** @var array<int,array<string,Row>> $rows */
                 $rows = DB::select(GameModeVariation::TABLE_VALUES, '[id_variation], [value], [suffix], [order]')
-                          ->where('[id_mode] = %i', $this->id)
-                          ->orderBy('[id_variation], [order]')
-                          ->cacheTags('mode.variations', 'mode.'.$this->id, 'mode.'.$this->id.'.variations')
-                          ->fetchAssoc('id_variation|value');
+                    ->where('[id_mode] = %i', $this->id)
+                    ->orderBy('[id_variation], [order]')
+                    ->cacheTags('mode.variations', 'mode.' . $this->id, 'mode.' . $this->id . '.variations')
+                    ->fetchAssoc('id_variation|value');
                 foreach ($rows as $variationId => $values) {
-                    if (!isset($this->variations[$variationId])) {
+                    if ( ! isset($this->variations[$variationId])) {
                         $this->variations[$variationId] = [];
                     }
                     foreach ($values as $value) {
                         $this->variations[$variationId][] = new GameModeVariationValue(
-                          GameModeVariation::get($variationId),
-                          $this,
-                          $value->value,
-                          $value->suffix,
-                          $value->order
+                            GameModeVariation::get($variationId),
+                            $this,
+                            $value->value,
+                            $value->suffix,
+                            $value->order,
                         );
                     }
                 }
@@ -109,13 +109,13 @@ class AbstractMode extends BaseModel implements GameModeInterface
          */
         set(array $systems) {
             $this->systems = implode(
-              ',',
-              array_unique(
-                array_map(
-                  static fn(System $system) => $system->type->value,
-                  $systems
-                )
-              )
+                ',',
+                array_unique(
+                    array_map(
+                        static fn (System $system) => $system->type->value,
+                        $systems,
+                    ),
+                ),
             );
         }
     }
@@ -132,7 +132,7 @@ class AbstractMode extends BaseModel implements GameModeInterface
         }
     }
 
-    public function isSolo() : bool {
+    public function isSolo(): bool {
         return $this->type === GameModeType::SOLO;
     }
 
@@ -150,7 +150,7 @@ class AbstractMode extends BaseModel implements GameModeInterface
      * @return P|T|null null = draw
      * @throws ValidationException
      */
-    public function getWin(GameInterface $game) : Player | Team | null {
+    public function getWin(GameInterface $game): Player | Team | null {
         if ($this->isTeam()) {
             $teams = $game->teamsSorted;
             $team = $teams->first();
@@ -162,7 +162,7 @@ class AbstractMode extends BaseModel implements GameModeInterface
         return $game->playersSorted->first();
     }
 
-    public function isTeam() : bool {
+    public function isTeam(): bool {
         return $this->type === GameModeType::TEAM;
     }
 
@@ -171,7 +171,7 @@ class AbstractMode extends BaseModel implements GameModeInterface
      * @param  G  $game
      * @return void
      */
-    public function recalculateScores(GameInterface $game) : void {
+    public function recalculateScores(GameInterface $game): void {
         $this->recalculateScoresPlayers($game);
         $this->recalculateScoresTeams($game);
     }
@@ -181,8 +181,8 @@ class AbstractMode extends BaseModel implements GameModeInterface
      * @param  G  $game
      * @return void
      */
-    protected function recalculateScoresPlayers(GameInterface $game) : void {
-        if (!isset($game->scoring)) {
+    protected function recalculateScoresPlayers(GameInterface $game): void {
+        if ( ! isset($game->scoring)) {
             return;
         }
         try {
@@ -203,7 +203,7 @@ class AbstractMode extends BaseModel implements GameModeInterface
      * @param  G  $game
      * @return void
      */
-    protected function recalculateScoresTeams(GameInterface $game) : void {
+    protected function recalculateScoresTeams(GameInterface $game): void {
         try {
             foreach ($game->teams as $team) {
                 $team->score = 0;
@@ -215,7 +215,7 @@ class AbstractMode extends BaseModel implements GameModeInterface
         }
     }
 
-    public function reorderGame(GameInterface $game) : void {
+    public function reorderGame(GameInterface $game): void {
         // Reorder players
         $players = $game->playersSorted;
         $i = 1;
@@ -234,14 +234,14 @@ class AbstractMode extends BaseModel implements GameModeInterface
     /**
      * @return class-string<AbstractMode>
      */
-    public function getSoloAlternative() : string {
+    public function getSoloAlternative(): string {
         return $this::class;
     }
 
     /**
      * @return class-string<AbstractMode>
      */
-    public function getTeamAlternative() : string {
+    public function getTeamAlternative(): string {
         return $this::class;
     }
 
@@ -250,15 +250,15 @@ class AbstractMode extends BaseModel implements GameModeInterface
      * @throws ValidationException
      * @throws ModelNotFoundException
      */
-    public function getVariationsPublic() : array {
+    public function getVariationsPublic(): array {
         return array_filter(
-          $this->variations,
-          fn($variationValues) => count($variationValues) > 0
-            && (first($variationValues)->variation->public ?? true)
+            $this->variations,
+            fn ($variationValues) => count($variationValues) > 0
+            && (first($variationValues)->variation->public ?? true),
         );
     }
 
-    public function getName() : string {
+    public function getName(): string {
         return empty($this->alias) ? $this->name : $this->alias;
     }
 }

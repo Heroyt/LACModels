@@ -15,15 +15,13 @@ class PowerCount implements InsertExtendInterface
         public int $nuke = 0,
         public int $shield = 0,
         public int $reset = 0,
-    )
-    {
+    ) {
     }
 
     /**
      * @inheritDoc
      */
-    public static function parseRow(Row $row): ?static
-    {
+    public static function parseRow(Row $row): ?static {
         /** @phpstan-ignore return.type */
         return new self(
             $row->machine_gun ?? 0,
@@ -39,8 +37,7 @@ class PowerCount implements InsertExtendInterface
     /**
      * @inheritDoc
      */
-    public function addQueryData(array &$data): void
-    {
+    public function addQueryData(array &$data): void {
         $data['machine_gun'] = $this->machineGun;
         $data['invincibility'] = $this->invincibility;
         $data['payback'] = $this->payback;

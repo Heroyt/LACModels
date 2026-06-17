@@ -22,8 +22,7 @@ trait Expandable
      * @param  callable(Model $model, mixed ...$args):void  $callable
      * @return void
      */
-    public function hook(string $name, callable $callable): void
-    {
+    public function hook(string $name, callable $callable): void {
         $this->hooks[$name] ??= [];
         $this->hooks[$name][] = $callable;
     }
@@ -32,8 +31,7 @@ trait Expandable
      * @param  string  $name
      * @return Model|null
      */
-    public function __get($name): ?Model
-    {
+    public function __get($name): ?Model {
         return $this->data[$name] ?? null;
     }
 
@@ -42,8 +40,7 @@ trait Expandable
      * @param  Model  $value
      * @return void
      */
-    public function __set($name, ?Model $value): void
-    {
+    public function __set($name, ?Model $value): void {
         if ($value === null) {
             unset($this->data[$name]);
             return;
@@ -55,13 +52,11 @@ trait Expandable
      * @param  string  $name
      * @return bool
      */
-    public function __isset($name): bool
-    {
+    public function __isset($name): bool {
         return isset($this->data[$name]);
     }
 
-    protected function initExtensions(): void
-    {
+    protected function initExtensions(): void {
         foreach (static::getExtensions() as $extension) {
             $extension->init($this);
         }
@@ -70,9 +65,8 @@ trait Expandable
     /**
      * @return GameDataExtensionInterface[]
      */
-    public static function getExtensions(): array
-    {
-        if (!isset(static::$extensions)) {
+    public static function getExtensions(): array {
+        if ( ! isset(static::$extensions)) {
             static::$extensions = [];
             $names = App::getContainer()->findByTag(static::DI_TAG);
             foreach ($names as $name => $arguments) {
@@ -84,8 +78,7 @@ trait Expandable
         return static::$extensions;
     }
 
-    protected function extensionSave(): bool
-    {
+    protected function extensionSave(): bool {
         $success = true;
         foreach (static::getExtensions() as $extension) {
             $success = $success && $extension->save($this);
@@ -97,15 +90,13 @@ trait Expandable
      * @param  array<string,mixed>  $data
      * @return void
      */
-    protected function extensionJson(array &$data): void
-    {
+    protected function extensionJson(array &$data): void {
         foreach (static::getExtensions() as $extension) {
             $extension->addJsonData($data, $this);
         }
     }
 
-    protected function extensionFillFromRow(): void
-    {
+    protected function extensionFillFromRow(): void {
         if ($this->row === null) {
             return;
         }
@@ -119,15 +110,13 @@ trait Expandable
      * @param  array<string,mixed>  $data
      * @return void
      */
-    protected function extensionAddQueryData(array &$data): void
-    {
+    protected function extensionAddQueryData(array &$data): void {
         foreach (static::getExtensions() as $extension) {
             $extension->addQueryData($data, $this);
         }
     }
 
-    protected function runHook(string $name, mixed ...$args): void
-    {
+    protected function runHook(string $name, mixed ...$args): void {
         foreach ($this->hooks[$name] ?? [] as $callable) {
             $callable($this, ...$args);
         }

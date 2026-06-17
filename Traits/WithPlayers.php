@@ -31,7 +31,7 @@ trait WithPlayers
     #[NoDB]
     public int $playerCount {
         get {
-            if (!isset($this->playerCount) || $this->playerCount < 1) {
+            if ( ! isset($this->playerCount) || $this->playerCount < 1) {
                 $this->playerCount = $this->players->count();
             }
             return $this->playerCount;
@@ -50,7 +50,7 @@ trait WithPlayers
     #[NoDB, JsonExclude]
     public PlayerCollection $playersSorted {
         get {
-            if (!isset($this->playersSorted)) {
+            if ( ! isset($this->playersSorted)) {
                 /** @var ModelCollection<P> $players */
                 $players = $this->players
                     ->query()
@@ -70,8 +70,7 @@ trait WithPlayers
      * @throws Throwable
      * @throws ModelNotFoundException
      */
-    public function loadPlayers(): PlayerCollection
-    {
+    public function loadPlayers(): PlayerCollection {
         /** @var array<int,P> $players */
         $players = [];
 
@@ -81,14 +80,14 @@ trait WithPlayers
         $gameId = $this instanceof Game ? $this->id : $this->game->id;
         $date = $this instanceof Game ? $this->start?->format('Y-m-d') : $this->game->start?->format('Y-m-d');
         $query = DB::select($className::TABLE, '*')
-          ->where('%n = %i', $this::getPrimaryKey(), $this->id)
-          ->cacheTags(
-              'games/' . $this::SYSTEM . '/' . $gameId,
-              'games/' . $this::SYSTEM . '/' . $gameId . '/players',
-              'games/' . $date,
-              'players',
-              'players/' . $this::SYSTEM
-          );
+            ->where('%n = %i', $this::getPrimaryKey(), $this->id)
+            ->cacheTags(
+                'games/' . $this::SYSTEM . '/' . $gameId,
+                'games/' . $this::SYSTEM . '/' . $gameId . '/players',
+                'games/' . $date,
+                'players',
+                'players/' . $this::SYSTEM,
+            );
         if ($this instanceof Team) {
             $query->cacheTags('teams/' . $this::SYSTEM . '/' . $this->id, 'teams/' . $this::SYSTEM . '/' . $this->id . '/players');
         }
@@ -115,8 +114,7 @@ trait WithPlayers
      * @throws Throwable
      * @throws ValidationException
      */
-    public function getMinScore(): int
-    {
+    public function getMinScore(): int {
         $player = $this->players->query()->sortBy('score')->asc()->first();
         if (isset($player)) {
             return $player->score;
@@ -131,8 +129,7 @@ trait WithPlayers
      * @throws Throwable
      * @throws ValidationException
      */
-    public function getMaxScore(): int
-    {
+    public function getMaxScore(): int {
         $player = $this->players->query()->sortBy('score')->desc()->first();
         if (isset($player)) {
             return $player->score;
@@ -145,8 +142,7 @@ trait WithPlayers
      *
      * @return $this
      */
-    public function addPlayer(PlayerInterface ...$players): static
-    {
+    public function addPlayer(PlayerInterface ...$players): static {
         foreach ($players as $player) {
             $this->players->add($player);
         }
@@ -162,16 +158,15 @@ trait WithPlayers
      * @return bool
      * @throws ValidationException
      */
-    public function savePlayers(): bool
-    {
-        if (!isset($this->players)) {
+    public function savePlayers(): bool {
+        if ( ! isset($this->players)) {
             return true;
         }
         Timer::start('game.save.players');
         $players = $this->players->getAll();
         // Save players first
         foreach ($players as $player) {
-            if (!$player->save()) {
+            if ( ! $player->save()) {
                 Timer::stop('game.save.players');
                 return false;
             }
@@ -179,7 +174,7 @@ trait WithPlayers
         // Save player hits
         Timer::start('game.save.players.hits');
         foreach ($players as $player) {
-            if (!$player->saveHits()) {
+            if ( ! $player->saveHits()) {
                 Timer::stop('game.save.players');
                 Timer::stop('game.save.players.hits');
                 return false;
@@ -195,8 +190,7 @@ trait WithPlayers
      * @return array<string,mixed>
      */
     #[ExtendsSerialization]
-    public function withPlayersJson(array $data): array
-    {
+    public function withPlayersJson(array $data): array {
         $data['playerCount'] = $this->playerCount;
 
         return $data;

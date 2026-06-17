@@ -50,8 +50,7 @@ class ModeSettings implements InsertExtendInterface
         public bool $bestShots = true,
         public bool $bestMiss = true,
         public bool $bestMines = true,
-    )
-    {
+    ) {
     }
 
     /**
@@ -61,8 +60,7 @@ class ModeSettings implements InsertExtendInterface
      *
      * @return static
      */
-    public static function parseRow(Row $row): static
-    {
+    public static function parseRow(Row $row): static {
         $class = new static();
         foreach (get_object_vars($class) as $name => $val) {
             $column = Strings::toSnakeCase($name);
@@ -78,8 +76,7 @@ class ModeSettings implements InsertExtendInterface
      *
      * @param  array<string, mixed>  $data
      */
-    public function addQueryData(array &$data): void
-    {
+    public function addQueryData(array &$data): void {
         foreach (get_object_vars($this) as $name => $val) {
             $column = Strings::toSnakeCase($name);
             $data[$column] = $this->$name ? 1 : 0;

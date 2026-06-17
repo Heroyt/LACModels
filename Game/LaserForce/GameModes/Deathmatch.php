@@ -13,8 +13,7 @@ use Lsr\Orm\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class Deathmatch extends \App\GameModels\Game\GameModes\Deathmatch
 {
-    public function getTeamAlternative(): string
-    {
+    public function getTeamAlternative(): string {
         return TeamDeathmatch::class;
     }
 }

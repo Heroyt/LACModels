@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels\Game\Lasermaxx\Evo6;
@@ -14,7 +15,6 @@ use Lsr\Lg\Results\Interface\Models\TeamInterface;
  */
 class LinkedPlayer extends Player implements LinkedPlayerInterface
 {
-
     /** @use BaseLinkedPlayerProperties<Player, Team, Game> */
     use BaseLinkedPlayerProperties;
 
@@ -57,7 +57,7 @@ class LinkedPlayer extends Player implements LinkedPlayerInterface
 
     public int $accuracy {
         get {
-            if (!isset($this->accuracy)) {
+            if ( ! isset($this->accuracy)) {
                 // Re-calculate accuracy from shots and hits
                 $this->accuracy = (int)round(100 * $this->hits / $this->shots);
             }
@@ -318,8 +318,8 @@ class LinkedPlayer extends Player implements LinkedPlayerInterface
 
     public bool $birthday {
         get {
-            if (!isset($this->birthday)) {
-                $this->birthday = array_any($this->players, fn($player) => $player->birthday);
+            if ( ! isset($this->birthday)) {
+                $this->birthday = array_any($this->players, fn ($player) => $player->birthday);
             }
             return $this->birthday;
         }
@@ -344,13 +344,11 @@ class LinkedPlayer extends Player implements LinkedPlayerInterface
         }
     }
 
-    public function getMines(): int
-    {
+    public function getMines(): int {
         return $this->bonuses;
     }
 
-    public function getBonusCount(): int
-    {
+    public function getBonusCount(): int {
         return $this->bonuses;
     }
 

@@ -17,8 +17,8 @@ use Lsr\Orm\Attributes\Relations\ManyToOne;
  * @implements Evo6TeamInterface<Player, Game>
  */
 #[
-  PrimaryKey('id_team'),
-  Factory(TeamFactory::class, ['system' => 'evo6']) // @phpstan-ignore argument.type
+    PrimaryKey('id_team'),
+    Factory(TeamFactory::class, ['system' => 'evo6']) // @phpstan-ignore argument.type
 ]
 class Team extends \App\GameModels\Game\Lasermaxx\Team implements Evo6TeamInterface
 {

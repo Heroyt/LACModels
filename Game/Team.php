@@ -70,14 +70,13 @@ abstract class Team extends BaseModel implements TeamInterface
         $this->initExtensions();
     }
 
-    public function save(): bool
-    {
+    public function save(): bool {
         try {
             /** @var int|null $test */
             $test = DB::select($this::TABLE, $this::getPrimaryKey())->where(
                 'id_game = %i && name = %s',
                 $this->game->id,
-                $this->name
+                $this->name,
             )->fetchSingle(cache: false);
             if (isset($test)) {
                 $this->id = $test;
@@ -91,8 +90,7 @@ abstract class Team extends BaseModel implements TeamInterface
     /**
      * @return int
      */
-    public function getDeaths(): int
-    {
+    public function getDeaths(): int {
         $sum = 0;
         foreach ($this->players as $player) {
             $sum += $player->deaths;
@@ -103,16 +101,14 @@ abstract class Team extends BaseModel implements TeamInterface
     /**
      * @return float
      */
-    public function getAccuracy(): float
-    {
+    public function getAccuracy(): float {
         return $this->getShots() === 0 ? 0 : round(100 * $this->getHits() / $this->getShots(), 2);
     }
 
     /**
      * @return int
      */
-    public function getShots(): int
-    {
+    public function getShots(): int {
         $sum = 0;
         foreach ($this->players as $player) {
             $sum += $player->shots;
@@ -123,8 +119,7 @@ abstract class Team extends BaseModel implements TeamInterface
     /**
      * @return int
      */
-    public function getHits(): int
-    {
+    public function getHits(): int {
         $sum = 0;
         foreach ($this->players as $player) {
             $sum += $player->hits;
@@ -139,8 +134,7 @@ abstract class Team extends BaseModel implements TeamInterface
      * @throws ValidationException
      * @throws DirectoryCreationException
      */
-    public function getHitsTeam(Team $team): int
-    {
+    public function getHitsTeam(Team $team): int {
         $sum = 0;
         foreach ($this->players as $player) {
             foreach ($player->getHitsPlayers() as $hits) {
@@ -158,24 +152,21 @@ abstract class Team extends BaseModel implements TeamInterface
      * @return string
      * @throws Throwable
      */
-    public function getTeamBgClass(bool $includeSystem = false): string
-    {
+    public function getTeamBgClass(bool $includeSystem = false): string {
         return 'team-' . ($includeSystem ? ($this->game::SYSTEM) . '-' : '') . $this->color;
     }
 
     /**
      * @return int
      */
-    public function getTeamColor(): int
-    {
+    public function getTeamColor(): int {
         return $this->color;
     }
 
     /**
      * @return array<string, mixed>
      */
-    public function jsonSerialize(): array
-    {
+    public function jsonSerialize(): array {
         $data = parent::jsonSerialize();
         if (isset($data['data'])) {
             unset($data['data']);
@@ -195,8 +186,7 @@ abstract class Team extends BaseModel implements TeamInterface
      *
      * @return static
      */
-    public function setBonus(int $bonus): static
-    {
+    public function setBonus(int $bonus): static {
         $this->bonus = $bonus;
         $this->runHook('setBonus', $bonus);
         return $this;
@@ -205,8 +195,7 @@ abstract class Team extends BaseModel implements TeamInterface
     /**
      * @return int
      */
-    public function getScore(): int
-    {
+    public function getScore(): int {
         $score = $this->score;
         if (isset($this->bonus)) {
             $score += $this->bonus;
@@ -214,17 +203,15 @@ abstract class Team extends BaseModel implements TeamInterface
         return $score;
     }
 
-    public function fillFromRow(): void
-    {
-        if (!isset($this->row)) {
+    public function fillFromRow(): void {
+        if ( ! isset($this->row)) {
             return;
         }
         parent::fillFromRow();
         $this->extensionFillFromRow();
     }
 
-    public function getQueryData(bool $filterChanged = true): array
-    {
+    public function getQueryData(bool $filterChanged = true): array {
         $data = parent::getQueryData($filterChanged);
         $this->extensionAddQueryData($data);
         return $data;

@@ -27,9 +27,8 @@ class PlayerFactory implements FactoryInterface
      * @throws Throwable
      * @phpstan-ignore missingType.generics
      */
-    public static function getAll(array $options = []): array
-    {
-        if (!empty($options['system'])) {
+    public static function getAll(array $options = []): array {
+        if ( ! empty($options['system'])) {
             $rows = self::queryPlayersSystem($options['system'])->fetchAll();
         } else {
             $rows = self::queryPlayers()->fetchAll();
@@ -52,15 +51,14 @@ class PlayerFactory implements FactoryInterface
      *
      * @return Fluent
      */
-    public static function queryPlayersSystem(string $system, array $gameIds = []): Fluent
-    {
+    public static function queryPlayersSystem(string $system, array $gameIds = []): Fluent {
         $q = DB::select(
             ["[{$system}_players]", "[g]"],
             "[g].[id_player], [g].[id_game], [g].[id_team], %s as [system], [g].[name], [g].[score], [g].[accuracy], [g].[hits], [g].[deaths], [g].[shots]",
-            $system
+            $system,
         )
             ->cacheTags('players', 'players/' . $system);
-        if (!empty($gameIds)) {
+        if ( ! empty($gameIds)) {
             $q->where("[g].[id_game] IN %in", $gameIds);
         }
         return $q;
@@ -74,8 +72,7 @@ class PlayerFactory implements FactoryInterface
      *
      * @return Fluent
      */
-    public static function queryPlayers(array $gameIds = [], array $fields = []): Fluent
-    {
+    public static function queryPlayers(array $gameIds = [], array $fields = []): Fluent {
         $query = DB::select();
         $queries = self::getPlayersUnionQueries($gameIds, $fields);
         $query->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]');
@@ -88,24 +85,23 @@ class PlayerFactory implements FactoryInterface
      *
      * @return string[]
      */
-    public static function getPlayersUnionQueries(array $gameIds = [], array $fields = []): array
-    {
+    public static function getPlayersUnionQueries(array $gameIds = [], array $fields = []): array {
         $queries = [];
         $defaultFields = [
-          'id_player',
-          'system',
-          'id_user',
-          'id_game',
-          'name',
-          'score',
-          'skill',
-          'accuracy',
-          'hits',
-          'deaths',
-          'shots',
+            'id_player',
+            'system',
+            'id_user',
+            'id_game',
+            'name',
+            'score',
+            'skill',
+            'accuracy',
+            'hits',
+            'deaths',
+            'shots',
         ];
 
-        $filterGameIds = !empty($gameIds) && array_any($gameIds, static fn(array $ids) => !empty($ids));
+        $filterGameIds = ! empty($gameIds) && array_any($gameIds, static fn (array $ids) => ! empty($ids));
 
         foreach (GameFactory::getSupportedSystems() as $key => $system) {
             if ($filterGameIds && empty($gameIds[$system])) {
@@ -114,7 +110,7 @@ class PlayerFactory implements FactoryInterface
             }
 
             $addFields = '';
-            if (!empty($fields)) {
+            if ( ! empty($fields)) {
                 foreach ($fields as $name => $field) {
                     // Prevent duplicate fields
                     if (in_array($name, $defaultFields, true) || in_array($field, $defaultFields, true)) {
@@ -132,9 +128,9 @@ class PlayerFactory implements FactoryInterface
             $q = DB::select(
                 ["[{$system}_players]", "[p$key]"],
                 "[p$key].[id_player], [p$key].[id_user], [p$key].[id_game], [p$key].[id_team], %s as [system], [p$key].[name], [p$key].[score], [p$key].[accuracy], [p$key].[hits], [p$key].[deaths], [p$key].[shots], [p$key].[skill]" . $addFields,
-                $system
+                $system,
             );
-            if (!empty($gameIds[$system])) {
+            if ( ! empty($gameIds[$system])) {
                 $q->where("[p$key].[id_game] IN %in", $gameIds[$system]);
             }
             $queries[] = (string) $q;
@@ -152,8 +148,7 @@ class PlayerFactory implements FactoryInterface
      * @throws Throwable
      * @phpstan-ignore missingType.generics
      */
-    public static function getById(int $id, array $options = []): ?Player
-    {
+    public static function getById(int $id, array $options = []): ?Player {
         $system = $options['system'] ?? '';
         if (empty($system)) {
             throw new InvalidArgumentException('System name is required.');
@@ -161,7 +156,7 @@ class PlayerFactory implements FactoryInterface
         Timer::startIncrementing('factory.player');
         try {
             $className = '\\App\\GameModels\\Game\\' . GameFactory::systemToNamespace($system) . '\\Player';
-            if (!class_exists($className)) {
+            if ( ! class_exists($className)) {
                 throw new InvalidArgumentException('Player model of does not exist: ' . $className);
             }
             $player = $className::get($id);
@@ -183,9 +178,8 @@ class PlayerFactory implements FactoryInterface
     public static function queryPlayersWithGames(
         array $gameFields = [],
         array $playerFields = [],
-        array $modeFields = []
-    ): Fluent
-    {
+        array $modeFields = [],
+    ): Fluent {
         $query = DB::select();
         $queries = self::getPlayersWithGamesUnionQueries($gameFields, $playerFields, $modeFields);
         $query->from('%sql', '((' . implode(') UNION ALL (', $queries) . ')) [t]');
@@ -202,26 +196,25 @@ class PlayerFactory implements FactoryInterface
     public static function getPlayersWithGamesUnionQueries(
         array $gameFields = [],
         array $playerFields = [],
-        array $modeFields = []
-    ): array
-    {
+        array $modeFields = [],
+    ): array {
         $defaultPlayerFields = [
-          'id_player',
-          'id_user',
-          'id_team',
-          'system',
-          'name',
-          'score',
-          'accuracy',
-          'skill',
-          'position',
+            'id_player',
+            'id_user',
+            'id_team',
+            'system',
+            'name',
+            'score',
+            'accuracy',
+            'skill',
+            'position',
         ];
         $defaultGameFields = ['id_game', 'system', 'code', 'start', 'end'];
         $defaultModeFields = ['id_mode', 'name'];
         $queries = [];
         foreach (GameFactory::getSupportedSystems() as $key => $system) {
             $addFields = '';
-            if (!empty($playerFields)) {
+            if ( ! empty($playerFields)) {
                 foreach ($playerFields as $name => $field) {
                     // Prevent duplicate fields
                     if (in_array($name, $defaultPlayerFields, true) || in_array($field, $defaultPlayerFields, true)) {
@@ -246,7 +239,7 @@ class PlayerFactory implements FactoryInterface
                     }
                 }
             }
-            if (!empty($gameFields)) {
+            if ( ! empty($gameFields)) {
                 foreach ($gameFields as $name => $field) {
                     // Prevent duplicate fields
                     if (in_array($name, $defaultGameFields, true) || in_array($field, $defaultGameFields, true)) {
@@ -271,7 +264,7 @@ class PlayerFactory implements FactoryInterface
                     }
                 }
             }
-            if (!empty($modeFields)) {
+            if ( ! empty($modeFields)) {
                 foreach ($modeFields as $name => $field) {
                     // Prevent duplicate fields
                     if (in_array($name, $defaultModeFields, true) || in_array($field, $defaultModeFields, true)) {
@@ -302,10 +295,10 @@ class PlayerFactory implements FactoryInterface
                 "[g$key].[id_game], [g$key].[code], [g$key].[start], [g$key].[end], " .
                 "[m$key].[id_mode], [m$key].[name] as [modeName]" .
                 $addFields,
-                $system
+                $system,
             )
-                   ->join("[{$system}_games]", "[g$key]")->on("[p$key].[id_game] = [g$key].[id_game]")
-                   ->leftJoin("[game_modes]", "[m$key]")->on("[g$key].[id_mode] = [m$key].[id_mode]");
+                ->join("[{$system}_games]", "[g$key]")->on("[p$key].[id_game] = [g$key].[id_game]")
+                ->leftJoin("[game_modes]", "[m$key]")->on("[g$key].[id_mode] = [m$key].[id_mode]");
             $queries[] = (string) $q;
         }
         return $queries;

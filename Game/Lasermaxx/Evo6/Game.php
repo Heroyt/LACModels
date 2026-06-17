@@ -25,8 +25,8 @@ use Lsr\Orm\Attributes\PrimaryKey;
  * @implements Evo6GameInterface<Team, Player, GameMeta>
  */
 #[
-  PrimaryKey('id_game'),
-  Factory(GameFactory::class, ['system' => 'evo6']) // @phpstan-ignore argument.type
+    PrimaryKey('id_game'),
+    Factory(GameFactory::class, ['system' => 'evo6']) // @phpstan-ignore argument.type
 ]
 class Game extends \App\GameModels\Game\Lasermaxx\Game implements Evo6GameInterface
 {

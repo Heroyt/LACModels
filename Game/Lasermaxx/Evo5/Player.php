@@ -23,8 +23,8 @@ use Lsr\Orm\Attributes\Relations\ManyToOne;
  * @implements Evo5PlayerInterface<Game, Team, \App\Models\Auth\Player>
  */
 #[
-  PrimaryKey('id_player'),
-  Factory(PlayerFactory::class, ['system' => 'evo5']) // @phpstan-ignore argument.type
+    PrimaryKey('id_player'),
+    Factory(PlayerFactory::class, ['system' => 'evo5']) // @phpstan-ignore argument.type
 ]
 class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo5PlayerInterface
 {
@@ -37,13 +37,11 @@ class Player extends \App\GameModels\Game\Lasermaxx\Player implements Evo5Player
     #[ManyToOne(foreignKey: 'id_team', class: Team::class)]
     public ?TeamInterface $team = null;
 
-    public function getMines(): int
-    {
+    public function getMines(): int {
         return $this->bonus->getSum();
     }
 
-    public function getBonusCount(): int
-    {
+    public function getBonusCount(): int {
         return $this->bonus->getSum();
     }
 }

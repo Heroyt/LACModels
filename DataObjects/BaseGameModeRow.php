@@ -13,7 +13,6 @@ readonly class BaseGameModeRow
         public string       $name = '',
         public ?string      $systems = null,
         public GameModeType $type = GameModeType::TEAM,
-    )
-    {
+    ) {
     }
 }

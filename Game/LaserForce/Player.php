@@ -59,8 +59,8 @@ class Player extends \App\GameModels\Game\Player
     /** @var array{hits:TargetHit[],destroyed:TargetHit[]} */
     #[NoDB]
     public array $targetHits = [
-      'hits'      => [],
-      'destroyed' => [],
+        'hits'      => [],
+        'destroyed' => [],
     ];
 
     #[Instantiate]
@@ -73,14 +73,13 @@ class Player extends \App\GameModels\Game\Player
      *
      * @return $this
      */
-    public function addEvent(Event $event): static
-    {
-        if (!isset($this->events[$event->time])) {
+    public function addEvent(Event $event): static {
+        if ( ! isset($this->events[$event->time])) {
             $this->events[$event->time] = $event;
         } else {
             for ($i = 0; $i < 5; $i++) {
                 $key = $event->time . '-' . $i;
-                if (!isset($this->events[$key])) {
+                if ( ! isset($this->events[$key])) {
                     $this->events[$key] = $event;
                     return $this;
                 }
@@ -89,8 +88,7 @@ class Player extends \App\GameModels\Game\Player
         return $this;
     }
 
-    public function saveHits(): bool
-    {
+    public function saveHits(): bool {
         // Save player hits
         $success = parent::saveHits();
 
@@ -118,8 +116,7 @@ class Player extends \App\GameModels\Game\Player
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function getTargetHits(): array
-    {
+    public function getTargetHits(): array {
         if (empty($this->targetHits['hits']) && empty($this->targetHits['destroyed'])) {
             $this->loadTargetHits();
         }
@@ -132,8 +129,7 @@ class Player extends \App\GameModels\Game\Player
      * @throws ValidationException
      * @throws DirectoryCreationException
      */
-    public function loadTargetHits(): array
-    {
+    public function loadTargetHits(): array {
         $hits = DB::select(TargetHit::TABLE, 'id_target, count, type')->where('id_player = %i', $this->id)->fetchAll();
         foreach ($hits as $row) {
             if ($row->type === TargetHitType::HIT->value) {
@@ -151,8 +147,7 @@ class Player extends \App\GameModels\Game\Player
      *
      * @return $this
      */
-    public function addTargetHits(Target $target, int $count = 1): static
-    {
+    public function addTargetHits(Target $target, int $count = 1): static {
         if (isset($this->targetHits['hits'][$target->identifier])) {
             $this->targetHits['hits'][$target->identifier]->count += $count;
             return $this;
@@ -167,8 +162,7 @@ class Player extends \App\GameModels\Game\Player
      *
      * @return $this
      */
-    public function addTargetDestroyed(Target $target, int $count = 1): static
-    {
+    public function addTargetDestroyed(Target $target, int $count = 1): static {
         if (isset($this->targetHits['destroyed'][$target->identifier])) {
             $this->targetHits['destroyed'][$target->identifier]->count += $count;
             return $this;
@@ -177,13 +171,12 @@ class Player extends \App\GameModels\Game\Player
             $this,
             $target,
             $count,
-            TargetHitType::DESTROYED
+            TargetHitType::DESTROYED,
         );
         return $this;
     }
 
-    public function getExpectedAverageTeammateHitCount(): float
-    {
+    public function getExpectedAverageTeammateHitCount(): float {
         return 50.0;
     }
 }

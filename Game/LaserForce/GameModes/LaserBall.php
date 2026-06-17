@@ -8,9 +8,6 @@ use App\GameModels\Game\LaserForce\Event;
 use App\GameModels\Game\LaserForce\Interfaces\CustomEventsInterface;
 use App\GameModels\Game\LaserForce\Player;
 
-/**
- *
- */
 class LaserBall extends TeamDeathmatch implements CustomEventsInterface
 {
     public string $name = 'Laser ball';
@@ -29,13 +26,12 @@ class LaserBall extends TeamDeathmatch implements CustomEventsInterface
      * @return void
      * @throws ResultsParseException
      */
-    public function processEvent(Event $event): void
-    {
+    public function processEvent(Event $event): void {
         switch ($event->type) {
             case EventType::MODE_ACTION_1:
-                if (!isset($event->actor2) || !($event->actor2 instanceof Player)) {
+                if ( ! isset($event->actor2) || ! ($event->actor2 instanceof Player)) {
                     throw new ResultsParseException(
-                        'LaserBall pass event must have both actors - event time: ' . $event->time
+                        'LaserBall pass event must have both actors - event time: ' . $event->time,
                     );
                 }
                 $event->actor1->shots++;
@@ -47,9 +43,9 @@ class LaserBall extends TeamDeathmatch implements CustomEventsInterface
                 $event->actor1->laserBall->goals++;
                 break;
             case EventType::MODE_ACTION_4:
-                if (!isset($event->actor2) || !($event->actor2 instanceof Player)) {
+                if ( ! isset($event->actor2) || ! ($event->actor2 instanceof Player)) {
                     throw new ResultsParseException(
-                        'LaserBall steal event must have both actors - event time: ' . $event->time
+                        'LaserBall steal event must have both actors - event time: ' . $event->time,
                     );
                 }
                 $event->actor1->shots++;
@@ -62,7 +58,7 @@ class LaserBall extends TeamDeathmatch implements CustomEventsInterface
                 $event->actor1->addHits($event->actor2);
                 break;
             case EventType::MODE_ACTION_5:
-                if (!isset($event->actor2)) {
+                if ( ! isset($event->actor2)) {
                     throw new ResultsParseException('Hit event must have both actors - event time: ' . $event->time);
                 }
                 if ($event->actor2 instanceof Player) {
@@ -84,9 +80,9 @@ class LaserBall extends TeamDeathmatch implements CustomEventsInterface
                 $event->actor1->laserBall->ballGot++;
                 break;
             case EventType::MODE_ACTION_10:
-                if (!isset($event->actor2) || !($event->actor2 instanceof Player)) {
+                if ( ! isset($event->actor2) || ! ($event->actor2 instanceof Player)) {
                     throw new ResultsParseException(
-                        'LaserBall clear event must have both actors - event time: ' . $event->time
+                        'LaserBall clear event must have both actors - event time: ' . $event->time,
                     );
                 }
                 $event->actor1->shots++;

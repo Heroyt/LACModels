@@ -17,8 +17,7 @@ use Lsr\Orm\Attributes\PrimaryKey;
 #[Factory(GameModeFactory::class)] // @phpstan-ignore-line
 class TeamSurvival extends \App\GameModels\Game\Lasermaxx\GameModes\TeamSurvival
 {
-    public function getSoloAlternative(): string
-    {
+    public function getSoloAlternative(): string {
         return Survival::class;
     }
 }

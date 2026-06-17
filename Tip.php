@@ -28,8 +28,7 @@ class Tip extends BaseModel
      * @return string[]
      * @throws ValidationException
      */
-    public static function shuffledFormatted(): array
-    {
+    public static function shuffledFormatted(): array {
         $formatted = [];
         foreach (self::shuffled() as $tip) {
             $formatted[] = sprintf(lang('Tip #%d', domain: 'tips'), $tip->id) . ': ' . $tip->translate();
@@ -43,13 +42,11 @@ class Tip extends BaseModel
      * @return Tip[]
      * @throws ValidationException
      */
-    public static function shuffled(): array
-    {
+    public static function shuffled(): array {
         return self::query()->orderBy('RAND()')->get();
     }
 
-    public function translate(?string $lang = null): string
-    {
+    public function translate(?string $lang = null): string {
         if ($lang === null) {
             $lang = App::getInstance()->translations->getLang();
         }
@@ -59,9 +56,8 @@ class Tip extends BaseModel
     /**
      * @return array<string,string>
      */
-    public function getTranslations(): array
-    {
-        if (!isset($this->translationsParsed)) {
+    public function getTranslations(): array {
+        if ( ! isset($this->translationsParsed)) {
             if ($this->translations !== null) {
                 $translations = $this->unserializeTranslations($this->translations);
                 $this->translationsParsed = $translations === false ? [] : $translations;
@@ -77,35 +73,30 @@ class Tip extends BaseModel
      *
      * @return Tip|null
      */
-    public static function random(): ?Tip
-    {
+    public static function random(): ?Tip {
         return self::query()->orderBy('RAND()')->first();
     }
 
-    public function getQueryData(bool $filterChanged = true): array
-    {
+    public function getQueryData(bool $filterChanged = true): array {
         $data = parent::getQueryData($filterChanged);
         $data['translations'] = igbinary_serialize($this->getTranslations());
         return $data;
     }
 
-    public function setTranslation(string $lang, string $text): Tip
-    {
+    public function setTranslation(string $lang, string $text): Tip {
         $this->getTranslations();
         $this->translationsParsed[$lang] = $text;
         return $this;
     }
 
-    public function transformTranslationsForSave(?string $translations): ?string
-    {
+    public function transformTranslationsForSave(?string $translations): ?string {
         if ($translations === null) {
             return null;
         }
         return base64_encode($translations);
     }
 
-    public function transformTranslationsForLoad(?string $translations): ?string
-    {
+    public function transformTranslationsForLoad(?string $translations): ?string {
         if ($translations === null) {
             return null;
         }
@@ -122,8 +113,7 @@ class Tip extends BaseModel
     /**
      * @return array<string,string>|false
      */
-    private function unserializeTranslations(string $translations): array|false
-    {
+    private function unserializeTranslations(string $translations): array|false {
         $decoded = base64_decode($translations, true);
         if ($decoded !== false && $this->canUnserializeTranslations($decoded)) {
             return igbinary_unserialize($decoded);
@@ -131,17 +121,15 @@ class Tip extends BaseModel
         return igbinary_unserialize($translations);
     }
 
-    private function canUnserializeTranslations(string $value): bool
-    {
+    private function canUnserializeTranslations(string $value): bool {
         $unserialized = @igbinary_unserialize($value);
-        return !(
+        return ! (
             ($unserialized === false && $value !== igbinary_serialize(false)) ||
             ($unserialized === null && $value !== igbinary_serialize(null))
         );
     }
 
-    public function jsonSerialize(): array
-    {
+    public function jsonSerialize(): array {
         $data = parent::jsonSerialize();
         $data['translations'] = $this->getTranslations();
         return $data;

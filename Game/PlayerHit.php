@@ -32,21 +32,19 @@ class PlayerHit implements PlayerHitInterface
     public function __construct(
         public PlayerInterface $playerShot,
         public PlayerInterface $playerTarget,
-        public int             $count = 0
-    )
-    {
+        public int             $count = 0,
+    ) {
     }
 
     /**
      * @return bool
      */
-    public function save(): bool
-    {
+    public function save(): bool {
         Timer::start('player.hits.check');
         $test = DB::select($this::TABLE, '*')->where(
             '[id_player] = %i AND [id_target] = %i',
             $this->playerShot->id,
-            $this->playerTarget->id
+            $this->playerTarget->id,
         )->fetch();
         Timer::stop('player.hits.check');
         $data = $this->getQueryData();
@@ -56,7 +54,7 @@ class PlayerHit implements PlayerHitInterface
                 DB::update(
                     $this::TABLE,
                     $data,
-                    ['[id_player] = %i AND [id_target] = %i', $this->playerShot->id, $this->playerTarget->id]
+                    ['[id_player] = %i AND [id_target] = %i', $this->playerShot->id, $this->playerTarget->id],
                 );
             } else {
                 DB::insert($this::TABLE, $data);
@@ -72,12 +70,11 @@ class PlayerHit implements PlayerHitInterface
      * @return array{id_player:int|null,id_target:int|null,count:int|null}
      * @noinspection PhpArrayShapeAttributeCanBeAddedInspection
      */
-    public function getQueryData(): array
-    {
+    public function getQueryData(): array {
         return [
-          'id_player' => $this->playerShot->id,
-          'id_target' => $this->playerTarget->id,
-          'count'     => $this->count,
+            'id_player' => $this->playerShot->id,
+            'id_target' => $this->playerTarget->id,
+            'count'     => $this->count,
         ];
     }
 
@@ -90,14 +87,13 @@ class PlayerHit implements PlayerHitInterface
      * @since        5.4.0
      * @noinspection PhpArrayShapeAttributeCanBeAddedInspection
      */
-    public function jsonSerialize(): array
-    {
+    public function jsonSerialize(): array {
         return [
-          'shot'       => $this->playerShot->id,
-          'shotVest'   => $this->playerShot->vest,
-          'target'     => $this->playerTarget->id,
-          'targetVest' => $this->playerTarget->vest,
-          'count'      => $this->count,
+            'shot'       => $this->playerShot->id,
+            'shotVest'   => $this->playerShot->vest,
+            'target'     => $this->playerTarget->id,
+            'targetVest' => $this->playerTarget->vest,
+            'count'      => $this->count,
         ];
     }
 }

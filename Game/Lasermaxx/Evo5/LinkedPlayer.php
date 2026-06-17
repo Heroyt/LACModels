@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\GameModels\Game\Lasermaxx\Evo5;
@@ -15,7 +16,6 @@ use Lsr\Lg\Results\LaserMaxx\Evo5\BonusCounts;
  */
 class LinkedPlayer extends Player implements LinkedPlayerInterface
 {
-
     /** @use BaseLinkedPlayerProperties<Player, Team, Game> */
     use BaseLinkedPlayerProperties;
 
@@ -59,7 +59,7 @@ class LinkedPlayer extends Player implements LinkedPlayerInterface
 
     public int $accuracy {
         get {
-            if (!isset($this->accuracy)) {
+            if ( ! isset($this->accuracy)) {
                 // Re-calculate accuracy from shots and hits
                 $this->accuracy = (int)round(100 * $this->hits / $this->shots);
             }
@@ -264,7 +264,7 @@ class LinkedPlayer extends Player implements LinkedPlayerInterface
 
     public BonusCounts $bonus {
         get {
-            if (!isset($this->bonus)) {
+            if ( ! isset($this->bonus)) {
                 $this->bonus = new BonusCounts();
                 foreach ($this->players as $player) {
                     $this->bonus->agent += $player->bonus->agent;
@@ -280,13 +280,11 @@ class LinkedPlayer extends Player implements LinkedPlayerInterface
         }
     }
 
-    public function getMines(): int
-    {
+    public function getMines(): int {
         return $this->bonus->getSum();
     }
 
-    public function getBonusCount(): int
-    {
+    public function getBonusCount(): int {
         return $this->bonus->getSum();
     }
 

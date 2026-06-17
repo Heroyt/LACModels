@@ -29,9 +29,8 @@ trait WithTargets
     #[Instantiate]
     public TargetCollection $targets;
 
-    public function addTarget(Target ...$targets): static
-    {
-        if (!isset($this->targets)) {
+    public function addTarget(Target ...$targets): static {
+        if ( ! isset($this->targets)) {
             $this->targets = new TargetCollection();
         }
         $this->targets->add(...$targets);
@@ -47,16 +46,15 @@ trait WithTargets
      * @return bool
      * @throws ValidationException
      */
-    public function saveTargets(): bool
-    {
-        if (!isset($this->targets)) {
+    public function saveTargets(): bool {
+        if ( ! isset($this->targets)) {
             return true;
         }
         Timer::start('game.save.targets');
         /** @var Target $target */
         // Save targets first
         foreach ($this->targets as $target) {
-            if (!$target->save()) {
+            if ( ! $target->save()) {
                 Timer::stop('game.save.targets');
                 return false;
             }
@@ -68,9 +66,8 @@ trait WithTargets
     /**
      * @return int
      */
-    public function getTargetCount(): int
-    {
-        if (!isset($this->targetCount) || $this->targetCount < 1) {
+    public function getTargetCount(): int {
+        if ( ! isset($this->targetCount) || $this->targetCount < 1) {
             $this->targetCount = $this->getTargets()->count();
         }
         return $this->targetCount;
@@ -79,12 +76,11 @@ trait WithTargets
     /**
      * @return TargetCollection
      */
-    public function getTargets(): TargetCollection
-    {
-        if (!isset($this->targets)) {
+    public function getTargets(): TargetCollection {
+        if ( ! isset($this->targets)) {
             $this->targets = new TargetCollection();
         }
-        if (!empty($this->id) && $this->targets->count() === 0) {
+        if ( ! empty($this->id) && $this->targets->count() === 0) {
             try {
                 $this->loadTargets();
             } catch (Throwable $e) {
@@ -101,23 +97,22 @@ trait WithTargets
      * @throws ValidationException
      * @throws Throwable
      */
-    public function loadTargets(): TargetCollection
-    {
-        if (!isset($this->targets)) {
+    public function loadTargets(): TargetCollection {
+        if ( ! isset($this->targets)) {
             $this->targets = new TargetCollection();
         }
         $primaryKey = Target::getPrimaryKey();
         $gameId = $this instanceof Game ? $this->id : $this->game->id;
         $date = $this instanceof Game ? $this->start?->format('Y-m-d') : $this->game->start?->format('Y-m-d');
         $query = DB::select(Target::TABLE, '*')
-          ->where('%n = %i', $this::getPrimaryKey(), $this->id)
-          ->cacheTags(
-              'games/' . $this::SYSTEM . '/' . $gameId,
-              'games/' . $this::SYSTEM . '/' . $gameId . '/targets',
-              'games/' . $date,
-              'targets',
-              'targets/' . $this::SYSTEM
-          );
+            ->where('%n = %i', $this::getPrimaryKey(), $this->id)
+            ->cacheTags(
+                'games/' . $this::SYSTEM . '/' . $gameId,
+                'games/' . $this::SYSTEM . '/' . $gameId . '/targets',
+                'games/' . $date,
+                'targets',
+                'targets/' . $this::SYSTEM,
+            );
         if ($this instanceof Team) {
             $query->cacheTags('teams/' . $this::SYSTEM . '/' . $this->id, 'teams/' . $this::SYSTEM . '/' . $this->id . '/targets');
         }

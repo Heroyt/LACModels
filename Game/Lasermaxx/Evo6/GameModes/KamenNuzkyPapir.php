@@ -9,8 +9,8 @@ use Lsr\Orm\Attributes\Factory;
 use Lsr\Orm\Attributes\PrimaryKey;
 
 #[
-  PrimaryKey('id_mode'),
-  Factory(GameModeFactory::class) // @phpstan-ignore argument.type
+    PrimaryKey('id_mode'),
+    Factory(GameModeFactory::class) // @phpstan-ignore argument.type
 ]
 class KamenNuzkyPapir extends TeamDeathmatch
 {

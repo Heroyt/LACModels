@@ -40,11 +40,10 @@ class Event extends BaseModel
      * @return void
      * @throws ResultsParseException
      */
-    public function process(): void
-    {
+    public function process(): void {
         switch ($this->type) {
             case EventType::HIT:
-                if (!isset($this->actor2)) {
+                if ( ! isset($this->actor2)) {
                     throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
                 }
                 if ($this->actor2 instanceof Player) {
@@ -60,7 +59,7 @@ class Event extends BaseModel
                 }
                 break;
             case EventType::HIT_OWN:
-                if (!isset($this->actor2)) {
+                if ( ! isset($this->actor2)) {
                     throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
                 }
                 if ($this->actor2 instanceof Player) {
@@ -73,7 +72,7 @@ class Event extends BaseModel
                 }
                 break;
             case EventType::TARGET_HIT:
-                if (!isset($this->actor2)) {
+                if ( ! isset($this->actor2)) {
                     throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
                 }
                 if ($this->actor2 instanceof Target) {
@@ -84,7 +83,7 @@ class Event extends BaseModel
                 break;
             case EventType::TARGET_ROCKET_DESTROYED:
             case EventType::TARGET_DESTROYED:
-                if (!isset($this->actor2)) {
+                if ( ! isset($this->actor2)) {
                     throw new ResultsParseException('Hit event must have both actors - event time: ' . $this->time);
                 }
                 if ($this->actor2 instanceof Target) {
@@ -101,7 +100,7 @@ class Event extends BaseModel
                 $this->actor1->rocketMissCount++;
                 break;
             case EventType::ROCKET:
-                if (!isset($this->actor2)) {
+                if ( ! isset($this->actor2)) {
                     throw new ResultsParseException('Rocket event must have both actors - event time: ' . $this->time);
                 }
                 $this->actor1->rocketCount++;
@@ -149,7 +148,7 @@ class Event extends BaseModel
                 $this->actor1->powers->shield++;
                 break;
             case EventType::ADD_LIVES:
-                if (!isset($this->actor2) || !($this->actor2 instanceof Player)) {
+                if ( ! isset($this->actor2) || ! ($this->actor2 instanceof Player)) {
                     throw new ResultsParseException('Add lives event must have both actors - event time: ' . $this->time);
                 }
                 $this->actor1->addedLives++;
@@ -159,7 +158,7 @@ class Event extends BaseModel
                 $this->actor1->addedTeamLives++;
                 break;
             case EventType::ADD_AMMO:
-                if (!isset($this->actor2) || !($this->actor2 instanceof Player)) {
+                if ( ! isset($this->actor2) || ! ($this->actor2 instanceof Player)) {
                     throw new ResultsParseException('Add ammo event must have both actors - event time: ' . $this->time);
                 }
                 $this->actor1->addedAmmo++;
@@ -178,8 +177,8 @@ class Event extends BaseModel
             case EventType::MODE_ACTION_8:
             case EventType::MODE_ACTION_9:
             case EventType::MODE_ACTION_10:
-            if ($this->game->mode instanceof CustomEventsInterface) {
-                $this->game->mode->processEvent($this);
+                if ($this->game->mode instanceof CustomEventsInterface) {
+                    $this->game->mode->processEvent($this);
                 }
                 break;
             case EventType::BEACON:
