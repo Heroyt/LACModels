@@ -126,12 +126,12 @@ class PlayerFactory implements FactoryInterface
                 }
             }
             $q = DB::select(
-                ["[{$system}_players]", "[p$key]"],
-                "[p$key].[id_player], [p$key].[id_user], [p$key].[id_game], [p$key].[id_team], %s as [system], [p$key].[name], [p$key].[score], [p$key].[accuracy], [p$key].[hits], [p$key].[deaths], [p$key].[shots], [p$key].[skill]" . $addFields,
+                ["[{$system}_players]", "[p{$key}]"],
+                "[p{$key}].[id_player], [p{$key}].[id_user], [p{$key}].[id_game], [p{$key}].[id_team], %s as [system], [p{$key}].[name], [p{$key}].[score], [p{$key}].[accuracy], [p{$key}].[hits], [p{$key}].[deaths], [p{$key}].[shots], [p{$key}].[skill]" . $addFields,
                 $system,
             );
             if ( ! empty($gameIds[$system])) {
-                $q->where("[p$key].[id_game] IN %in", $gameIds[$system]);
+                $q->where("[p{$key}].[id_game] IN %in", $gameIds[$system]);
             }
             $queries[] = (string) $q;
         }
@@ -290,15 +290,15 @@ class PlayerFactory implements FactoryInterface
                 }
             }
             $q = DB::select(
-                ["[{$system}_players]", "[p$key]"],
-                "[p$key].[id_player], [p$key].[id_user], [p$key].[id_team], %s as [system], [p$key].[name], [p$key].[score], [p$key].[accuracy], [p$key].[skill], [p$key].[position], " .
-                "[g$key].[id_game], [g$key].[code], [g$key].[start], [g$key].[end], " .
-                "[m$key].[id_mode], [m$key].[name] as [modeName]" .
+                ["[{$system}_players]", "[p{$key}]"],
+                "[p{$key}].[id_player], [p{$key}].[id_user], [p{$key}].[id_team], %s as [system], [p{$key}].[name], [p{$key}].[score], [p{$key}].[accuracy], [p{$key}].[skill], [p{$key}].[position], " .
+                "[g{$key}].[id_game], [g{$key}].[code], [g{$key}].[start], [g{$key}].[end], " .
+                "[m{$key}].[id_mode], [m{$key}].[name] as [modeName]" .
                 $addFields,
                 $system,
             )
-                ->join("[{$system}_games]", "[g$key]")->on("[p$key].[id_game] = [g$key].[id_game]")
-                ->leftJoin("[game_modes]", "[m$key]")->on("[g$key].[id_mode] = [m$key].[id_mode]");
+                ->join("[{$system}_games]", "[g{$key}]")->on("[p{$key}].[id_game] = [g{$key}].[id_game]")
+                ->leftJoin("[game_modes]", "[m{$key}]")->on("[g{$key}].[id_mode] = [m{$key}].[id_mode]");
             $queries[] = (string) $q;
         }
         return $queries;

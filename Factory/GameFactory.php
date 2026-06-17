@@ -101,15 +101,15 @@ class GameFactory implements FactoryInterface
                 }
             }
             $q = DB::select(
-                ["[{$system}_games]", "[g$key]"],
-                "[g$key].[id_game], %s as [system], [g$key].[code], [g$key].[start], [g$key].[end]" . $addFields,
+                ["[{$system}_games]", "[g{$key}]"],
+                "[g{$key}].[id_game], %s as [system], [g{$key}].[code], [g{$key}].[start], [g{$key}].[end]" . $addFields,
                 $system,
             );
             if ($excludeNotFinished) {
-                $q->where("[g$key].[end] IS NOT NULL");
+                $q->where("[g{$key}].[end] IS NOT NULL");
             }
             if (isset($date)) {
-                $q->where("DATE([g$key].[start]) = %d", $date);
+                $q->where("DATE([g{$key}].[start]) = %d", $date);
             }
             $queries[] = (string) $q;
         }
@@ -341,9 +341,9 @@ class GameFactory implements FactoryInterface
         $query = DB::select(null, '[date], count(*) as [count]');
         $queries = [];
         foreach (self::getSupportedSystems() as $key => $system) {
-            $q = DB::select(["[{$system}_games]", "[g$key]"], "[g$key].[code], DATE([g$key].[start]) as [date]");
+            $q = DB::select(["[{$system}_games]", "[g{$key}]"], "[g{$key}].[code], DATE([g{$key}].[start]) as [date]");
             if ($excludeNotFinished) {
-                $q->where("[g$key].[end] IS NOT NULL");
+                $q->where("[g{$key}].[end] IS NOT NULL");
             }
             $queries[] = (string) $q;
         }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\GameModels\Game;
 
+use ReflectionProperty;
+
 /**
  * @template P of Player
  * @template T of Team
@@ -132,7 +134,7 @@ trait BaseLinkedPlayerProperties
     }
 
     protected function firstWithMemo(string $property): mixed {
-        $reflection = new \ReflectionProperty($this, $property);
+        $reflection = new ReflectionProperty($this, $property);
         if ( ! $reflection->isInitialized($this) || $reflection->isVirtual()) {
             $reflection->setRawValue($this, $this->players[0]->$property ?? null);
         }
@@ -145,7 +147,7 @@ trait BaseLinkedPlayerProperties
     }
 
     protected function sumWithMemo(string $property): int {
-        $reflection = new \ReflectionProperty($this, $property);
+        $reflection = new ReflectionProperty($this, $property);
         if ( ! $reflection->isInitialized($this) || $reflection->isVirtual()) {
             $reflection->setRawValue($this, $this->getSum($property));
         }
@@ -165,7 +167,7 @@ trait BaseLinkedPlayerProperties
     }
 
     protected function averageWithMemo(string $property): float {
-        $reflection = new \ReflectionProperty($this, $property);
+        $reflection = new ReflectionProperty($this, $property);
         if ( ! $reflection->isInitialized($this) || $reflection->isVirtual()) {
             $reflection->setRawValue($this, $this->getAverage($property));
         }

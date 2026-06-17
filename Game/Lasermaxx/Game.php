@@ -4,6 +4,7 @@ namespace App\GameModels\Game\Lasermaxx;
 
 use App\GameModels\Game\GameModes\AbstractMode;
 use App\GameModels\Game\Player as BasePlayer;
+use DateTimeInterface;
 use Lsr\Lg\Results\LaserMaxx\LaserMaxxGameInterface;
 use Lsr\Lg\Results\LaserMaxx\VipSettings;
 use Lsr\Lg\Results\LaserMaxx\ZombieSettings;
@@ -53,9 +54,9 @@ abstract class Game extends \App\GameModels\Game\Game implements LaserMaxxGameIn
     protected bool $minesOn;
 
     #[NoDB]
-    public ?\DateTimeInterface $playEnd = null;
+    public ?DateTimeInterface $playEnd = null;
     #[NoDB]
-    public ?\DateTimeInterface $realEnd = null;
+    public ?DateTimeInterface $realEnd = null;
 
     /**
      * @return string[]

@@ -84,12 +84,12 @@ class TeamFactory implements FactoryInterface
             }
 
             $q = DB::select(
-                ["[{$system}_teams]", "[g$key]"],
-                "[g$key].[id_team], [g$key].[id_game], [g$key].[color], %s as [system], [g$key].[name], [g$key].[score]",
+                ["[{$system}_teams]", "[g{$key}]"],
+                "[g{$key}].[id_team], [g{$key}].[id_game], [g{$key}].[color], %s as [system], [g{$key}].[name], [g{$key}].[score]",
                 $system,
             );
             if ( ! empty($gameIds[$system])) {
-                $q->where("[g$key].[id_game] IN %in", $gameIds[$system]);
+                $q->where("[g{$key}].[id_game] IN %in", $gameIds[$system]);
             }
             $queries[] = (string) $q;
         }
