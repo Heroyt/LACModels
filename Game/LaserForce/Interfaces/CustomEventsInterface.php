@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\GameModels\Game\LaserForce\Interfaces;
 
 use App\GameModels\Game\LaserForce\Event;

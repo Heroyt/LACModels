@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\GameModels\Game\GameModes;
 
 use App\Tools\GameLoading\LasermaxxGameLoader;

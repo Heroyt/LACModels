@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\GameModels\Game\Lasermaxx\Evo5\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;

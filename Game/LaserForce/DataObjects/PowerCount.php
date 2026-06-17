@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\GameModels\Game\LaserForce\DataObjects;
 
 use Dibi\Row;

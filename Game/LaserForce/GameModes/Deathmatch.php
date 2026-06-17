@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\GameModels\Game\LaserForce\GameModes;
 
 use App\GameModels\Factory\GameModeFactory;

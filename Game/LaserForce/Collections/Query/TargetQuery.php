@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\GameModels\Game\LaserForce\Collections\Query;
 
 use App\GameModels\Game\LaserForce\Target;
